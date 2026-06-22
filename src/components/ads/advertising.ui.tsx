@@ -1,10 +1,13 @@
-import React from "react";
 import { Box } from "@chakra-ui/react";
-import { nanoid } from "nanoid";
 import YektanetAd from "@/components/ads/YektanetAd";
 
+interface AdvertisingUiProps {
+  AdvertisingId: string;
+  isShow: boolean;
+  height?: number;
+}
 
-const AdvertisingUi = ({ AdvertisingId, isShow, height = 140 }) => {
+const AdvertisingUi = ({ AdvertisingId, isShow, height = 140 }: AdvertisingUiProps) => {
   return (
     <Box
       display={!isShow ? "none" : "auto"}

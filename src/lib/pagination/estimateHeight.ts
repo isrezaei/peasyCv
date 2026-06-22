@@ -98,7 +98,8 @@ export function estimateExperienceItemHeight(item: ExperienceItem, m: LayoutMetr
     (item.projectLink ? m.lineMm(EM_BODY) : 0) +
     multilineMm(m, EM_BODY, item.projectDescription) + // project description (always rendered)
     responsibilitiesMm +
-    pxToMm(CONTROL_BUTTON_PX) + // "add responsibility" button (on screen)
+    // Responsibilities are a keyboard-driven list (Enter adds, Backspace removes),
+    // so there is no longer an "add responsibility" button taking vertical space.
     pxToMm(16); // accumulated 0.5-unit field gaps + safety
 
   // Date column: start + end DateField (each a single-line trigger, same height

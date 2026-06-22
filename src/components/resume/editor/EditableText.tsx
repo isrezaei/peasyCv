@@ -2,6 +2,7 @@
 
 import { chakra } from "@chakra-ui/react";
 import { memo, useCallback, type CSSProperties } from "react";
+import { useDeferredCommit } from "@/hooks/resume/useDeferredCommit";
 import { RichTextField } from "./RichTextField";
 
 /**
@@ -63,16 +64,21 @@ const SingleLineField = memo(function SingleLineField({
   color,
   textTransform,
 }: FieldProps) {
+  // Keystrokes stay local and responsive; the global store commit is deferred
+  // (debounced + flushed on blur) so typing never triggers a per-character store
+  // update + pagination recompute.
+  const { value: liveValue, setValue, flush } = useDeferredCommit(value, onChange);
   const handleChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => onChange(event.target.value),
-    [onChange],
+    (event: React.ChangeEvent<HTMLInputElement>) => setValue(event.target.value),
+    [setValue],
   );
 
   return (
     <chakra.input
       {...baseFieldProps}
-      value={value}
+      value={liveValue}
       onChange={handleChange}
+      onBlur={flush}
       placeholder={placeholder}
       fontSize={toEm(fontSize)}
       fontWeight={fontWeight}

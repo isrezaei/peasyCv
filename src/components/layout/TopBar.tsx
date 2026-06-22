@@ -130,9 +130,13 @@ export function TopBar() {
           />
         </HStack>
 
-        {/* Left (save status + upgrade + avatar) */}
+        {/* Left (save status) — reflects the debounced-commit + persist lifecycle. */}
+        <HStack gap="3" flexShrink={0}>
+          <SaveStatusIndicator />
+        </HStack>
+
+        {/* Left (upgrade + avatar) */}
         {/*<HStack gap="3" flexShrink={0}>*/}
-        {/*  <SaveStatusIndicator />*/}
         {/*  <Button size="sm" colorPalette="accent" onClick={() => setAdOpen(true)}>*/}
         {/*    {t.app.upgrade}*/}
         {/*  </Button>*/}

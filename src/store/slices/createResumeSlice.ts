@@ -173,6 +173,26 @@ export const createResumeSlice: SliceCreator<ResumeSlice> = (set) => ({
       },
     })),
 
+  addResponsibilityAfter: (experienceId, afterId) => {
+    const newId = createId();
+    set((state) => ({
+      resume: {
+        ...state.resume,
+        experience: state.resume.experience.map((item) => {
+          if (item.id !== experienceId) return item;
+          const index = item.responsibilities.findIndex((r) => r.id === afterId);
+          const next = [...item.responsibilities];
+          // Insert right after the current line (or at the end if not found),
+          // preserving order; the rest shift down by one.
+          next.splice(index < 0 ? next.length : index + 1, 0, { id: newId, text: "" });
+          return { ...item, responsibilities: next };
+        }),
+        updatedAt: touch(),
+      },
+    }));
+    return newId;
+  },
+
   updateResponsibility: (experienceId, responsibilityId, text) =>
     set((state) => ({
       resume: {

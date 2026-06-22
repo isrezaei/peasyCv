@@ -14,6 +14,7 @@ export function useExperience() {
       updateExperience: state.updateExperience,
       removeExperience: state.removeExperience,
       addResponsibility: state.addResponsibility,
+      addResponsibilityAfter: state.addResponsibilityAfter,
       updateResponsibility: state.updateResponsibility,
       removeResponsibility: state.removeResponsibility,
     })),

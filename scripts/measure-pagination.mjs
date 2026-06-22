@@ -4,6 +4,8 @@
 // on http://localhost:3000:  node scripts/measure-pagination.mjs
 import { chromium } from "playwright-core";
 
+const BASE_URL = process.env.SMOKE_URL ?? "http://localhost:3000";
+
 const browser = await chromium.launch({
   executablePath: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
 });
@@ -195,7 +197,7 @@ async function measureOverflow(label) {
   return ok;
 }
 
-await page.goto("http://localhost:3000", { waitUntil: "load" });
+await page.goto(BASE_URL, { waitUntil: "load" });
 const worst = buildWorstCase();
 await page.evaluate((data) => localStorage.setItem("ai-res:resume", JSON.stringify(data)), worst);
 await page.reload({ waitUntil: "networkidle" });

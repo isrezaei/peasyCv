@@ -45,6 +45,9 @@ export interface ResumeSlice {
   ) => void;
   removeExperience: (id: ID) => void;
   addResponsibility: (experienceId: ID) => void;
+  /** Insert a new empty responsibility right after `afterId`; returns its id so
+   *  the caller (the list editor) can focus the new line. */
+  addResponsibilityAfter: (experienceId: ID, afterId: ID) => ID;
   updateResponsibility: (experienceId: ID, responsibilityId: ID, text: string) => void;
   removeResponsibility: (experienceId: ID, responsibilityId: ID) => void;
 
