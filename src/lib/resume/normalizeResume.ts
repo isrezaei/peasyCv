@@ -19,6 +19,13 @@ const VALID_TEMPLATES: TemplateId[] = [
   "professional-single-column",
   "double-column",
   "sidebar-column",
+  "aside-dark",
+  "aside-photo",
+  "timeline-panel",
+  "header-band",
+  "compact-duo",
+  "ruled-single",
+  "classic-centered",
 ];
 
 const sectionTitles: Record<RemovableSectionType, string> = {
@@ -105,12 +112,20 @@ function normalizeBackgroundIntensity(value: number | undefined, fallback: numbe
   return Math.min(BG_INTENSITY_MAX, Math.max(BG_INTENSITY_MIN, value));
 }
 
+// Coloured-column intensity multiplier. Kept inside the slider's range so a legacy
+// or out-of-bounds value can never render the column unreadably faint or harsh.
+const COLUMN_INTENSITY_MIN = 0.5;
+const COLUMN_INTENSITY_MAX = 1.5;
+function normalizeColumnIntensity(value: number | undefined, fallback: number): number {
+  if (typeof value !== "number" || Number.isNaN(value)) return fallback;
+  return Math.min(COLUMN_INTENSITY_MAX, Math.max(COLUMN_INTENSITY_MIN, value));
+}
+
 function normalizeTheme(theme: Partial<ThemeSettings> | undefined): ThemeSettings {
   const defaults = createDefaultTheme();
   if (!theme) return defaults;
   return {
     themeId: theme.themeId ?? defaults.themeId,
-    customColor: theme.customColor ?? null,
     pageBackground: theme.pageBackground ?? defaults.pageBackground,
     backgroundPattern: resolveBackgroundPattern(theme.backgroundPattern, defaults.backgroundPattern),
     backgroundIntensity: normalizeBackgroundIntensity(
@@ -123,6 +138,7 @@ function normalizeTheme(theme: Partial<ThemeSettings> | undefined): ThemeSetting
     lineHeight: theme.lineHeight ?? defaults.lineHeight,
     pageMargin: theme.pageMargin ?? defaults.pageMargin,
     sectionSpacing: theme.sectionSpacing ?? defaults.sectionSpacing,
+    columnIntensity: normalizeColumnIntensity(theme.columnIntensity, defaults.columnIntensity),
   };
 }
 

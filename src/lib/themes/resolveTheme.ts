@@ -64,6 +64,31 @@ export function darken(hex: string, ratio: number): string {
   return rgbToHex(r * (1 - ratio), g * (1 - ratio), b * (1 - ratio));
 }
 
+function clamp01(value: number): number {
+  return Math.max(0, Math.min(1, value));
+}
+
+/**
+ * A white-mixed tint scaled by a user intensity. `defaultWhiteMix` is the
+ * template's baseline white amount (intensity 1 reproduces it exactly); a higher
+ * intensity keeps more of the base colour (stronger), a lower one mixes in more
+ * white (lighter). Used by the coloured-column templates so the column tint is
+ * user-adjustable while defaulting to its original look.
+ */
+export function tintColor(hex: string, defaultWhiteMix: number, intensity: number): string {
+  const strength = (1 - defaultWhiteMix) * intensity;
+  return mixWithWhite(hex, clamp01(1 - strength));
+}
+
+/**
+ * A darkened shade scaled by a user intensity — the dark-aside counterpart of
+ * {@link tintColor}. `defaultDarken` is the baseline darkness (intensity 1 keeps
+ * it); higher intensity goes darker/stronger, lower intensity lighter.
+ */
+export function shadeColor(hex: string, defaultDarken: number, intensity: number): string {
+  return darken(hex, Math.max(0, Math.min(0.85, defaultDarken * intensity)));
+}
+
 /** Linear blend of two colours: `ratio` 0 → base, 1 → overlay. */
 function mix(base: string, overlay: string, ratio: number): string {
   const [r1, g1, b1] = hexToRgb(base);
@@ -94,23 +119,11 @@ export function deriveBodyText(accent: string): string {
 }
 
 /**
- * Single source of truth for the colors a template paints with. When the user
- * picks a custom color it overrides the preset; otherwise the preset is used.
+ * Single source of truth for the colors a template paints with: the selected
+ * preset's accent drives the whole family (heading → secondary → subtitle → body).
  */
 export function resolveTheme(theme: ThemeSettings): ResolvedTheme {
   const preset = getThemePreset(theme.themeId);
-
-  if (theme.customColor) {
-    return {
-      accent: theme.customColor,
-      secondary: deriveSecondary(theme.customColor),
-      subtitle: deriveSubtitle(theme.customColor),
-      bodyText: deriveBodyText(theme.customColor),
-      base: mixWithWhite(theme.customColor, 0.45),
-      soft: mixWithWhite(theme.customColor, 0.88),
-      contrastText: "#FFFFFF",
-    };
-  }
 
   return {
     accent: preset.accentDark,

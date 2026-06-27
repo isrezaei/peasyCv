@@ -13,15 +13,14 @@ import { SkillChipsEditor } from "./SkillChipsEditor";
 interface SkillGroupBlockProps {
   group: SkillGroup;
   direction: Direction;
-  accentColor: string;
-  softColor: string;
+  /** Light vs dark surrounding column — forwarded to the chips so they blend in. */
+  tone?: "onLight" | "onDark";
 }
 
 export const SkillGroupBlock = memo(function SkillGroupBlock({
   group,
   direction,
-  accentColor,
-  softColor,
+  tone = "onLight",
 }: SkillGroupBlockProps) {
   const { updateSkillGroup, removeSkillGroup } = useSkills();
 
@@ -41,7 +40,7 @@ export const SkillGroupBlock = memo(function SkillGroupBlock({
           placeholder={t.skills.groupNamePlaceholder}
           fontWeight="500"
           fontSize="xs"
-          color="#71717a"
+          color="currentColor"
         />
         <IconButton
           aria-label={t.skills.removeGroup}
@@ -52,12 +51,7 @@ export const SkillGroupBlock = memo(function SkillGroupBlock({
         </IconButton>
       </HStack>
       <VStack align="stretch" gap="0">
-        <SkillChipsEditor
-          groupId={group.id}
-          skills={group.skills}
-          accentColor={accentColor}
-          softColor={softColor}
-        />
+        <SkillChipsEditor groupId={group.id} skills={group.skills} tone={tone} />
       </VStack>
     </Box>
   );

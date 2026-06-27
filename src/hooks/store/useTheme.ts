@@ -6,7 +6,6 @@ export function useTheme() {
     useShallow((state) => ({
       theme: state.resume.theme,
       setThemeId: state.setThemeId,
-      setCustomColor: state.setCustomColor,
       setPageBackground: state.setPageBackground,
       setBackgroundPattern: state.setBackgroundPattern,
     })),

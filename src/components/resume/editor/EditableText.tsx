@@ -32,12 +32,21 @@ interface EditableTextProps {
   fontWeight?: string;
   color?: string;
   textTransform?: CSSProperties["textTransform"];
+  /** Horizontal alignment of the single-line field (e.g. the centered template). */
+  textAlign?: CSSProperties["textAlign"];
+  /**
+   * Size the single-line field to its content (intrinsic width) instead of filling
+   * its container — short text yields a short field, longer text a longer one. Used
+   * by the skill chips so each chip hugs its skill name.
+   */
+  autoWidth?: boolean;
 }
 
 type FieldProps = Omit<EditableTextProps, "multiline">;
 
 // Shared chrome: the field reads as plain resume text, inherits the surrounding
-// typography exactly, and never overflows its flex container.
+// typography exactly, and never overflows its flex container. Inputs are kept
+// fully transparent in EVERY state — no hover or focus background fill anywhere.
 const baseFieldProps = {
   width: "100%",
   minWidth: "0",
@@ -49,10 +58,9 @@ const baseFieldProps = {
   resize: "none",
   fontFamily: "inherit",
   lineHeight: "inherit",
-  transition: "background 0.12s, box-shadow 0.12s",
   _placeholder: { color: "fg.subtle", fontWeight: "normal" },
-  _hover: { bg: "bg.muted/50" },
-  _focus: { bg: "bg.muted/50" },
+  _hover: { bg: "transparent" },
+  _focus: { bg: "transparent" },
 } as const;
 
 const SingleLineField = memo(function SingleLineField({
@@ -63,6 +71,8 @@ const SingleLineField = memo(function SingleLineField({
   fontWeight = "normal",
   color,
   textTransform,
+  textAlign,
+  autoWidth,
 }: FieldProps) {
   // Keystrokes stay local and responsive; the global store commit is deferred
   // (debounced + flushed on blur) so typing never triggers a per-character store
@@ -73,9 +83,10 @@ const SingleLineField = memo(function SingleLineField({
     [setValue],
   );
 
-  return (
+  const input = (
     <chakra.input
       {...baseFieldProps}
+      {...(autoWidth ? { position: "absolute", insetInlineStart: "0", top: "0", height: "100%" } : null)}
       value={liveValue}
       onChange={handleChange}
       onBlur={flush}
@@ -84,7 +95,32 @@ const SingleLineField = memo(function SingleLineField({
       fontWeight={fontWeight}
       color={color}
       textTransform={textTransform}
+      textAlign={textAlign}
     />
+  );
+
+  if (!autoWidth) return input;
+
+  // Auto-width: an in-flow hidden sizer mirrors the live text (or the placeholder
+  // while empty) in the SAME typography and sets the wrapper width; the input is
+  // overlaid absolutely so it never contributes its (large) default intrinsic
+  // width. The field therefore grows and shrinks to exactly fit its content.
+  return (
+    <chakra.span position="relative" display="inline-block" maxWidth="100%" minWidth="1ch">
+      <chakra.span
+        aria-hidden="true"
+        display="block"
+        visibility="hidden"
+        whiteSpace="pre"
+        fontFamily="inherit"
+        fontSize={toEm(fontSize)}
+        fontWeight={fontWeight}
+        textTransform={textTransform}
+      >
+        {liveValue || placeholder || " "}
+      </chakra.span>
+      {input}
+    </chakra.span>
   );
 });
 

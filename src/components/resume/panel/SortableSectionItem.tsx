@@ -45,7 +45,9 @@ export function SortableSectionItem({
         flexShrink={0}
       >
         <Switch.HiddenInput />
-        <Switch.Control />
+        <Switch.Control>
+          <Switch.Thumb />
+        </Switch.Control>
       </Switch.Root>
       <Text flex="1" minW="0" fontWeight="600" fontSize="13.5px" lineClamp={1} style={{ color: COLORS.ink700 }}>
         {section.title}

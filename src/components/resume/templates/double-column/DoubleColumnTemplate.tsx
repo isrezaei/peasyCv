@@ -42,6 +42,7 @@ export function DoubleColumnTemplate({ resume, theme }: TemplateProps) {
                   accent={colors.accent}
                   soft={colors.soft}
                   showRule
+                  compact
                 />
               ))}
             </VStack>
@@ -55,6 +56,7 @@ export function DoubleColumnTemplate({ resume, theme }: TemplateProps) {
                   accent={colors.accent}
                   soft={colors.soft}
                   showRule
+                  compact
                 />
               ))}
             </VStack>

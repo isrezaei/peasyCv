@@ -3,7 +3,7 @@
 import { Box, Button, HStack, IconButton, SegmentGroup, Separator, Text, VStack } from "@chakra-ui/react";
 import { SettingsPopover } from "@/components/ui/SettingsPopover";
 import { SwitchField } from "@/components/ui/SwitchField";
-import { PlusIcon, TrashIcon } from "@/components/ui/icons";
+import { DotsIcon, PlusIcon, TrashIcon } from "@/components/ui/icons";
 import { usePersonalInfo } from "@/hooks/store/usePersonalInfo";
 import { t } from "@/lib/i18n";
 import type { PersonalInfoFieldVisibility } from "@/types";
@@ -21,9 +21,14 @@ const FIELD_LABELS: { key: keyof PersonalInfoFieldVisibility; label: string }[] 
 
 interface PersonalInfoSettingsProps {
   triggerSize?: "2xs" | "xs" | "sm";
+  /** Light header vs dark band/column — adapts the solid dots chip so it reads. */
+  tone?: "onLight" | "onDark";
 }
 
-export function PersonalInfoSettings({ triggerSize = "xs" }: PersonalInfoSettingsProps = {}) {
+export function PersonalInfoSettings({
+  triggerSize = "2xs",
+  tone = "onLight",
+}: PersonalInfoSettingsProps = {}) {
   const { personalInfo, toggleField, setUppercaseName, setPhotoStyle, addLink, removeLink } =
     usePersonalInfo();
 
@@ -32,6 +37,9 @@ export function PersonalInfoSettings({ triggerSize = "xs" }: PersonalInfoSetting
       title={t.personalInfo.fields}
       triggerLabel={t.personalInfo.fields}
       triggerSize={triggerSize}
+      icon={<DotsIcon />}
+      triggerRest={0.55}
+      tone={tone}
     >
       <VStack align="stretch" gap="2.5">
         {FIELD_LABELS.map((field) => (

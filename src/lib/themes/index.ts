@@ -3,6 +3,8 @@ export {
   resolveTheme,
   darken,
   mixWithWhite,
+  tintColor,
+  shadeColor,
   deriveSecondary,
   deriveSubtitle,
   deriveBodyText,

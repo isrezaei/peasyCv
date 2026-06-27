@@ -84,7 +84,6 @@ export interface SectionsSlice {
 
 export interface ThemeSlice {
   setThemeId: (themeId: ThemeId) => void;
-  setCustomColor: (color: string | null) => void;
   setPageBackground: (mode: PageBackgroundMode) => void;
   setBackgroundPattern: (pattern: BackgroundPatternId) => void;
   setBackgroundIntensity: (intensity: number) => void;
@@ -94,6 +93,7 @@ export interface ThemeSlice {
   setLineHeight: (lineHeight: number) => void;
   setPageMargin: (margin: number) => void;
   setSectionSpacing: (spacing: number) => void;
+  setColumnIntensity: (intensity: number) => void;
   setTemplate: (templateId: TemplateId) => void;
 }
 

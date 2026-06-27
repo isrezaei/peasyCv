@@ -17,6 +17,8 @@ import { LinksEditor } from "./LinksEditor";
 interface PersonalInfoContactsProps {
   accentColor: string;
   color?: string;
+  /** Cross-row alignment of the wrapped contact chips (e.g. centered header). */
+  justify?: "flex-start" | "center";
 }
 
 interface ContactFieldProps {
@@ -36,12 +38,16 @@ function ContactField({ icon, iconColor, children }: ContactFieldProps) {
   );
 }
 
-export function PersonalInfoContacts({ accentColor, color = "#52525b" }: PersonalInfoContactsProps) {
+export function PersonalInfoContacts({
+  accentColor,
+  color = "#52525b",
+  justify = "flex-start",
+}: PersonalInfoContactsProps) {
   const { personalInfo, updatePersonalInfo } = usePersonalInfo();
   const { fieldVisibility } = personalInfo;
 
   return (
-    <Wrap gapX="2" gapY="1" align="center">
+    <Wrap gapX="2" gapY="1" align="center" justify={justify}>
       {fieldVisibility.phone ? (
         <ContactField icon={<PhoneIcon />} iconColor={accentColor}>
           <EditableText

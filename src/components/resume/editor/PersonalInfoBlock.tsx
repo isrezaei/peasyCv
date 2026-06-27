@@ -3,7 +3,7 @@
 import { memo } from "react";
 import { Box, HStack, VStack } from "@chakra-ui/react";
 import { usePersonalInfo } from "@/hooks/store/usePersonalInfo";
-import { CONTENT_BORDER_HOVER, HoverFrame, SECTION_HOVER_FRAME_REVEAL } from "./HoverFrame";
+import { CONTENT_BORDER_HOVER, SECTION_HOVER_FRAME_REVEAL } from "./HoverFrame";
 import { PersonalInfoContacts } from "./PersonalInfoContacts";
 import { PersonalInfoIdentity } from "./PersonalInfoIdentity";
 import { PersonalInfoSettings } from "./PersonalInfoSettings";
@@ -18,21 +18,17 @@ export const PersonalInfoBlock = memo(function PersonalInfoBlock({
 }: PersonalInfoBlockProps) {
   const { personalInfo } = usePersonalInfo();
 
-  // Same hover pattern as every section: the name and the inline HoverFrame share
-  // a space-between row OUTSIDE the border, and the contacts beneath are wrapped
-  // by the hover content border.
+  // Same hover pattern as every section: the name and the inline dots HoverFrame
+  // share a space-between row (so the dots sit on the name's baseline), and the
+  // contacts beneath are wrapped by the hover content border.
   return (
     <Box className="group" css={SECTION_HOVER_FRAME_REVEAL}>
-      <HStack align="flex-start" gap="22px" pb="22px" dir="rtl">
+      <HStack align="flex-start" gap="22px" pb="16px" dir="rtl">
         {personalInfo.fieldVisibility.photo ? <ProfileImageEditor /> : null}
-        <VStack align="stretch" flex="1" minW="0" gap="16px">
+        <VStack align="stretch" flex="1" minW="0" gap="12px">
           <PersonalInfoIdentity
             accentColor={accentColor}
-            rightSlot={
-              <HoverFrame>
-                <PersonalInfoSettings triggerSize="2xs" />
-              </HoverFrame>
-            }
+            rightSlot={<PersonalInfoSettings triggerSize="2xs" />}
           />
           <Box borderRadius="md" _groupHover={CONTENT_BORDER_HOVER}>
             <PersonalInfoContacts accentColor={accentColor} />

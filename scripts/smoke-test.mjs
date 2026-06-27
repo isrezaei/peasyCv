@@ -31,14 +31,29 @@ async function step(name, fn) {
   }
 }
 
+// The advertisement modal opens on every 2nd template switch; close it (Escape)
+// so it doesn't trap focus and block the steps/screenshots that follow.
+async function dismissAdModal() {
+  if (await page.getByRole("dialog").count()) {
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(350);
+  }
+}
+
 await step("fill full name", async () => {
   await page.getByPlaceholder("مثال: علی محمدی").fill("سارا احمدی");
 });
 
-await step("add experience via section toolbar (hover)", async () => {
+await step("add experience via section dots menu", async () => {
   const heading = page.getByRole("heading", { name: "تجربه کاری" }).first();
   await heading.hover();
+  // The section tools now live in the solid dots HoverFrame — open the experience
+  // section's dots (the first one after its heading), then add an entry.
+  await page
+    .locator('xpath=//h2[contains(., "تجربه کاری")]/following::button[@aria-label="تنظیمات بخش"][1]')
+    .click();
   await page.getByRole("button", { name: "افزودن مورد" }).first().click();
+  await page.keyboard.press("Escape");
 });
 
 await step("fill job title (overlap fix check)", async () => {
@@ -54,15 +69,19 @@ await step("open Templates panel", async () => {
 await page.waitForTimeout(400);
 
 await step("switch to double column", async () => {
-  await page.getByRole("button", { name: "دو ستونه" }).click();
+  // exact: several template names share the «دو ستونه» / «ستون» / «تک‌ستونه» stems.
+  await page.getByRole("button", { name: "دو ستونه", exact: true }).click();
 });
 await page.waitForTimeout(600);
+await dismissAdModal();
 await page.screenshot({ path: "scripts/v2-2-double-column.png", fullPage: true });
 
 await step("switch to sidebar column", async () => {
-  await page.getByRole("button", { name: "ستون رنگی کناری" }).click();
+  await page.getByRole("button", { name: "ستون رنگی کناری", exact: true }).click();
 });
 await page.waitForTimeout(600);
+// 2nd switch → ad modal opens; close it before continuing.
+await dismissAdModal();
 await page.screenshot({ path: "scripts/v2-3-sidebar-column.png", fullPage: true });
 
 await step("open Design panel", async () => {
@@ -84,9 +103,10 @@ await page.waitForTimeout(300);
 await step("back to single column", async () => {
   await page.getByText("قالب‌ها", { exact: true }).first().click();
   await page.waitForTimeout(300);
-  await page.getByRole("button", { name: "تک‌ستونه حرفه‌ای" }).click();
+  await page.getByRole("button", { name: "تک‌ستونه حرفه‌ای", exact: true }).click();
 });
 await page.waitForTimeout(600);
+await dismissAdModal();
 await page.screenshot({ path: "scripts/v2-4-themed-single.png", fullPage: true });
 
 // Verify autosave persisted the name.

@@ -4,6 +4,7 @@ import { Box, HStack } from "@chakra-ui/react";
 import type { CSSProperties } from "react";
 import { useState } from "react";
 import { AdModal } from "@/components/ads/AdModal";
+import { pickAdModalId } from "@/components/ads/adIds";
 import { useActivePanel } from "@/hooks/store/useActivePanel";
 import { useSidebar } from "@/hooks/store/useSidebar";
 import { DOCK, DOCK_RADII, DOCK_SHADOWS } from "@/lib/design/tokens";
@@ -41,6 +42,12 @@ export function TopBar() {
   const { activePanel, setActivePanel } = useActivePanel();
   const { collapsed, setCollapsed } = useSidebar();
   const [adOpen, setAdOpen] = useState(false);
+  const [adId, setAdId] = useState(() => pickAdModalId());
+  // Pick a fresh random ad each time the modal is opened.
+  const openAd = () => {
+    setAdId(pickAdModalId());
+    setAdOpen(true);
+  };
 
   // Clicking the active tool toggles the panel; clicking another switches to it
   // and makes sure the panel is open.
@@ -97,17 +104,17 @@ export function TopBar() {
           <ToolButton
             label={t.topbar.checkTailor}
             icon={<ReviewGlyph />}
-            onClick={() => setAdOpen(true)}
+            onClick={openAd}
           />
           <ToolButton
             label={t.topbar.improveText}
             icon={<TextGlyph />}
-            onClick={() => setAdOpen(true)}
+            onClick={openAd}
           />
           <ToolButton
             label={t.topbar.aiAssistant}
             icon={<AssistantGlyph />}
-            onClick={() => setAdOpen(true)}
+            onClick={openAd}
           />
         </HStack>
       </HStack>
@@ -130,7 +137,7 @@ export function TopBar() {
         </Box>
       </HStack>
 
-      <AdModal open={adOpen} onClose={() => setAdOpen(false)} />
+      <AdModal open={adOpen} adId={adId} onClose={() => setAdOpen(false)} />
     </HStack>
   );
 }

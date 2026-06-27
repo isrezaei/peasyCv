@@ -11,7 +11,7 @@ import { useResumeDocument } from "@/hooks/store/useResumeDocument";
 import { getFontStack } from "@/lib/fonts/registry";
 import { t } from "@/lib/i18n";
 import { getVisibleSections, splitColumns } from "@/lib/resume/sectionLayout";
-import { darken, mixWithWhite, resolveTheme, resumeTextVars } from "@/lib/themes";
+import { darken, mixWithWhite, resolveTheme, resumeTextVars, tintColor } from "@/lib/themes";
 import type { TemplateProps } from "@/types";
 
 export function SidebarColumnTemplate({ resume, theme }: TemplateProps) {
@@ -22,11 +22,15 @@ export function SidebarColumnTemplate({ resume, theme }: TemplateProps) {
   const { main, side } = splitColumns(getVisibleSections(resume));
   const gap = `${theme.sectionSpacing}mm`;
   const pad = `${theme.pageMargin}mm`;
+  // Tighter inner padding for the narrow colored column so its content isn't cramped.
+  const sidePad = `${(theme.pageMargin * 0.66).toFixed(1)}mm`;
+  // Tighter seam between the name and the first main section (proportionate rhythm).
+  const nameGap = `${(theme.sectionSpacing * 0.5).toFixed(1)}mm`;
 
   // A soft, refined colored sidebar: a light pastel fill with dark, readable text
-  // and accent headings, rather than a heavy saturated block of white-on-dark.
-  // Lightened per the 2026 reference so the column reads as a gentle tint.
-  const sidebarBg = mixWithWhite(colors.base, 0.45);
+  // and accent headings. The white-mix is scaled by the user's column intensity
+  // (45% white at intensity 1 — the original look).
+  const sidebarBg = tintColor(colors.base, 0.45, theme.columnIntensity);
   const sidebarHeading = colors.accent;
   const sidebarText = darken(colors.accent, 0.3);
   const sidebarChip = mixWithWhite(colors.accent, 0.84);
@@ -53,7 +57,7 @@ export function SidebarColumnTemplate({ resume, theme }: TemplateProps) {
             flexShrink={0}
             bg={sidebarBg}
             color={sidebarText}
-            padding={pad}
+            padding={sidePad}
             gap={gap}
             dir="rtl"
             style={resumeTextVars(sidebarHeading, sidebarText, sidebarHeading)}
@@ -81,19 +85,25 @@ export function SidebarColumnTemplate({ resume, theme }: TemplateProps) {
             </Text>
           </VStack>
 
-          {/* Main column */}
-          <VStack align="stretch" flex="1" minW="0" padding={pad} gap={gap} dir="rtl">
-            <PersonalInfoIdentity accentColor={colors.accent} />
-            {main.map((section) => (
-              <SectionColumnItem
-                key={section.id}
-                section={section}
-                resume={resume}
-                accent={colors.accent}
-                soft={colors.soft}
-                showRule
-              />
-            ))}
+          {/* Main column — the name sits close to the first section (tight rhythm).
+              The identity is boxed so its flex-grow (meant for horizontal headers)
+              can't stretch vertically and blow open the name→About gap. */}
+          <VStack align="stretch" flex="1" minW="0" padding={pad} gap="0" dir="rtl">
+            <Box flexShrink={0}>
+              <PersonalInfoIdentity accentColor={colors.accent} />
+            </Box>
+            <VStack align="stretch" gap={gap} mt={nameGap}>
+              {main.map((section) => (
+                <SectionColumnItem
+                  key={section.id}
+                  section={section}
+                  resume={resume}
+                  accent={colors.accent}
+                  soft={colors.soft}
+                  showRule
+                />
+              ))}
+            </VStack>
           </VStack>
         </HStack>
       </A4Page>

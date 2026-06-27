@@ -12,6 +12,7 @@ export function useDesign() {
       setSectionSpacing: state.setSectionSpacing,
       setPageBackground: state.setPageBackground,
       setBackgroundIntensity: state.setBackgroundIntensity,
+      setColumnIntensity: state.setColumnIntensity,
     })),
   );
 }

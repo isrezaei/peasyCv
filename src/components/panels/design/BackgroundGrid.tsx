@@ -30,11 +30,11 @@ export function BackgroundGrid() {
               aspectRatio="1"
               overflow="hidden"
               bg={colors.soft}
-              // Shadow-as-border: a calm hairline ring on every thumbnail, an
-              // accent halo ring (+ badge) on the selected one.
+              // Calm hairline ring on every thumbnail (uniform, not a selection
+              // cue). Selection is shown ONLY by the check badge below — no border.
               transition="transform 0.1s, box-shadow 0.12s"
               _hover={{ transform: "scale(1.04)" }}
-              style={{ borderRadius: RADII.card, boxShadow: isActive ? SHADOWS.ring : SHADOWS.hairlineRing }}
+              style={{ borderRadius: RADII.card, boxShadow: SHADOWS.hairlineRing }}
               onClick={() => setBackgroundPattern(option.id)}
             >
               <Box position="absolute" inset="0">

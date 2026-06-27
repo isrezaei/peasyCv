@@ -1,25 +1,33 @@
 "use client";
 
-import { Box, VStack } from "@chakra-ui/react";
-import AdvertisingUi from "@/components/ads/advertising.ui";
-import { DesignPanel } from "@/components/panels/design/DesignPanel";
-import { RearrangePanel } from "@/components/panels/rearrange/RearrangePanel";
-import { TemplatesPanel } from "@/components/panels/templates/TemplatesPanel";
-import { useActivePanel } from "@/hooks/store/useActivePanel";
+import { Box, useBreakpointValue, VStack } from "@chakra-ui/react";
 import { useSidebar } from "@/hooks/store/useSidebar";
 import { RADII, SHADOWS } from "@/lib/design/tokens";
+import { SidebarModal } from "./SidebarModal";
+import { SidebarPanels } from "./SidebarPanels";
 
 /**
- * The contextual side panel, docked to the RTL start (physical right) as an
- * overlay. It is always mounted and slides on `transform` + `opacity` only —
- * GPU-friendly, no width/layout reflow — so toggling it never resizes the
- * workspace or shifts the centred A4 page. Open/close is driven entirely from
- * the topbar's toggle (`useSidebar`); the panel carries no close control of its
- * own.
+ * The contextual side panel. Its PRESENTATION is responsive:
+ *  - lg and below → a Dialog MODAL ({@link SidebarModal}) that overlays the page
+ *    with a backdrop, so the narrower canvas is never permanently covered.
+ *  - xl and up → the inline overlay panel below: docked to the RTL start (physical
+ *    right), always mounted, sliding on `transform`/`opacity` only (GPU-friendly,
+ *    no layout reflow) so toggling it never resizes the workspace or shifts the
+ *    centred A4 page.
+ * Both presentations share the same `SidebarPanels` content and the same
+ * `useSidebar` collapse flag, which the topbar toggle drives.
  */
 export function ContextualSidebar() {
-  const { activePanel } = useActivePanel();
   const { collapsed } = useSidebar();
+  // Client-only (the app renders under <ClientOnly>), so evaluate immediately and
+  // fall back to the inline panel until the viewport is measured. Modal for lg and
+  // below; the inline panel only appears from xl up (where the canvas also reserves
+  // room for it).
+  const isModal = useBreakpointValue({ base: true, xl: false }, { ssr: false }) ?? false;
+
+  if (isModal) {
+    return <SidebarModal />;
+  }
 
   return (
     <Box
@@ -50,18 +58,10 @@ export function ContextualSidebar() {
         overflow="hidden"
         style={{ borderRadius: RADII.panel, boxShadow: SHADOWS.panel }}
       >
-        <Box flex="1" overflowY="auto" className="om-scroll">
-          <Box style={{ padding: "22px 22px 28px" }}>
-            {activePanel === "design" ? <DesignPanel /> : null}
-            {activePanel === "templates" ? <TemplatesPanel /> : null}
-            {activePanel === "rearrange" ? <RearrangePanel /> : null}
-            <Box mt="26px">
-              <AdvertisingUi isShow={true} AdvertisingId={"pos-article-display-111915"} />
-            </Box>
-          </Box>
+        <Box flex="1" overflowY="auto">
+          <SidebarPanels />
         </Box>
       </VStack>
     </Box>
   );
 }
-

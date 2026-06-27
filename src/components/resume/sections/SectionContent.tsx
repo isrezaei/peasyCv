@@ -15,10 +15,12 @@ interface SectionContentProps {
   resume: ResumeData;
   accent: string;
   soft: string;
+  /** Light vs dark surrounding column — forwarded to the skill chips so they blend. */
+  tone?: "onLight" | "onDark";
 }
 
 /** Renders all items of a section (no title) for the column-based templates. */
-export function SectionContent({ section, resume, accent, soft }: SectionContentProps) {
+export function SectionContent({ section, resume, accent, tone = "onLight" }: SectionContentProps) {
   const direction = section.direction;
 
   switch (section.type) {
@@ -36,13 +38,7 @@ export function SectionContent({ section, resume, accent, soft }: SectionContent
       return (
         <VStack align="stretch" gap="1">
           {resume.skills.map((group) => (
-            <SkillGroupBlock
-              key={group.id}
-              group={group}
-              direction={direction}
-              accentColor={accent}
-              softColor={soft}
-            />
+            <SkillGroupBlock key={group.id} group={group} direction={direction} tone={tone} />
           ))}
         </VStack>
       );

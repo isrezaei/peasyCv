@@ -50,7 +50,8 @@ interface RichTextFieldProps {
 
 // Reads as plain résumé prose, inherits the surrounding typography, and never
 // overflows its flex column. Mirrors EditableText's chrome so a rich field and a
-// plain field are visually indistinguishable until the user formats a word.
+// plain field are visually indistinguishable until the user formats a word. Like
+// every input it stays fully transparent — no hover or focus background fill.
 const baseFieldProps = {
   width: "100%",
   minWidth: "0",
@@ -61,9 +62,8 @@ const baseFieldProps = {
   fontFamily: "inherit",
   lineHeight: "inherit",
   borderRadius: "sm",
-  transition: "background 0.12s",
-  _hover: { bg: "bg.muted/50" },
-  _focus: { bg: "bg.muted/50" },
+  _hover: { bg: "transparent" },
+  _focus: { bg: "transparent" },
 } as const;
 
 /**

@@ -36,26 +36,15 @@ const config = defineConfig({
     // and are unaffected.
     button: { borderWidth: "0", fontFamily: "inherit" },
 
-    // Modern, project-wide scrollbars — thin, rounded thumb, transparent track,
-    // no arrow buttons, themed with semantic tokens. Firefox uses the inherited
-    // `scrollbar-*` properties (set on the root); WebKit/Blink use the
-    // pseudo-elements below, which apply to every scroll container in the app.
-    html: {
-      scrollbarWidth: "thin",
-      scrollbarColor: "{colors.border.emphasized} transparent",
-    },
-    "::-webkit-scrollbar": { width: "10px", height: "10px" },
-    "::-webkit-scrollbar-track": { background: "transparent" },
-    "::-webkit-scrollbar-thumb": {
-      background: "{colors.border.emphasized}",
-      borderRadius: "9999px",
-      // Transparent inset border keeps the thumb thin with breathing room.
-      border: "3px solid transparent",
-      backgroundClip: "padding-box",
-    },
-    "::-webkit-scrollbar-thumb:hover": { background: "{colors.fg.subtle}" },
+    // Project-wide: NO visible scrollbars anywhere. Scrolling still works on every
+    // scroll container (overflow:auto regions keep their wheel/touch/keyboard
+    // scroll) — only the bar chrome is removed. Firefox hides via the non-inherited
+    // `scrollbar-width:none` (so it's set on `*`, not just the root); WebKit/Blink
+    // collapse the bar (and any arrow/stepper buttons) via the pseudo-elements.
+    html: { scrollbarWidth: "none" },
+    "*": { scrollbarWidth: "none" },
+    "::-webkit-scrollbar": { display: "none", width: "0", height: "0" },
     "::-webkit-scrollbar-button": { display: "none", width: "0", height: "0" },
-    "::-webkit-scrollbar-corner": { background: "transparent" },
   },
   theme: {
     tokens: {

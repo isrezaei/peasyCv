@@ -39,7 +39,9 @@ export function SwitchField({
         {label}
       </Switch.Label>
       <Switch.HiddenInput />
-      <Switch.Control />
+      <Switch.Control>
+        <Switch.Thumb />
+      </Switch.Control>
     </Switch.Root>
   );
 }

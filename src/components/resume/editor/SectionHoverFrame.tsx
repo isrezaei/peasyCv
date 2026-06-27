@@ -1,66 +1,30 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { IconButton } from "@chakra-ui/react";
-import { PlusIcon, TrashIcon } from "@/components/ui/icons";
-import { Tooltip } from "@/components/ui/Tooltip";
-import { useSectionActions } from "@/hooks/store/useSectionActions";
-import { useSectionEmptyState } from "@/hooks/store/useSectionEmptyState";
-import { t } from "@/lib/i18n";
 import type { SectionMeta } from "@/types";
-import { frameButtonProps } from "./HoverFrame";
+import { SectionCompactMenu } from "./SectionCompactMenu";
 import { SectionFrame } from "./SectionFrame";
-import { SectionSettingsPopover } from "./SectionSettingsPopover";
 
 interface SectionHoverFrameProps {
   section: SectionMeta;
-  /** The section's rendered title; sits on the title row beside the HoverFrame. */
+  /** The section's rendered title; the dots control overlays its row, never displacing it. */
   title: ReactNode;
   /** The section content, wrapped by the hover border. */
   children: ReactNode;
+  /** Light vs dark surrounding column — adapts the solid dots chip so it reads. */
+  tone?: "onLight" | "onDark";
 }
 
 /**
- * Builds a section's controls (add / delete / settings) and renders them inline
- * with the title via {@link SectionFrame}. The title block stays pure
- * presentation; every hover handler lives here.
+ * Every section's HoverFrame: a single BARE 3-dots glyph (the
+ * {@link SectionCompactMenu}) — no button skin, painted in the resume accent —
+ * overlaid on the title row via {@link SectionFrame}, so it sits on the heading's
+ * baseline and can never push or compress the layout. The title block stays pure
+ * presentation; every tool lives in the dots menu.
  */
-export function SectionHoverFrame({ section, title, children }: SectionHoverFrameProps) {
-  const { addEntry } = useSectionEmptyState(section.type);
-  const { toggleSectionVisibility } = useSectionActions();
-
+export function SectionHoverFrame({ section, title, children, tone = "onLight" }: SectionHoverFrameProps) {
   return (
-    <SectionFrame
-      title={title}
-      controls={
-        <>
-          {addEntry ? (
-            <Tooltip label={t.sectionToolbar.addEntry}>
-              <IconButton
-                aria-label={t.sectionToolbar.addEntry}
-                size="2xs"
-                variant="solid"
-                colorPalette="accent"
-                borderRadius="6px"
-                onClick={addEntry}
-              >
-                <PlusIcon />
-              </IconButton>
-            </Tooltip>
-          ) : null}
-          <Tooltip label={t.sectionToolbar.delete}>
-            <IconButton
-              aria-label={t.sectionToolbar.delete}
-              {...frameButtonProps}
-              onClick={() => toggleSectionVisibility(section.id)}
-            >
-              <TrashIcon />
-            </IconButton>
-          </Tooltip>
-          <SectionSettingsPopover section={section} />
-        </>
-      }
-    >
+    <SectionFrame title={title} controls={<SectionCompactMenu section={section} tone={tone} />}>
       {children}
     </SectionFrame>
   );

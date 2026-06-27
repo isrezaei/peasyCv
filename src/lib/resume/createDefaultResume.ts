@@ -49,7 +49,6 @@ export function createDefaultSections(): SectionMeta[] {
 export function createDefaultTheme(): ThemeSettings {
   return {
     themeId: "indigo",
-    customColor: null,
     pageBackground: "theme",
     backgroundPattern: "blobs",
     // Soft, readability-safe default: the pattern renders at 70% of its baseline
@@ -61,6 +60,8 @@ export function createDefaultTheme(): ThemeSettings {
     lineHeight: 1.5,
     pageMargin: 16,
     sectionSpacing: 6,
+    // 1 = each coloured-column template keeps its original tint (the current look).
+    columnIntensity: 1,
   };
 }
 

@@ -17,7 +17,7 @@ interface BlockRendererProps {
   soft: string;
 }
 
-export function BlockRenderer({ block, resume, accent, soft }: BlockRendererProps) {
+export function BlockRenderer({ block, resume, accent }: BlockRendererProps) {
   const section = block.sectionId
     ? resume.sections.find((candidate) => candidate.id === block.sectionId) ?? null
     : null;
@@ -38,9 +38,7 @@ export function BlockRenderer({ block, resume, accent, soft }: BlockRendererProp
     }
     case "skillGroup": {
       const group = resume.skills.find((candidate) => candidate.id === block.refId);
-      return group ? (
-        <SkillGroupBlock group={group} direction={direction} accentColor={accent} softColor={soft} />
-      ) : null;
+      return group ? <SkillGroupBlock group={group} direction={direction} /> : null;
     }
     case "educationItem": {
       const item = resume.education.find((candidate) => candidate.id === block.refId);

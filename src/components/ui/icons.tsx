@@ -24,6 +24,7 @@ export {
   TbChevronsLeft as ChevronsLeftIcon,
   TbCheck as CheckIcon,
   TbGripVertical as GripIcon,
+  TbDots as DotsIcon,
   TbX as CloseIcon,
   TbSparkles as SparklesIcon,
   TbWand as WandIcon,
@@ -40,6 +41,15 @@ export {
   TbMapPin as MapPinIcon,
   TbCalendar as CalendarIcon,
   TbWorld as GlobeIcon,
+  // Section glyphs — used by the icon-chip heading variant in the imported
+  // templates. One per resume section type (see sectionIcon).
+  TbFileText as SummaryIcon,
+  TbBriefcase as ExperienceIcon,
+  TbTools as SkillsIcon,
+  TbSchool as EducationIcon,
+  TbFolder as ProjectsIcon,
+  TbLanguage as LanguagesIcon,
+  TbCertificate as CertificationsIcon,
   // Design / layout controls.
   TbColorPicker as ColorPickerIcon,
   TbColorSwatch as ColorSwatchIcon,

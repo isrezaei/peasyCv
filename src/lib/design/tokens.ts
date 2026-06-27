@@ -96,10 +96,14 @@ export const DOCK = {
   avatarFg: COLORS.ink500,
 } as const;
 
-/** Dock shadow stacks (design geometry, app-neutral black tint). */
+/**
+ * Dock shadow stacks (design geometry, app-neutral black tint). Kept deliberately
+ * FAINT — the dock clusters float on a near-white workspace, so a soft, low-opacity
+ * lift reads cleaner than a heavy drop while still detaching them from the page.
+ */
 export const DOCK_SHADOWS = {
-  center: "0 12px 34px -10px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.05)",
-  side: "0 6px 18px -8px rgba(0,0,0,0.18)",
+  center: "0 6px 16px -12px rgba(0,0,0,0.10), 0 1px 3px rgba(0,0,0,0.03)",
+  side: "0 4px 12px -10px rgba(0,0,0,0.09), 0 1px 2px rgba(0,0,0,0.03)",
 } as const;
 
 /** Dock corner radii, ported 1:1 from the design. */
