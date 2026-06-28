@@ -8,22 +8,27 @@ export const PX_PER_MM = 96 / 25.4;
 export const BASE_FONT_PX = 15;
 
 /**
- * Characters per line of summary text at font scale 1.0 within the content width.
- * Tuned for Vazirmatn Persian glyphs (measured ~40–45 chars/line at 0.92em across
- * the content width — see scripts/measure-pagination.mjs); kept conservative so
- * the summary is never under-counted.
+ * Characters per line of summary text (0.92em) at font scale 1.0 across the full
+ * content width (A4 minus default 16mm margins, 178mm). Calibrated against the
+ * live /print DOM: a 132-char summary wraps to exactly 2 lines at 178mm and 3
+ * lines at ~104mm (see scripts measuring rendered line counts), i.e. ~108 chars
+ * fit per line — this is set a notch below that true capacity so the line count
+ * is biased slightly high (never under-counted) yet tracks reality. Column
+ * metrics scale it down by the column's real width.
  */
-export const CHARS_PER_LINE_AT_BASE = 42;
+export const CHARS_PER_LINE_AT_BASE = 105;
 
 /**
- * Characters per line for body text that wraps inside a *narrow* entry column
- * (responsibilities, project/achievement descriptions) rather than the full
- * content width. These fields sit to the side of the date column and timeline
- * rail, so they fit fewer characters per line than the full-width summary. Kept
- * deliberately conservative (lower than the measured capacity) so a multiline
- * field is never under-counted now that it auto-grows to fit its content.
+ * Characters per line for body text (0.8em — responsibilities, project/achievement
+ * descriptions) at the reference content width (178mm), font scale 1.0. Calibrated
+ * against the live /print DOM: a 99-char description renders on ONE line at the
+ * ~145mm body column and wraps to two lines only below ~90mm. Set a notch below
+ * the true single-line capacity (~115–128) so it is biased slightly high, and the
+ * column metrics scale it by the column's real width so a narrow side column
+ * correctly counts more wrapped lines. Replaces the old, ~3x-too-conservative 32
+ * that made every entry estimate tall and broke pages a whole block early.
  */
-export const BODY_CHARS_PER_LINE_AT_BASE = 32;
+export const BODY_CHARS_PER_LINE_AT_BASE = 100;
 
 // --- Font sizes (em) used by the resume blocks, mirrored from the components ---
 export const EM_NAME = 1.85; // 2xl — full name
@@ -33,8 +38,13 @@ export const EM_ITEM_TITLE = 0.92; // sm — entry titles (job title, degree, pr
 export const EM_BODY = 0.8; // xs — dates, descriptions, responsibilities, chips, contacts
 export const EM_SUMMARY = 0.92; // summary rich text
 
-/** A multiline field renders as a fixed two-row textarea (rows=2, no auto-grow). */
-export const MULTILINE_ROWS = 2;
+/**
+ * Minimum line count reserved for a multiline rich-text field. These fields render
+ * as grow-to-content TipTap editors (not fixed-height textareas), so a short value
+ * occupies a single line — the floor is 1. The old floor of 2 over-counted every
+ * one-line description/achievement/responsibility by a full line.
+ */
+export const MULTILINE_ROWS = 1;
 
 /**
  * Fixed gap (mm) rendered between blocks that belong to the same section (the
@@ -51,5 +61,8 @@ export const CONTROL_BUTTON_PX = 22;
 /**
  * Bottom-of-page safety buffer (mm) subtracted from the usable height so that
  * accumulated estimation error never pushes the last block past the A4 frame.
+ * Kept to a thin sliver: the per-block estimates are now calibrated to the real
+ * /print heights and already biased slightly high, so a large buffer would just
+ * leave the bottom of every page empty.
  */
-export const PAGE_SAFETY_MM = 6;
+export const PAGE_SAFETY_MM = 4;

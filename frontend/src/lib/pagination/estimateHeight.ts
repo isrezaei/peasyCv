@@ -28,7 +28,15 @@ import { type LayoutMetrics, pxToMm } from "./metrics";
  */
 
 const PROFILE_PHOTO_PX = 88; // ProfileImageEditor default size
+/** Most skill chips that fit on one row at the full content width (an upper cap). */
 const SKILL_CHIPS_PER_ROW = 4;
+/**
+ * Approximate rendered width (mm) of one skill chip incl. its gap. Dividing the
+ * column content width by this gives how many chips share a row, so a narrow side
+ * column (where chips wrap to ~2 per row) reserves the taller, correct height
+ * instead of assuming the full-width count and under-counting the section.
+ */
+const SKILL_CHIP_SLOT_MM = 30;
 /**
  * The section heading block measures ~2.4 rendered line-heights in the flow
  * (tall heading line-box plus the space its inline toolbar anchor reserves).
@@ -36,12 +44,12 @@ const SKILL_CHIPS_PER_ROW = 4;
 const SECTION_TITLE_LINE_FACTOR = 2.4;
 
 /**
- * A multiline field auto-grows to fit its content but never shrinks below its
- * two-row minimum, so reserve the taller of the wrapped-line count and that
- * minimum. These fields are now rich text (HTML), so wrapped lines are counted
- * with the same `estimateHtmlLines` helper the summary uses — it strips inline
- * marks and treats block/`<br>` boundaries as line breaks. Text wraps in a narrow
- * entry column, hence `bodyCharsPerLine`.
+ * A multiline field is a grow-to-content rich-text editor, so it reserves exactly
+ * the wrapped-line count down to a one-line floor (`MULTILINE_ROWS`). Wrapped lines
+ * are counted with the same `estimateHtmlLines` helper the summary uses — it strips
+ * inline marks and treats block/`<br>` boundaries as line breaks — using
+ * `bodyCharsPerLine`, which the column metrics scale to the real column width so a
+ * narrow entry column counts the extra wraps.
  */
 function multilineMm(m: LayoutMetrics, em: number, html: string): number {
   const lines = Math.max(MULTILINE_ROWS, estimateHtmlLines(html, m.bodyCharsPerLine));
@@ -136,7 +144,10 @@ export function estimateSummaryHeight(html: string, m: LayoutMetrics): number {
 
 export function estimateExperienceItemHeight(item: ExperienceItem, m: LayoutMetrics): number {
   const responsibilitiesMm = item.responsibilities.reduce(
-    (total, responsibility) => total + multilineMm(m, EM_BODY, responsibility.text) + pxToMm(2),
+    // Each bullet row is at least the (taller) bullet glyph line, then grows with
+    // the wrapped text; pxToMm(4) is the real inter-bullet gap (VStack gap=1).
+    (total, responsibility) =>
+      total + Math.max(m.lineMm(EM_ITEM_TITLE), multilineMm(m, EM_BODY, responsibility.text)) + pxToMm(4),
     0,
   );
 
@@ -158,9 +169,15 @@ export function estimateExperienceItemHeight(item: ExperienceItem, m: LayoutMetr
 }
 
 export function estimateSkillGroupHeight(group: SkillGroup, m: LayoutMetrics): number {
+  // Chips per row scale with the real column width (capped at the full-width count),
+  // so a narrow side column reserves the extra wrapped rows instead of overflowing.
+  const chipsPerRow = Math.max(
+    1,
+    Math.min(SKILL_CHIPS_PER_ROW, Math.round(m.contentWidthMm / SKILL_CHIP_SLOT_MM)),
+  );
   // The trailing "add skill" button shares the wrap, so reserve one extra slot.
-  const chipRows = Math.max(1, Math.ceil((group.skills.length + 1) / SKILL_CHIPS_PER_ROW));
-  const chipRowMm = m.lineMm(EM_BODY) + pxToMm(4) + pxToMm(8); // chip padding + wrap gap
+  const chipRows = Math.max(1, Math.ceil((group.skills.length + 1) / chipsPerRow));
+  const chipRowMm = m.lineMm(EM_BODY) + pxToMm(4) + pxToMm(10); // chip padding + wrap gap
   return m.lineMm(EM_ITEM_TITLE) + pxToMm(2) + chipRows * chipRowMm + pxToMm(12); // pb=2 + safety
 }
 

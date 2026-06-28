@@ -15,12 +15,14 @@ import { HeaderBand } from "../_shared/HeaderBand";
 const LAYOUT: ColumnTemplateLayout = {
   sideTypes: new Set<RemovableSectionType>(["summary", "languages", "certifications"]),
   flex: { main: 1.5, side: 1, gapMm: 8 },
-  // The band is full-bleed and padded by the page margin (top + bottom), plus the
-  // padded HStack below it — reserve that margin-scaled chrome on page 1.
+  // The band's TOP padding is the page's top margin (already in usableHeight); the
+  // extra chrome reserved on page 1 is the band's BOTTOM padding plus the padded
+  // HStack's top padding below it — i.e. margin × 2, not × 3 (which double-counted
+  // the top padding and left a whole entry's worth of empty space on page 1).
   header: {
     kind: "full",
     estimate: { identity: true, contacts: true, photo: true, photoSizePx: 92 },
-    chromeMm: (margin) => margin * 3,
+    chromeMm: (margin) => margin * 2,
   },
 };
 

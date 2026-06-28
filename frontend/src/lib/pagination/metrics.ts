@@ -44,6 +44,8 @@ export interface LayoutMetrics {
   charsPerLine: number;
   /** Approximate characters per line for body text wrapping inside a narrow entry column. */
   bodyCharsPerLine: number;
+  /** Content width (mm) this flow renders at — used to wrap-aware estimate width-sensitive blocks (e.g. skill chips). */
+  contentWidthMm: number;
 }
 
 export function pxToMm(px: number): number {
@@ -62,6 +64,8 @@ export function createLayoutMetrics(theme: ThemeSettings): LayoutMetrics {
     // Wider glyphs at larger font scales fit fewer characters per line.
     charsPerLine: Math.max(20, Math.round(CHARS_PER_LINE_AT_BASE / fontScale)),
     bodyCharsPerLine: Math.max(16, Math.round(BODY_CHARS_PER_LINE_AT_BASE / fontScale)),
+    // A single full-width column spans the page content width.
+    contentWidthMm: A4_WIDTH_MM - theme.pageMargin * 2,
   };
 }
 
@@ -82,5 +86,6 @@ export function createColumnMetrics(theme: ThemeSettings, contentWidthMm: number
     ...base,
     charsPerLine: Math.max(14, Math.round((CHARS_PER_LINE_AT_BASE * widthRatio) / fontScale)),
     bodyCharsPerLine: Math.max(12, Math.round((BODY_CHARS_PER_LINE_AT_BASE * widthRatio) / fontScale)),
+    contentWidthMm,
   };
 }
