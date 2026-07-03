@@ -47,7 +47,10 @@ export function SectionFrame({ title, controls, children }: SectionFrameProps) {
           </Box>
         </Box>
       ) : null}
-      <Box mt={title ? "1" : "0"}>{children}</Box>
+      {/* Tight heading→content gap: a heading sits close to its section body.
+          This single rule governs the title-to-content spacing for EVERY template
+          (both the paginated and the column render paths flow through here). */}
+      <Box mt={title ? "0.5" : "0"}>{children}</Box>
     </Box>
   );
 }

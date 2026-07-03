@@ -1,6 +1,28 @@
 export const A4_WIDTH_MM = 210;
 export const A4_HEIGHT_MM = 297;
 
+/**
+ * THE single source of truth for the page's top & bottom print margin (mm).
+ *
+ * Every A4 page, in every template, sits its content exactly this far from the
+ * top edge AND from the bottom edge — the margins are always equal and always
+ * 16mm (the professional A4 sweet spot, ~0.63in). The page frame owns this value
+ * (see {@link A4Page} and the column templates' `paddingBlock`), so a section
+ * redesign can never change it, and the pagination engine derives its usable
+ * height from the SAME constant, so fill/break respects the identical 16mm model.
+ * It is deliberately NOT the theme's `pageMargin` slider (which only tunes the
+ * horizontal inset): the vertical margin stays locked at 16mm no matter what.
+ */
+export const PAGE_MARGIN_MM = 16;
+
+/**
+ * Inner inline (horizontal) padding of a coloured/narrow side column, expressed as
+ * a fraction of the horizontal page margin. Kept tight so the aside panels are not
+ * wastefully padded. Shared by the column templates AND the column-width model in
+ * `useColumnLayout` so the rendered inset and the paginated width stay in lockstep.
+ */
+export const SIDE_COLUMN_PAD_FACTOR = 0.5;
+
 /** CSS pixels per millimetre at 96dpi (the reference used for screen + print). */
 export const PX_PER_MM = 96 / 25.4;
 

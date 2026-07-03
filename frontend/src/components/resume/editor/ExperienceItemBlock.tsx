@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { Box, HStack, IconButton, VStack } from "@chakra-ui/react";
+import { Box, HStack, Icon, IconButton, Separator, Stack, VStack } from "@chakra-ui/react";
 import { TrashIcon } from "@/components/ui/icons";
 import { useExperience } from "@/hooks/store/useExperience";
 import { t } from "@/lib/i18n";
@@ -12,6 +12,7 @@ import { ITEM_HOVER_OUTLINE, itemRemoveButtonProps } from "./HoverFrame";
 import { ResponsibilityListEditor } from "./ResponsibilityListEditor";
 import { SecondaryTitleField } from "./SecondaryTitleField";
 import { TimelineRail } from "./TimelineRail";
+import { TbCurrentLocationFilled } from "react-icons/tb";
 
 interface ExperienceItemBlockProps {
   item: ExperienceItem;
@@ -43,52 +44,50 @@ export const ExperienceItemBlock = memo(function ExperienceItemBlock({
       {/* dir=ltr forces the date column to the left for every entry, regardless
           of the entry's own text direction, so the timeline reads consistently. */}
 
-      <HStack w={"full"} align="flex-start"  gap="3" dir="rtl">
-
-          {/* Date / location column (always on the left) */}
-          <VStack
-              width="20mm"
-
-              dir={direction}
-              gap="1.5"
-
-          >
-
-
-                  <DateField
-                      monthYear
-                      value={item.period.start}
-                      onChange={(value) => setPeriod({ start: value })}
-                      placeholder={t.experience.periodStart}
-                  />
-                  {/* End date is always present; «تا اکنون» (in its popover) marks an
+      <HStack w={"full"} align="flex-start" gap="3" dir="rtl">
+        {/* Date / location column (always on the left) */}
+        <VStack
+          width="25mm"
+          dir={direction}
+          gap={1}
+        >
+          <DateField
+            monthYear
+            value={item.period.start}
+            onChange={(value) => setPeriod({ start: value })}
+            placeholder={t.experience.periodStart}
+            fontWeight={"bold"}
+            fontSize={"xs"}
+            color="var(--rz-secondary, #3f3f46)"
+          />
+          {/* End date is always present; «تا اکنون» (in its popover) marks an
                       ongoing role via period.current instead of picking an end month. */}
-                  <DateField
-                      monthYear
-                      value={item.period.end}
-                      onChange={(value) => setPeriod({ end: value })}
-                      placeholder={t.experience.periodEnd}
-                      present={item.period.current}
-                      onPresentChange={(current) => setPeriod({ current })}
-                  />
+          <DateField
+            monthYear
+            value={item.period.end}
+            onChange={(value) => setPeriod({ end: value })}
+            placeholder={t.experience.periodEnd}
+            present={item.period.current}
+            onPresentChange={(current) => setPeriod({ current })}
+            fontWeight={"bold"}
+            color="var(--rz-secondary, #3f3f46)"
+            fontSize={"xs"}
+          />
 
+          <HStack gapX={1} >
+            <Icon as={TbCurrentLocationFilled}  color="fg.muted" boxSize={3} />
+            <EditableText
+              value={item.city}
+              onChange={(value) => updateExperience(item.id, { city: value })}
+              placeholder={t.experience.city}
+              fontSize="xs"
+              color="fg.muted"
+            />
+          </HStack>
+        </VStack>
 
-              <Box mt={2}>
-                  <EditableText
-                      value={item.city}
-                      onChange={(value) => updateExperience(item.id, { city: value })}
-                      placeholder={t.experience.city}
-                      fontSize="xs"
-                      color="fg.muted"
-                  />
-              </Box>
-
-
-
-          </VStack>
-
-          {/* Timeline rail */}
-          <TimelineRail accentColor={accentColor} />
+        {/* Timeline rail */}
+        <TimelineRail accentColor={accentColor} />
 
         {/* Main column */}
         <VStack align="stretch" flex="1" minW="0" gap="0.5" dir={direction}>
@@ -102,22 +101,28 @@ export const ExperienceItemBlock = memo(function ExperienceItemBlock({
           />
           <SecondaryTitleField
             value={item.companyName}
-            onChange={(value) => updateExperience(item.id, { companyName: value })}
+            onChange={(value) =>
+              updateExperience(item.id, { companyName: value })
+            }
             placeholder={t.experience.companyNamePlaceholder}
             accentColor={accentColor}
           />
-          {item.projectLink ? (
+
             <EditableText
               value={item.projectLink}
-              onChange={(value) => updateExperience(item.id, { projectLink: value })}
+              onChange={(value) =>
+                updateExperience(item.id, { projectLink: value })
+              }
               placeholder={t.experience.projectLink}
-              fontSize="xs"
-              color="fg.muted"
+              fontSize="2xs"
+              color={"fg/50"}
             />
-          ) : null}
+
           <EditableText
             value={item.projectDescription}
-            onChange={(value) => updateExperience(item.id, { projectDescription: value })}
+            onChange={(value) =>
+              updateExperience(item.id, { projectDescription: value })
+            }
             placeholder={t.experience.projectDescription}
             multiline
             fontSize="xs"

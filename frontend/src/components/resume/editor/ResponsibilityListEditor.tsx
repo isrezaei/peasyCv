@@ -75,7 +75,7 @@ export const ResponsibilityListEditor = memo(function ResponsibilityListEditor({
   );
 
   return (
-    <VStack align="stretch" gap="1" mt="0.5">
+    <VStack align="stretch" gap="1" mt="4">
       {responsibilities.map((responsibility, index) => (
         <HStack key={responsibility.id} align="start" gap="1.5">
           <Box as="span" color={accentColor} fontSize="sm" lineHeight="1.5" aria-hidden flexShrink={0}>

@@ -1,6 +1,6 @@
 import { Box } from "@chakra-ui/react";
 import type { CSSProperties, ReactNode } from "react";
-import { A4_HEIGHT_MM, A4_WIDTH_MM } from "@/lib/pagination";
+import { A4_HEIGHT_MM, A4_WIDTH_MM, PAGE_MARGIN_MM } from "@/lib/pagination";
 
 /** Base body font size in px at scale 1.0; em-based resume typography multiplies this. */
 const BASE_FONT_PX = 15;
@@ -10,6 +10,11 @@ interface A4PageProps {
   backgroundColor: string;
   /** Fixed A4 height for paginated templates; auto-growing sheet for column templates. */
   autoHeight?: boolean;
+  /**
+   * HORIZONTAL (left/right) inner padding in mm. The vertical (top/bottom) margin
+   * is NOT configurable — the frame always applies the fixed {@link PAGE_MARGIN_MM}
+   * top and bottom so every page keeps equal 16mm margins regardless of template.
+   */
   paddingMm?: number;
   fontStack: string;
   fontScale: number;
@@ -30,7 +35,7 @@ export function A4Page({
   pageIndex,
   backgroundColor,
   autoHeight = false,
-  paddingMm = 16,
+  paddingMm = PAGE_MARGIN_MM,
   fontStack,
   fontScale,
   lineHeight,
@@ -71,7 +76,11 @@ export function A4Page({
         zIndex={1}
         height={autoHeight ? "auto" : "100%"}
         minHeight={`${A4_HEIGHT_MM}mm`}
-        padding={bleed ? "0" : `${paddingMm}mm`}
+        // Vertical margin is frame-owned and fixed at 16mm; only the horizontal
+        // inset follows the prop. `bleed` lets column templates paint edge-to-edge
+        // and supply the same fixed 16mm vertical margin inside each column.
+        paddingBlock={bleed ? "0" : `${PAGE_MARGIN_MM}mm`}
+        paddingInline={bleed ? "0" : `${paddingMm}mm`}
         style={contentVars}
       >
         {children}

@@ -6,8 +6,10 @@ import {
   composeColumnPages,
   createColumnMetrics,
   estimatePersonalBlockHeight,
+  PAGE_MARGIN_MM,
   PAGE_SAFETY_MM,
   type PersonalBlockEstimate,
+  SIDE_COLUMN_PAD_FACTOR,
 } from "@/lib/pagination";
 import type { RemovableSectionType, ResumeData } from "@/types";
 
@@ -37,7 +39,8 @@ export interface ColumnTemplateLayout {
   sideTypes: ReadonlySet<RemovableSectionType>;
   /** Fixed outer width (mm) of the coloured/side column, or null for a flex split. */
   sideWidthMm?: number | null;
-  /** Side-column inner padding as a fraction of the page margin (templates use 0.66). */
+  /** Side-column inner inline padding as a fraction of the page margin (defaults to
+   *  the shared {@link SIDE_COLUMN_PAD_FACTOR}; templates share the same constant). */
   sidePadFactor?: number;
   /** For a flex split: the main/side flex weights and the inter-column gap in mm. */
   flex?: { main: number; side: number; gapMm: number };
@@ -68,7 +71,10 @@ export function useColumnLayout(
     let mainReserveMm = 0;
     let sideReserveMm = 0;
     if (layout.header.kind === "full") {
-      const chrome = layout.header.chromeMm?.(margin) ?? 0;
+      // Header band/strip chrome is a VERTICAL reserve, so it scales with the
+      // fixed 16mm page margin (the band's own top padding is the page top margin),
+      // never the horizontal slider.
+      const chrome = layout.header.chromeMm?.(PAGE_MARGIN_MM) ?? 0;
       headerHeightMm =
         estimatePersonalBlockHeight(personalInfo, mainMetrics, layout.header.estimate) + chrome + gap;
     } else if (layout.header.kind === "split") {
@@ -111,7 +117,7 @@ function deriveColumnWidths(
 
   // Fixed coloured sidebar (bleed page); the main column carries the page margin.
   const sideOuter = layout.sideWidthMm ?? 0;
-  const sidePad = margin * (layout.sidePadFactor ?? 0.66);
+  const sidePad = margin * (layout.sidePadFactor ?? SIDE_COLUMN_PAD_FACTOR);
   return {
     mainWidthMm: A4_WIDTH_MM - sideOuter - 2 * margin,
     sideWidthMm: Math.max(20, sideOuter - 2 * sidePad),

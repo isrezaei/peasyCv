@@ -7,6 +7,7 @@ import { ResumeBackground } from "@/components/resume/canvas/ResumeBackground";
 import { TemplateSection } from "@/components/resume/sections/TemplateSection";
 import { type ColumnTemplateLayout, useColumnLayout } from "@/hooks/resume/useColumnLayout";
 import { getFontStack } from "@/lib/fonts/registry";
+import { PAGE_MARGIN_MM } from "@/lib/pagination";
 import { darken, resolveTheme, resumeTextVars } from "@/lib/themes";
 import type { RemovableSectionType, TemplateProps } from "@/types";
 import { HeaderBand } from "../_shared/HeaderBand";
@@ -30,7 +31,9 @@ export function HeaderBandTemplate({ resume, theme }: TemplateProps) {
   const colors = resolveTheme(theme);
   const backgroundColor = theme.pageBackground === "white" ? "#FFFFFF" : colors.soft;
   const fontStack = getFontStack(theme.fontFamily);
-  const pad = `${theme.pageMargin}mm`;
+  // Fixed 16mm vertical margin (equal top/bottom); horizontal follows the slider.
+  const padY = `${PAGE_MARGIN_MM}mm`;
+  const padX = `${theme.pageMargin}mm`;
   const bandColor = darken(colors.accent, 0.28);
   const pages = useColumnLayout(resume, LAYOUT);
 
@@ -65,7 +68,7 @@ export function HeaderBandTemplate({ resume, theme }: TemplateProps) {
             {page === 0 ? (
               <HeaderBand bandColor={bandColor} contrastText={colors.contrastText} padMm={theme.pageMargin} />
             ) : null}
-            <HStack align="flex-start" gap="8mm" padding={pad} dir="rtl">
+            <HStack align="flex-start" gap="8mm" paddingBlock={padY} paddingInline={padX} dir="rtl">
               <VStack align="stretch" flex="1.5" minW="0" gap="0">
                 <ColumnBody blocks={pages.main[page] ?? []} sections={resume.sections} renderSection={renderSection} />
               </VStack>

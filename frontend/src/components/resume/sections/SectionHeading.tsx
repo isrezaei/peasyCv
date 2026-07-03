@@ -49,6 +49,8 @@ export const SectionHeading = memo(function SectionHeading({
       fontSize={small ? "0.82em" : "1.04em"}
       fontWeight={small ? "800" : "bold"}
       letterSpacing="-0.01em"
+      // Tight line-box so the heading hugs its content (see SectionTitleBlock).
+      lineHeight="1.15"
       color={accentColor}
       flexShrink={0}
     >
@@ -61,7 +63,7 @@ export const SectionHeading = memo(function SectionHeading({
     // LIGHTER rule and a TIGHTER heading→rule gap. The overlaid controls never
     // shorten it — see SectionFrame.
     return (
-      <VStack dir={section.direction} gap="1" align="stretch" width="full">
+      <VStack dir={section.direction} gap="0.5" align="stretch" width="full">
         <Box textAlign="center">{heading}</Box>
         <Box width="full" height="1px" borderRadius="full" bg={accentColor} opacity="0.16" />
       </VStack>
@@ -72,7 +74,7 @@ export const SectionHeading = memo(function SectionHeading({
     return (
       <Box
         dir={section.direction}
-        pb="1.5"
+        pb="1"
         borderBottomWidth={variant === "solidUnderline" ? "2px" : "1px"}
         borderColor={variant === "solidUnderline" ? accentColor : ruleColor}
       >

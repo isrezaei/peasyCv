@@ -5,6 +5,7 @@ import {
   BASE_FONT_PX,
   BODY_CHARS_PER_LINE_AT_BASE,
   CHARS_PER_LINE_AT_BASE,
+  PAGE_MARGIN_MM,
   PX_PER_MM,
   WITHIN_SECTION_GAP_MM,
 } from "./constants";
@@ -15,7 +16,7 @@ import {
  * this fits proportionally fewer characters per line (text wraps more), so the
  * column metrics scale the line capacity by `contentWidthMm / this`.
  */
-const REFERENCE_CONTENT_WIDTH_MM = A4_WIDTH_MM - 2 * 16;
+const REFERENCE_CONTENT_WIDTH_MM = A4_WIDTH_MM - 2 * PAGE_MARGIN_MM;
 
 /**
  * Theme-derived measurement model that the pagination engine packs against.
@@ -57,14 +58,18 @@ export function createLayoutMetrics(theme: ThemeSettings): LayoutMetrics {
   const lineHeight = theme.lineHeight > 0 ? theme.lineHeight : 1.5;
 
   return {
-    usableHeightMm: A4_HEIGHT_MM - theme.pageMargin * 2,
+    // Fixed 16mm top + 16mm bottom, from the single shared constant — never the
+    // theme's margin slider — so every page of every template breaks against the
+    // exact same 265mm usable height and the equal top/bottom margins are locked.
+    usableHeightMm: A4_HEIGHT_MM - PAGE_MARGIN_MM * 2,
     sectionGapMm: theme.sectionSpacing,
     withinGapMm: WITHIN_SECTION_GAP_MM,
     lineMm: (em: number) => (BASE_FONT_PX * fontScale * em * lineHeight) / PX_PER_MM,
     // Wider glyphs at larger font scales fit fewer characters per line.
     charsPerLine: Math.max(20, Math.round(CHARS_PER_LINE_AT_BASE / fontScale)),
     bodyCharsPerLine: Math.max(16, Math.round(BODY_CHARS_PER_LINE_AT_BASE / fontScale)),
-    // A single full-width column spans the page content width.
+    // The horizontal inset still tracks the theme margin slider (which only tunes
+    // left/right padding), so text-wrap estimates match the rendered content width.
     contentWidthMm: A4_WIDTH_MM - theme.pageMargin * 2,
   };
 }

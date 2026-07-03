@@ -8,8 +8,12 @@ import type { SectionMeta } from "@/types";
 /** What a template needs to render one section run (possibly a page continuation). */
 export interface ColumnSectionRun {
   section: SectionMeta;
-  /** Item refIds on this page; null = render the whole section (e.g. the summary). */
-  itemIds: string[] | null;
+  /**
+   * Exact item refIds to render on this page (in order). Possibly empty for a
+   * stranded title-only page; the item-less summary ignores it. Never a
+   * "render all" sentinel — pagination always passes the precise slice.
+   */
+  itemIds: string[];
   /** False on a continuation page — render the content without the heading. */
   showTitle: boolean;
 }

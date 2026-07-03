@@ -7,6 +7,7 @@ import { ResumeBackground } from "@/components/resume/canvas/ResumeBackground";
 import { TemplateSection } from "@/components/resume/sections/TemplateSection";
 import { type ColumnTemplateLayout, useColumnLayout } from "@/hooks/resume/useColumnLayout";
 import { getFontStack } from "@/lib/fonts/registry";
+import { PAGE_MARGIN_MM, SIDE_COLUMN_PAD_FACTOR } from "@/lib/pagination";
 import { mixWithWhite, resolveTheme, resumeTextVars, tintColor } from "@/lib/themes";
 import type { RemovableSectionType, TemplateProps } from "@/types";
 import { PlainHeader } from "../_shared/PlainHeader";
@@ -27,8 +28,11 @@ export function TimelinePanelTemplate({ resume, theme }: TemplateProps) {
   const colors = resolveTheme(theme);
   const mainBg = theme.pageBackground === "white" ? "#FFFFFF" : colors.soft;
   const fontStack = getFontStack(theme.fontFamily);
-  const pad = `${theme.pageMargin}mm`;
-  const sidePad = `${(theme.pageMargin * 0.66).toFixed(1)}mm`;
+  // Fixed 16mm vertical margin (equal top/bottom on every page); horizontal follows
+  // the slider, tighter inside the tinted side panel.
+  const padY = `${PAGE_MARGIN_MM}mm`;
+  const padX = `${theme.pageMargin}mm`;
+  const sidePadX = `${(theme.pageMargin * SIDE_COLUMN_PAD_FACTOR).toFixed(1)}mm`;
   const panelBg = tintColor(colors.base, 0.55, theme.columnIntensity);
   const pages = useColumnLayout(resume, LAYOUT);
 
@@ -74,12 +78,12 @@ export function TimelinePanelTemplate({ resume, theme }: TemplateProps) {
         >
           <Box display="flex" flexDirection="column" minH="inherit">
             {page === 0 ? (
-              <Box padding={pad} pb="4" borderBottomWidth="1px" borderColor="blackAlpha.200">
+              <Box pt={padY} px={padX} pb="4" borderBottomWidth="1px" borderColor="blackAlpha.200">
                 <PlainHeader accentColor={colors.accent} />
               </Box>
             ) : null}
             <HStack align="stretch" flex="1" gap="0">
-              <VStack align="stretch" flex="1" minW="0" padding={pad} gap="0" dir="rtl">
+              <VStack align="stretch" flex="1" minW="0" paddingBlock={padY} paddingInline={padX} gap="0" dir="rtl">
                 <ColumnBody blocks={pages.main[page] ?? []} sections={resume.sections} renderSection={renderMain} />
               </VStack>
               <VStack
@@ -88,7 +92,8 @@ export function TimelinePanelTemplate({ resume, theme }: TemplateProps) {
                 flexShrink={0}
                 bg={panelBg}
                 color={colors.bodyText}
-                padding={sidePad}
+                paddingBlock={padY}
+                paddingInline={sidePadX}
                 gap="0"
                 dir="rtl"
                 style={resumeTextVars(colors.secondary, colors.bodyText, colors.subtitle)}

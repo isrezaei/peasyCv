@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { Box, HStack, IconButton, VStack } from "@chakra-ui/react";
+import {Box, HStack, IconButton, Stack, VStack} from "@chakra-ui/react";
 import { TrashIcon } from "@/components/ui/icons";
 import { useProjects } from "@/hooks/store/useProjects";
 import { t } from "@/lib/i18n";
@@ -32,7 +32,7 @@ export const ProjectItemBlock = memo(function ProjectItemBlock({
       _hover={ITEM_HOVER_OUTLINE}
     >
       <VStack align="stretch" gap="0.5" pe="6">
-        <HStack gap="2" align="baseline">
+        <Stack gap={0.5} mb={1.5} align="baseline">
           <EditableText
             value={item.name}
             onChange={(value) => updateProject(item.id, { name: value })}
@@ -41,21 +41,24 @@ export const ProjectItemBlock = memo(function ProjectItemBlock({
             fontSize="sm"
             color={`var(--rz-secondary, ${accentColor})`}
           />
+          {/*should remove*/}
+          {/*<EditableText*/}
+          {/*  value={item.role}*/}
+          {/*  onChange={(value) => updateProject(item.id, { role: value })}*/}
+          {/*  placeholder={t.projects.rolePlaceholder}*/}
+          {/*  fontSize="xs"*/}
+          {/*  color={`var(--rz-secondary, ${accentColor})`}*/}
+          {/*/>*/}
+          {/*should remove*/}
           <EditableText
-            value={item.role}
-            onChange={(value) => updateProject(item.id, { role: value })}
-            placeholder={t.projects.rolePlaceholder}
-            fontSize="xs"
-            color={`var(--rz-secondary, ${accentColor})`}
+              value={item.link}
+              onChange={(value) => updateProject(item.id, { link: value })}
+              placeholder={t.projects.linkPlaceholder}
+              fontSize="xs"
+              color={`var(--rz-secondary, ${accentColor})`}
           />
-        </HStack>
-        <EditableText
-          value={item.link}
-          onChange={(value) => updateProject(item.id, { link: value })}
-          placeholder={t.projects.linkPlaceholder}
-          fontSize="xs"
-          color="fg.muted"
-        />
+        </Stack>
+
         <EditableText
           value={item.description}
           onChange={(value) => updateProject(item.id, { description: value })}

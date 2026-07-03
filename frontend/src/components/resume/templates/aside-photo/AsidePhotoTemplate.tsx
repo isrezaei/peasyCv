@@ -10,6 +10,7 @@ import { TemplateSection } from "@/components/resume/sections/TemplateSection";
 import { useResumeDocument } from "@/hooks/store/useResumeDocument";
 import { type ColumnTemplateLayout, useColumnLayout } from "@/hooks/resume/useColumnLayout";
 import { getFontStack } from "@/lib/fonts/registry";
+import { PAGE_MARGIN_MM, SIDE_COLUMN_PAD_FACTOR } from "@/lib/pagination";
 import { darken, mixWithWhite, resolveTheme, resumeTextVars, tintColor } from "@/lib/themes";
 import type { RemovableSectionType, TemplateProps } from "@/types";
 import { PlainHeader } from "../_shared/PlainHeader";
@@ -31,8 +32,11 @@ export function AsidePhotoTemplate({ resume, theme }: TemplateProps) {
   const mainBg = theme.pageBackground === "white" ? "#FFFFFF" : colors.soft;
   const fontStack = getFontStack(theme.fontFamily);
   const gap = `${theme.sectionSpacing}mm`;
-  const pad = `${theme.pageMargin}mm`;
-  const sidePad = `${(theme.pageMargin * 0.66).toFixed(1)}mm`;
+  // Fixed 16mm vertical margin (equal top/bottom); horizontal follows the slider,
+  // tighter inside the photo aside.
+  const padY = `${PAGE_MARGIN_MM}mm`;
+  const padX = `${theme.pageMargin}mm`;
+  const sidePadX = `${(theme.pageMargin * SIDE_COLUMN_PAD_FACTOR).toFixed(1)}mm`;
   const pages = useColumnLayout(resume, LAYOUT);
 
   const asideBg = tintColor(colors.base, 0.5, theme.columnIntensity);
@@ -90,7 +94,8 @@ export function AsidePhotoTemplate({ resume, theme }: TemplateProps) {
               flexShrink={0}
               bg={asideBg}
               color={asideText}
-              padding={sidePad}
+              paddingBlock={padY}
+              paddingInline={sidePadX}
               gap="0"
               dir="rtl"
               style={resumeTextVars(asideHeading, asideText, asideHeading)}
@@ -108,7 +113,7 @@ export function AsidePhotoTemplate({ resume, theme }: TemplateProps) {
               <ColumnBody blocks={pages.side[page] ?? []} sections={resume.sections} renderSection={renderSide} />
             </VStack>
 
-            <VStack align="stretch" flex="1" minW="0" padding={pad} gap="0" dir="rtl">
+            <VStack align="stretch" flex="1" minW="0" paddingBlock={padY} paddingInline={padX} gap="0" dir="rtl">
               {page === 0 ? (
                 <Box mb={gap}>
                   <PlainHeader accentColor={colors.accent} showPhoto={false} showContacts={false} divider />

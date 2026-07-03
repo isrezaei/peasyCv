@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { Box, HStack, IconButton, VStack } from "@chakra-ui/react";
+import { HStack, Icon, IconButton, Stack, VStack } from "@chakra-ui/react";
 import { TrashIcon } from "@/components/ui/icons";
 import { useEducation } from "@/hooks/store/useEducation";
 import { t } from "@/lib/i18n";
@@ -11,6 +11,7 @@ import { EditableText } from "./EditableText";
 import { ITEM_HOVER_OUTLINE, itemRemoveButtonProps } from "./HoverFrame";
 import { SecondaryTitleField } from "./SecondaryTitleField";
 import { TimelineRail } from "./TimelineRail";
+import { TbCurrentLocationFilled, TbMapPin, TbMapPinFilled } from "react-icons/tb";
 
 interface EducationItemBlockProps {
   item: EducationItem;
@@ -43,29 +44,38 @@ export const EducationItemBlock = memo(function EducationItemBlock({
     >
       <HStack w="full" align="flex-start" gap="3" dir="rtl">
         {/* Date / location column (always on the left, matching Experience). */}
-        <VStack width="20mm" dir={direction} gap="1.5">
+        <Stack width="25mm" dir={direction} gap={1}>
           <DateField
             monthYear
             value={item.startDate}
             onChange={(value) => updateEducation(item.id, { startDate: value })}
             placeholder={t.education.startDate}
+            color="var(--rz-secondary, #3f3f46)"
+            fontSize={"xs"}
+            fontWeight={"bold"}
           />
+
           <DateField
             monthYear
             value={item.endDate}
             onChange={(value) => updateEducation(item.id, { endDate: value })}
             placeholder={t.education.endDate}
+            color="var(--rz-secondary, #3f3f46)"
+            fontSize={"xs"}
+            fontWeight={"bold"}
           />
-          <Box mt={2}>
+
+          <HStack gapX={1} >
+            <Icon as={TbCurrentLocationFilled}  color="fg.muted" boxSize={3} />
             <EditableText
               value={item.city}
               onChange={(value) => updateEducation(item.id, { city: value })}
               placeholder={t.education.city}
-              fontSize="xs"
+              fontSize="2xs"
               color="fg.muted"
             />
-          </Box>
-        </VStack>
+          </HStack>
+        </Stack>
 
         {/* Timeline rail */}
         <TimelineRail accentColor={accentColor} />
@@ -82,7 +92,9 @@ export const EducationItemBlock = memo(function EducationItemBlock({
           />
           <SecondaryTitleField
             value={item.university}
-            onChange={(value) => updateEducation(item.id, { university: value })}
+            onChange={(value) =>
+              updateEducation(item.id, { university: value })
+            }
             placeholder={t.education.universityPlaceholder}
             accentColor={accentColor}
           />
@@ -95,7 +107,9 @@ export const EducationItemBlock = memo(function EducationItemBlock({
           />
           <EditableText
             value={item.achievements}
-            onChange={(value) => updateEducation(item.id, { achievements: value })}
+            onChange={(value) =>
+              updateEducation(item.id, { achievements: value })
+            }
             placeholder={t.education.achievements}
             multiline
             fontSize="xs"

@@ -29,6 +29,10 @@ export const SectionTitleBlock = memo(function SectionTitleBlock({
           fontSize="1.08em"
           fontWeight="bold"
           letterSpacing="-0.01em"
+          // Tight line-box (not the inherited body line-height) so the heading
+          // glyph sits close to the content beneath it — the airy 1.5 line-height
+          // was what pushed titles visually far from their sections.
+          lineHeight="1.15"
           color={accentColor}
           flexShrink={0}
         >

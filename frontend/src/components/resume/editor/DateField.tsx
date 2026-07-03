@@ -4,7 +4,11 @@ import { Box, chakra, HStack, Popover, Portal } from "@chakra-ui/react";
 import { useState } from "react";
 import { useDateCalendar } from "@/hooks/store/useDateCalendar";
 import { CALENDAR_SYSTEMS } from "@/lib/dates/calendars";
-import { dateObjectToISO, formatStoredDate, todayInSystem } from "@/lib/dates/format";
+import {
+  dateObjectToISO,
+  formatStoredDate,
+  todayInSystem,
+} from "@/lib/dates/format";
 import { t } from "@/lib/i18n";
 import type { CalendarSystem } from "@/types";
 import { CalendarPicker } from "./CalendarPicker";
@@ -16,6 +20,7 @@ interface DateFieldProps {
   onChange: (iso: string) => void;
   placeholder: string;
   fontSize?: string;
+  fontWeight?: string;
   color?: string;
   /**
    * Month + year precision, Jalali only (no day grid, no calendar-system
@@ -51,6 +56,7 @@ export function DateField({
   placeholder,
   fontSize = "xs",
   color = "fg.muted",
+  fontWeight = "normal",
   monthYear = false,
   present = false,
   onPresentChange,
@@ -60,7 +66,9 @@ export function DateField({
 
   // Month/year fields are Jalali-only for now; day fields follow the shared setting.
   const system: CalendarSystem = monthYear ? "jalali" : calendar;
-  const display = present ? t.calendars.present : formatStoredDate(value, system);
+  const display = present
+    ? t.calendars.present
+    : formatStoredDate(value, system);
 
   const handleSelect = (iso: string) => {
     onChange(iso);
@@ -93,6 +101,7 @@ export function DateField({
           py="0"
           borderRadius="sm"
           fontSize={fontSize}
+          fontWeight={fontWeight}
           fontFamily="inherit"
           lineHeight="inherit"
           color={display ? color : "fg.subtle"}
@@ -117,7 +126,14 @@ export function DateField({
             <Popover.Body p="3">
               {/* Calendar-system switcher — day mode only (month/year is Jalali). */}
               {!monthYear ? (
-                <HStack gap="1" mb="3" p="0.5" bg="bg.muted" borderRadius="lg" dir="rtl">
+                <HStack
+                  gap="1"
+                  mb="3"
+                  p="0.5"
+                  bg="bg.muted"
+                  borderRadius="lg"
+                  dir="rtl"
+                >
                   {CALENDAR_SYSTEMS.map((option) => {
                     const active = calendar === option;
                     return (
@@ -145,9 +161,17 @@ export function DateField({
               ) : null}
 
               {monthYear ? (
-                <MonthYearPicker value={present ? "" : value} system={system} onSelect={handleSelect} />
+                <MonthYearPicker
+                  value={present ? "" : value}
+                  system={system}
+                  onSelect={handleSelect}
+                />
               ) : (
-                <CalendarPicker value={value} system={system} onSelect={handleSelect} />
+                <CalendarPicker
+                  value={value}
+                  system={system}
+                  onSelect={handleSelect}
+                />
               )}
 
               <HStack justify="space-between" mt="2" dir="rtl">
@@ -177,7 +201,9 @@ export function DateField({
                     py="1"
                     borderRadius="md"
                     _hover={{ bg: "accent.subtle" }}
-                    onClick={() => handleSelect(dateObjectToISO(todayInSystem(system)))}
+                    onClick={() =>
+                      handleSelect(dateObjectToISO(todayInSystem(system)))
+                    }
                   >
                     {t.calendars.today}
                   </chakra.button>

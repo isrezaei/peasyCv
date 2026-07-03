@@ -10,6 +10,7 @@ import { PersonalInfoIdentity } from "@/components/resume/editor/PersonalInfoIde
 import { PersonalInfoSettings } from "@/components/resume/editor/PersonalInfoSettings";
 import { ProfileImageEditor } from "@/components/resume/editor/ProfileImageEditor";
 import { usePersonalInfo } from "@/hooks/store/usePersonalInfo";
+import { PAGE_MARGIN_MM } from "@/lib/pagination";
 import { resumeTextVars } from "@/lib/themes";
 
 interface HeaderBandProps {
@@ -17,7 +18,8 @@ interface HeaderBandProps {
   bandColor: string;
   /** Text colour that reads on the band. */
   contrastText: string;
-  /** Inner padding (the page margin) in millimetres. */
+  /** Horizontal (inline) inner padding in millimetres. The vertical padding is the
+   *  fixed 16mm page margin, so the band's top edge is the page's top margin. */
   padMm: number;
 }
 
@@ -37,7 +39,8 @@ export function HeaderBand({ bandColor, contrastText, padMm }: HeaderBandProps) 
       css={SECTION_HOVER_FRAME_REVEAL}
       bg={bandColor}
       color={contrastText}
-      padding={`${padMm}mm`}
+      paddingBlock={`${PAGE_MARGIN_MM}mm`}
+      paddingInline={`${padMm}mm`}
       dir="rtl"
       style={resumeTextVars(contrastText, soft, soft)}
     >

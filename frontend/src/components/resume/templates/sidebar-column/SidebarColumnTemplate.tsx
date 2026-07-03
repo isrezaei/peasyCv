@@ -12,6 +12,7 @@ import { useResumeDocument } from "@/hooks/store/useResumeDocument";
 import { type ColumnTemplateLayout, useColumnLayout } from "@/hooks/resume/useColumnLayout";
 import { getFontStack } from "@/lib/fonts/registry";
 import { t } from "@/lib/i18n";
+import { PAGE_MARGIN_MM, SIDE_COLUMN_PAD_FACTOR } from "@/lib/pagination";
 import { darken, mixWithWhite, resolveTheme, resumeTextVars, tintColor } from "@/lib/themes";
 import type { RemovableSectionType, TemplateProps } from "@/types";
 
@@ -31,8 +32,11 @@ export function SidebarColumnTemplate({ resume, theme }: TemplateProps) {
   const mainBg = theme.pageBackground === "white" ? "#FFFFFF" : colors.soft;
   const fontStack = getFontStack(theme.fontFamily);
   const gap = `${theme.sectionSpacing}mm`;
-  const pad = `${theme.pageMargin}mm`;
-  const sidePad = `${(theme.pageMargin * 0.66).toFixed(1)}mm`;
+  // Vertical margin is the fixed 16mm page margin (equal top/bottom on every page);
+  // the horizontal inset follows the slider, tighter still inside the coloured aside.
+  const padY = `${PAGE_MARGIN_MM}mm`;
+  const padX = `${theme.pageMargin}mm`;
+  const sidePadX = `${(theme.pageMargin * SIDE_COLUMN_PAD_FACTOR).toFixed(1)}mm`;
   const nameGap = `${(theme.sectionSpacing * 0.5).toFixed(1)}mm`;
   const pages = useColumnLayout(resume, LAYOUT);
 
@@ -86,7 +90,8 @@ export function SidebarColumnTemplate({ resume, theme }: TemplateProps) {
               flexShrink={0}
               bg={sidebarBg}
               color={sidebarText}
-              padding={sidePad}
+              paddingBlock={padY}
+              paddingInline={sidePadX}
               gap="0"
               dir="rtl"
               style={resumeTextVars(sidebarHeading, sidebarText, sidebarHeading)}
@@ -110,7 +115,7 @@ export function SidebarColumnTemplate({ resume, theme }: TemplateProps) {
               ) : null}
             </VStack>
 
-            <VStack align="stretch" flex="1" minW="0" padding={pad} gap="0" dir="rtl">
+            <VStack align="stretch" flex="1" minW="0" paddingBlock={padY} paddingInline={padX} gap="0" dir="rtl">
               {page === 0 ? (
                 <Box flexShrink={0} mb={nameGap}>
                   <PersonalInfoIdentity accentColor={colors.accent} />

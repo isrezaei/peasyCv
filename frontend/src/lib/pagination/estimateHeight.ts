@@ -38,10 +38,13 @@ const SKILL_CHIPS_PER_ROW = 4;
  */
 const SKILL_CHIP_SLOT_MM = 30;
 /**
- * The section heading block measures ~2.4 rendered line-heights in the flow
- * (tall heading line-box plus the space its inline toolbar anchor reserves).
+ * The section heading block measures ~2.1 rendered line-heights in the flow. The
+ * heading now paints with a tight 1.15 line-box (not the airy body line-height) and
+ * sits just 0.5 spacing-units above its content, so it renders shorter than before;
+ * this factor is trimmed from 2.4 to match, keeping the estimate a touch above the
+ * true height (never under) so the packer still fills to the 16mm bottom then breaks.
  */
-const SECTION_TITLE_LINE_FACTOR = 2.4;
+const SECTION_TITLE_LINE_FACTOR = 2.1;
 
 /**
  * A multiline field is a grow-to-content rich-text editor, so it reserves exactly

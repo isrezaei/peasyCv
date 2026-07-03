@@ -34,10 +34,14 @@ export function groupIntoRuns(blocks: PageBlock[], sections: SectionMeta[]): Blo
   return runs;
 }
 
-/** Item refIds carried by a run (excludes the section-title block); null when none. */
-export function runItemIds(run: BlockRun): string[] | null {
-  const ids = run.blocks.map((block) => block.refId).filter((id): id is string => Boolean(id));
-  return ids.length > 0 ? ids : null;
+/**
+ * Item refIds carried by a run (excludes the section-title block). Always an
+ * explicit list — possibly EMPTY when a run holds only a stranded section title
+ * (its items paginated onto the next page). It must never collapse to a "render
+ * all" sentinel, or a title-only page would dump the section's entire content.
+ */
+export function runItemIds(run: BlockRun): string[] {
+  return run.blocks.map((block) => block.refId).filter((id): id is string => Boolean(id));
 }
 
 /** Whether a run opens with its section title (false on a continuation page). */
