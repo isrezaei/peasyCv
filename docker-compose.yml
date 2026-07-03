@@ -1,0 +1,42 @@
+# Local infrastructure for the resume-builder backend.
+#
+#   docker compose up -d        # start Postgres (and Adminer)
+#   docker compose down         # stop, keeping the named volume (data persists)
+#   docker compose down -v      # stop AND wipe the database volume
+#
+# Credentials/ports come from the root .env (copy .env.example -> .env). They
+# default to the values baked into backend/.env.example so the stack works
+# out-of-the-box with no extra configuration.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: resume_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-resume}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-resume_password}
+      POSTGRES_DB: ${POSTGRES_DB:-resume_builder}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - resume_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-resume} -d ${POSTGRES_DB:-resume_builder}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Lightweight web UI for inspecting the database during development.
+  # Visit http://localhost:8080 (System: PostgreSQL, Server: postgres).
+  adminer:
+    image: adminer:4
+    container_name: resume_adminer
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - "${ADMINER_PORT:-8080}:8080"
+
+volumes:
+  resume_pgdata:
+    name: resume_pgdata

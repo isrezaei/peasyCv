@@ -1,0 +1,282 @@
+// Prisma schema for the resume builder.
+//
+// The data model maps 1:1 to the frontend `ResumeData` contract
+// (frontend/src/types, mirrored in packages/types). Design rules:
+//   * Every list-shaped section is a normalized child table with a `position`
+//     column so array ordering round-trips exactly.
+//   * Item primary keys are the CLIENT-provided ids (UUIDs from crypto.randomUUID)
+//     so ids stay stable between the store, the API and the database.
+//   * The fixed-shape singletons (theme, personalInfo) are 1:1 child tables with
+//     explicit scalar columns — no JSON blobs for content — so the DB -> API ->
+//     store round-trip is byte-for-byte shape-identical.
+//   * Timestamps are server-authoritative (createdAt default, updatedAt @updatedAt)
+//     and serialized to ISO strings.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Auth
+// ---------------------------------------------------------------------------
+
+model User {
+  id                 String   @id @default(uuid())
+  email              String   @unique
+  // Null for accounts created purely via Google OAuth (no local password).
+  passwordHash       String?
+  name               String?
+  // Google OAuth subject id; null for email/password-only accounts.
+  googleId           String?  @unique
+  // Hashed (bcrypt) current refresh token for rotation/revocation. Null = logged out.
+  hashedRefreshToken String?
+  resumes            Resume[]
+  assets             Asset[]
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+// Uploaded image assets (profile photos). Kept separate from resume content:
+// the binary lives in cloud storage, only the metadata/URL is recorded here, and
+// the resume references the URL through personalInfo.profileImage (ImageMeta).
+model Asset {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider  String // "local" | "s3" | "cloudinary"
+  key       String // storage key / public_id / relative path
+  url       String
+  width     Int?
+  height    Int?
+  bytes     Int?
+  mime      String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Resume (root) + 1:1 singletons
+// ---------------------------------------------------------------------------
+
+model Resume {
+  // Client-provided UUID (createId()) so the store id == API id == DB id.
+  id          String   @id
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  locale      String   @default("fa") // "fa" | "en"
+  templateId  String
+  // summary is { html }; stored as a single column and re-wrapped on read.
+  summaryHtml String   @default("")
+
+  // Public read-only share.
+  shareToken   String?  @unique
+  shareEnabled Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  theme          ResumeTheme?
+  personalInfo   ResumePersonalInfo?
+  links          PersonalLink[]
+  sections       Section[]
+  experiences    Experience[]
+  skillGroups    SkillGroup[]
+  educations     Education[]
+  projects       Project[]
+  languages      Language[]
+  certifications Certification[]
+
+  @@index([userId])
+}
+
+model ResumeTheme {
+  id                  String @id @default(uuid())
+  resumeId            String @unique
+  resume              Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  themeId             String
+  pageBackground      String
+  backgroundPattern   String
+  backgroundIntensity Float
+  dateCalendar        String
+  fontFamily          String
+  fontScale           Float
+  lineHeight          Float
+  pageMargin          Float
+  sectionSpacing      Float
+  columnIntensity     Float
+}
+
+model ResumePersonalInfo {
+  id       String @id @default(uuid())
+  resumeId String @unique
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  fullName      String  @default("")
+  jobTitle      String  @default("")
+  phone         String  @default("")
+  location      String  @default("")
+  email         String  @default("")
+  dateOfBirth   String  @default("")
+  nationality   String  @default("")
+  uppercaseName Boolean @default(false)
+  photoStyle    String  @default("round") // "round" | "square"
+
+  // PersonalInfoFieldVisibility (fv* = field visibility flags).
+  fvJobTitle    Boolean @default(true)
+  fvPhone       Boolean @default(true)
+  fvLinks       Boolean @default(true)
+  fvEmail       Boolean @default(true)
+  fvLocation    Boolean @default(true)
+  fvPhoto       Boolean @default(true)
+  fvDateOfBirth Boolean @default(false)
+  fvNationality Boolean @default(false)
+
+  // profileImage (ImageMeta | null). When photoMetaId is null the whole
+  // profileImage serializes to null. When photoCropZoom is null, crop is null.
+  photoMetaId      String?
+  photoUrl         String?
+  photoOriginalUrl String?
+  photoWidth       Float?
+  photoHeight      Float?
+  photoCropX       Float?
+  photoCropY       Float?
+  photoCropWidth   Float?
+  photoCropHeight  Float?
+  photoCropZoom    Float?
+}
+
+// ---------------------------------------------------------------------------
+// Normalized collections (each carries `position` for stable array order)
+// ---------------------------------------------------------------------------
+
+model PersonalLink {
+  id       String @id // client id
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  label    String @default("")
+  url      String @default("")
+  position Int
+
+  @@index([resumeId])
+}
+
+model Section {
+  id        String  @id // client id
+  resumeId  String
+  resume    Resume  @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  type      String // RemovableSectionType
+  title     String
+  visible   Boolean
+  direction String // "rtl" | "ltr"
+  order     Int
+
+  @@index([resumeId])
+}
+
+model Experience {
+  id                 String           @id // client id
+  resumeId           String
+  resume             Resume           @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  jobTitle           String           @default("")
+  companyName        String           @default("")
+  periodStart        String           @default("")
+  periodEnd          String           @default("")
+  periodCurrent      Boolean          @default(false)
+  city               String           @default("")
+  projectLink        String           @default("")
+  projectDescription String           @default("")
+  position           Int
+  responsibilities   Responsibility[]
+
+  @@index([resumeId])
+}
+
+model Responsibility {
+  id           String     @id // client id
+  experienceId String
+  experience   Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  text         String     @default("")
+  position     Int
+
+  @@index([experienceId])
+}
+
+model SkillGroup {
+  id       String  @id // client id
+  resumeId String
+  resume   Resume  @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  name     String  @default("")
+  position Int
+  skills   Skill[]
+
+  @@index([resumeId])
+}
+
+model Skill {
+  id       String     @id // client id
+  groupId  String
+  group    SkillGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  name     String     @default("")
+  position Int
+
+  @@index([groupId])
+}
+
+model Education {
+  id          String @id // client id
+  resumeId    String
+  resume      Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  degree      String @default("")
+  university  String @default("")
+  startDate   String @default("")
+  endDate     String @default("")
+  gpa         String @default("")
+  achievements String @default("")
+  city        String @default("")
+  position    Int
+
+  @@index([resumeId])
+}
+
+model Project {
+  id          String @id // client id
+  resumeId    String
+  resume      Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  name        String @default("")
+  role        String @default("")
+  link        String @default("")
+  description String @default("")
+  position    Int
+
+  @@index([resumeId])
+}
+
+model Language {
+  id       String @id // client id
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  name     String @default("")
+  level    Int // LanguageLevel 1..5
+  position Int
+
+  @@index([resumeId])
+}
+
+model Certification {
+  id       String @id // client id
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  name     String @default("")
+  issuer   String @default("")
+  date     String @default("")
+  position Int
+
+  @@index([resumeId])
+}

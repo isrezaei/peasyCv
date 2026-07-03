@@ -1,39 +1,35 @@
 {
-  "name": "ai-res",
-  "version": "0.1.0",
+  "name": "resume-builder",
+  "version": "1.0.0",
   "private": true,
+  "description": "Persian/RTL resume builder — Next.js frontend + NestJS backend monorepo.",
+  "workspaces": [
+    "packages/*",
+    "frontend",
+    "backend"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "@chakra-ui/react": "^3.36.0",
-    "@dnd-kit/core": "^6.3.1",
-    "@dnd-kit/sortable": "^10.0.0",
-    "@dnd-kit/utilities": "^3.2.2",
-    "@emotion/react": "^11.14.0",
-    "@tiptap/pm": "^3.27.0",
-    "@tiptap/react": "^3.27.0",
-    "@tiptap/starter-kit": "^3.27.0",
-    "next": "16.2.9",
-    "next-themes": "^0.4.6",
-    "puppeteer-core": "^24.43.1",
-    "react": "19.2.4",
-    "react-date-object": "^2.1.9",
-    "react-dom": "19.2.4",
-    "react-icons": "^5.6.0",
-    "swr": "^2.4.1",
-    "zustand": "^5.0.14"
+    "dev": "concurrently -n backend,frontend -c blue,green \"npm:dev:backend\" \"npm:dev:frontend\"",
+    "dev:frontend": "npm run dev --workspace @resume/frontend",
+    "dev:backend": "npm run start:dev --workspace @resume/backend",
+    "build": "npm run build --workspace @resume/types && npm run build --workspace @resume/backend && npm run build --workspace @resume/frontend",
+    "build:frontend": "npm run build --workspace @resume/frontend",
+    "build:backend": "npm run build --workspace @resume/backend",
+    "build:types": "npm run build --workspace @resume/types",
+    "start:frontend": "npm run start --workspace @resume/frontend",
+    "start:backend": "npm run start:prod --workspace @resume/backend",
+    "lint": "npm run lint --workspace @resume/frontend && npm run lint --workspace @resume/backend",
+    "typecheck": "npm run typecheck --workspace @resume/frontend && npm run typecheck --workspace @resume/backend",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "prisma:migrate": "npm run prisma:migrate --workspace @resume/backend",
+    "prisma:generate": "npm run prisma:generate --workspace @resume/backend",
+    "prisma:seed": "npm run prisma:seed --workspace @resume/backend"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.9",
-    "playwright-core": "^1.61.0",
-    "typescript": "^5"
+    "concurrently": "^9.1.2"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
