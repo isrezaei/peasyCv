@@ -4,6 +4,7 @@ import { memo } from "react";
 import { Box, HStack, Icon, IconButton, Separator, Stack, VStack } from "@chakra-ui/react";
 import { TrashIcon } from "@/components/ui/icons";
 import { useExperience } from "@/hooks/store/useExperience";
+import { useResumeStore } from "@/store/useResumeStore";
 import { t } from "@/lib/i18n";
 import type { Direction, ExperienceItem } from "@/types";
 import { DateField } from "./DateField";
@@ -27,8 +28,17 @@ export const ExperienceItemBlock = memo(function ExperienceItemBlock({
 }: ExperienceItemBlockProps) {
   const { updateExperience, removeExperience } = useExperience();
 
-  const setPeriod = (patch: Partial<ExperienceItem["period"]>) =>
-    updateExperience(item.id, { period: { ...item.period, ...patch } });
+  const setPeriod = (patch: Partial<ExperienceItem["period"]>) => {
+    // Merge against the LIVE store value, not the `item.period` prop, which is a
+    // stale closure. The end-date DateField fires `onChange` (sets `end`) and
+    // `onPresentChange(false)` back-to-back in the same tick; a prop-based merge
+    // would re-introduce the pre-pick `end` on the second call, so the End Date
+    // never persists. Reading live state keeps both updates applied.
+    const live = useResumeStore
+      .getState()
+      .resume.experience.find((e) => e.id === item.id)?.period;
+    updateExperience(item.id, { period: { ...(live ?? item.period), ...patch } });
+  };
 
   return (
     <HStack
