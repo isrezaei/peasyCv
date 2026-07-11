@@ -1,46 +1,118 @@
 "use client";
 
 import { Box, chakra, HStack } from "@chakra-ui/react";
-import type { LanguageLevel } from "@/types";
+import {
+  LANGUAGE_BAR_HEIGHT_PX,
+  LANGUAGE_LINE_TRACK_PX,
+  LANGUAGE_METER_BOX_PX,
+} from "@/lib/pagination";
+import type { LanguageLevel, LanguageMeterVariant } from "@/types";
 
 interface LanguageLevelMeterProps {
   level: LanguageLevel;
   accentColor: string;
+  variant: LanguageMeterVariant;
   editable?: boolean;
   onChange?: (level: LanguageLevel) => void;
 }
 
-const DOTS: LanguageLevel[] = [1, 2, 3, 4, 5];
+/**
+ * THE single level→fill source shared by every variant: discrete shapes fill
+ * `step <= level` of these steps, continuous tracks fill `level / STEPS.length`
+ * of their length. Variants differ ONLY in the shape that paints the result.
+ */
+const STEPS: LanguageLevel[] = [1, 2, 3, 4, 5];
+const fillFraction = (level: LanguageLevel) => level / STEPS.length;
 
+/** Beside-text track width, derived from the shared compact meter box. */
+const PILL_TRACK_PX = STEPS.length * LANGUAGE_METER_BOX_PX;
+
+/**
+ * The Languages level meter. Vertical geometry comes from the SAME pagination
+ * constants the language-row estimator measures with, so the painted meter can
+ * never grow past the height the packer reserved for it: the bars variant is
+ * exactly the (taller) bar height, dots/pill live inside the compact meter
+ * box, and the stacked "line" variant is exactly the fixed track thickness.
+ */
 export function LanguageLevelMeter({
   level,
   accentColor,
+  variant,
   editable = false,
   onChange,
 }: LanguageLevelMeterProps) {
+  if (variant === "pill" || variant === "line") {
+    const isLine = variant === "line";
+    return (
+      <Box
+        position="relative"
+        width={isLine ? "100%" : `${PILL_TRACK_PX}px`}
+        height={isLine ? `${LANGUAGE_LINE_TRACK_PX}px` : `${LANGUAGE_METER_BOX_PX}px`}
+        borderRadius="full"
+        bg="gray.200"
+        overflow="hidden"
+      >
+        <Box
+          position="absolute"
+          insetInlineStart="0"
+          top="0"
+          height="100%"
+          width={`${fillFraction(level) * 100}%`}
+          borderRadius="full"
+          bg={accentColor}
+        />
+        {editable && (
+          <HStack position="absolute" inset="0" gap="0">
+            {STEPS.map((step) => (
+              // Preflight is off, so a bare <button> keeps the UA's OPAQUE
+              // ButtonFace background — without an explicit transparent bg these
+              // invisible hit zones would tile over the track and hide the fill.
+              <chakra.button
+                key={step}
+                type="button"
+                flex="1"
+                height="100%"
+                bg="transparent"
+                cursor="pointer"
+                aria-label={`سطح ${step}`}
+                onClick={onChange ? () => onChange(step) : undefined}
+              />
+            ))}
+          </HStack>
+        )}
+      </Box>
+    );
+  }
+
   return (
     <HStack gap="1">
-      {DOTS.map((dot) => {
-        const filled = dot <= level;
-        const dotStyle = {
-          width: "9px",
-          height: "9px",
-          borderRadius: "full",
-          bg: filled ? accentColor : "transparent",
-          borderWidth: "1.5px",
-          borderColor: accentColor,
-        } as const;
+      {STEPS.map((step) => {
+        const filled = step <= level;
+        const stepStyle =
+          variant === "dots"
+            ? {
+                width: `${LANGUAGE_METER_BOX_PX}px`,
+                height: `${LANGUAGE_METER_BOX_PX}px`,
+                borderRadius: "full",
+                bg: filled ? accentColor : "gray.200",
+              }
+            : {
+                width: "3px",
+                height: `${LANGUAGE_BAR_HEIGHT_PX}px`,
+                borderRadius: "full",
+                bg: filled ? accentColor : "gray.200",
+              };
         return editable ? (
           <chakra.button
-            key={dot}
+            key={step}
             type="button"
-            {...dotStyle}
+            {...stepStyle}
             cursor="pointer"
-            aria-label={`سطح ${dot}`}
-            onClick={onChange ? () => onChange(dot) : undefined}
+            aria-label={`سطح ${step}`}
+            onClick={onChange ? () => onChange(step) : undefined}
           />
         ) : (
-          <Box key={dot} {...dotStyle} />
+          <Box key={step} {...stepStyle} />
         );
       })}
     </HStack>

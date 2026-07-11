@@ -41,7 +41,7 @@ export function groupIntoRuns(blocks: PageBlock[], sections: SectionMeta[]): Blo
  * all" sentinel, or a title-only page would dump the section's entire content.
  */
 export function runItemIds(run: BlockRun): string[] {
-  return run.blocks.map((block) => block.refId).filter((id): id is string => Boolean(id));
+  return run.blocks.flatMap((block) => block.refIds ?? (block.refId ? [block.refId] : []));
 }
 
 /** Whether a run opens with its section title (false on a continuation page). */

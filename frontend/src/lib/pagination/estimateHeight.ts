@@ -3,16 +3,25 @@ import type {
   ExperienceItem,
   PersonalInfo,
   ProjectItem,
+  SectionMeta,
   SkillGroup,
 } from "@/types";
+import { shouldRenderProjectLink } from "@/lib/resume/projectLink";
 import {
+  DATE_COLUMN_MONTH_NAME_MM,
   EM_BODY,
   EM_ITEM_TITLE,
   EM_NAME,
   EM_SECTION_TITLE,
   EM_SUBTITLE,
   EM_SUMMARY,
+  LANGUAGE_BAR_HEIGHT_PX,
+  LANGUAGE_LINE_GAP_PX,
+  LANGUAGE_LINE_TRACK_PX,
+  LANGUAGE_METER_BOX_PX,
   MULTILINE_ROWS,
+  TIMELINE_CHROME_PX,
+  periodDateColumnMm,
 } from "./constants";
 import { estimateHtmlLines } from "./estimateHtmlLines";
 import { type LayoutMetrics, pxToMm } from "./metrics";
@@ -54,9 +63,29 @@ const SECTION_TITLE_LINE_FACTOR = 2.1;
  * `bodyCharsPerLine`, which the column metrics scale to the real column width so a
  * narrow entry column counts the extra wraps.
  */
-function multilineMm(m: LayoutMetrics, em: number, html: string): number {
-  const lines = Math.max(MULTILINE_ROWS, estimateHtmlLines(html, m.bodyCharsPerLine));
+function multilineMm(
+  m: LayoutMetrics,
+  em: number,
+  html: string,
+  charsPerLine: number = m.bodyCharsPerLine,
+): number {
+  const lines = Math.max(MULTILINE_ROWS, estimateHtmlLines(html, charsPerLine));
   return lines * m.lineMm(em);
+}
+
+/**
+ * Wrap capacity of an entry's MAIN column. `bodyCharsPerLine` was calibrated
+ * with the widest (month-name, 25mm) date column in place; a narrower date
+ * column widens the main column, so the capacity scales by the ratio of the two
+ * real main-column widths (column width minus date column minus the fixed
+ * rail/gap chrome). Every term is a shared renderer constant.
+ */
+function entryBodyCharsPerLine(m: LayoutMetrics, dateColumnMm: number): number {
+  const chromeMm = pxToMm(TIMELINE_CHROME_PX);
+  const referenceMainMm = m.contentWidthMm - DATE_COLUMN_MONTH_NAME_MM - chromeMm;
+  const mainMm = m.contentWidthMm - dateColumnMm - chromeMm;
+  if (referenceMainMm <= 0 || mainMm <= 0) return m.bodyCharsPerLine;
+  return Math.max(12, Math.round(m.bodyCharsPerLine * (mainMm / referenceMainMm)));
 }
 
 /** Identity block: the full name plus, when shown, the job-title subtitle. */
@@ -145,19 +174,35 @@ export function estimateSummaryHeight(html: string, m: LayoutMetrics): number {
   return lines * m.lineMm(EM_SUMMARY) + pxToMm(8);
 }
 
-export function estimateExperienceItemHeight(item: ExperienceItem, m: LayoutMetrics): number {
+export function estimateExperienceItemHeight(
+  item: ExperienceItem,
+  section: SectionMeta,
+  m: LayoutMetrics,
+): number {
+  // The date column narrows when the month is hidden or numeric, widening the
+  // main column, so the wrap capacity is conditional on the section settings.
+  // `periodDateColumnMm` is the SAME mapping the block sets its `width` from.
+  const charsPerLine = entryBodyCharsPerLine(
+    m,
+    periodDateColumnMm(section.showMonth, section.monthFormat),
+  );
+
   const responsibilitiesMm = item.responsibilities.reduce(
     // Each bullet row is at least the (taller) bullet glyph line, then grows with
     // the wrapped text; pxToMm(4) is the real inter-bullet gap (VStack gap=1).
     (total, responsibility) =>
-      total + Math.max(m.lineMm(EM_ITEM_TITLE), multilineMm(m, EM_BODY, responsibility.text)) + pxToMm(4),
+      total +
+      Math.max(m.lineMm(EM_ITEM_TITLE), multilineMm(m, EM_BODY, responsibility.text, charsPerLine)) +
+      pxToMm(4),
     0,
   );
 
   const mainColumnMm =
     2 * m.lineMm(EM_ITEM_TITLE) + // job title + company
-    (item.projectLink ? m.lineMm(EM_BODY) : 0) +
-    multilineMm(m, EM_BODY, item.projectDescription) + // project description (always rendered)
+    // The link row is counted iff it is rendered — the SAME shared predicate the
+    // block renders by (mirrors estimateProjectItemHeight).
+    (shouldRenderProjectLink(item) ? m.lineMm(EM_BODY) : 0) +
+    multilineMm(m, EM_BODY, item.projectDescription, charsPerLine) + // project description (always rendered)
     responsibilitiesMm +
     // Responsibilities are a keyboard-driven list (Enter adds, Backspace removes),
     // so there is no longer an "add responsibility" button taking vertical space.
@@ -168,7 +213,7 @@ export function estimateExperienceItemHeight(item: ExperienceItem, m: LayoutMetr
   // button) + city, with the small inter-field gaps.
   const dateColumnMm = 3 * m.lineMm(EM_BODY) + pxToMm(20);
 
-  return Math.max(mainColumnMm, dateColumnMm) + pxToMm(8); // pb=2
+  return Math.max(mainColumnMm, dateColumnMm) + pxToMm(6); // pb=1.5
 }
 
 export function estimateSkillGroupHeight(group: SkillGroup, m: LayoutMetrics): number {
@@ -184,31 +229,79 @@ export function estimateSkillGroupHeight(group: SkillGroup, m: LayoutMetrics): n
   return m.lineMm(EM_ITEM_TITLE) + pxToMm(2) + chipRows * chipRowMm + pxToMm(12); // pb=2 + safety
 }
 
-export function estimateEducationItemHeight(item: EducationItem, m: LayoutMetrics): number {
+export function estimateEducationItemHeight(
+  item: EducationItem,
+  section: SectionMeta,
+  m: LayoutMetrics,
+): number {
+  // Same date-column-conditional wrap capacity as the experience entry.
+  const charsPerLine = entryBodyCharsPerLine(
+    m,
+    periodDateColumnMm(section.showMonth, section.monthFormat),
+  );
+
   const mainColumnMm =
     2 * m.lineMm(EM_ITEM_TITLE) + // degree + university
     m.lineMm(EM_BODY) + // gpa row
-    multilineMm(m, EM_BODY, item.achievements) + // achievements (always rendered)
+    multilineMm(m, EM_BODY, item.achievements, charsPerLine) + // achievements (always rendered)
     pxToMm(10);
 
   // Date column mirrors the experience entry: start + end DateField + city.
   const dateColumnMm = 3 * m.lineMm(EM_BODY) + pxToMm(20);
 
-  return Math.max(mainColumnMm, dateColumnMm) + pxToMm(8); // pb=2
+  return Math.max(mainColumnMm, dateColumnMm) + pxToMm(6); // pb=1.5
 }
 
 export function estimateProjectItemHeight(item: ProjectItem, m: LayoutMetrics): number {
-  return (
+  let mm =
     m.lineMm(EM_ITEM_TITLE) + // name + role row
-    m.lineMm(EM_BODY) + // link
     multilineMm(m, EM_BODY, item.description) + // description (always rendered)
     pxToMm(8) +
-    pxToMm(8) // pb=2
-  );
+    pxToMm(8); // pb=2
+  // The link row is counted iff it is actually rendered — the SAME shared
+  // predicate ProjectItemBlock renders by, so editor, /print and the estimate
+  // can never disagree about this row's existence.
+  if (shouldRenderProjectLink(item)) mm += m.lineMm(EM_BODY); // link
+  return mm;
 }
 
-export function estimateLanguageItemHeight(m: LayoutMetrics): number {
-  return m.lineMm(EM_ITEM_TITLE) + pxToMm(8); // single row + pb=1 + safety
+/**
+ * One row of the Languages grid (up to LANGUAGE_GRID_COLUMNS cells). Every cell
+ * obeys the SECTION-WIDE display settings, so the row height is uniform and
+ * exact — no term is guessed:
+ *
+ * - "line" variant: the level word sits INLINE with the name (one text line)
+ *   and the full-width track stacks below it — name line, plus the fixed
+ *   gap + track when the meter shows.
+ * - beside-text variants (bars/dots/pill): the name (sm) over the level word
+ *   (xs) with the meter beside, capped at the fixed bar-height box — the cell
+ *   is the taller of the text stack and that box (the meter can win at small
+ *   font scales).
+ *
+ * Both close with the cell's vertical p=3 padding (which clears the hover
+ * trash) plus the safety sliver. Texts are non-wrapping single-liners and the
+ * meter boxes are shared constants, so estimator and renderer read identical
+ * geometry.
+ */
+export function estimateLanguageRowHeight(section: SectionMeta, m: LayoutMetrics): number {
+  // Vertical cell chrome: the p=3 padding (12px top + 12px bottom) that clears
+  // the hover trash around the content, plus the usual safety sliver.
+  const cellChromeMm = pxToMm(28);
+  if (section.languageMeterVariant === "line") {
+    const trackMm = section.languageShowMeter
+      ? pxToMm(LANGUAGE_LINE_GAP_PX + LANGUAGE_LINE_TRACK_PX)
+      : 0;
+    return m.lineMm(EM_ITEM_TITLE) + trackMm + cellChromeMm; // text line + track + padding + safety
+  }
+  const levelWordMm = section.languageShowLevelText ? m.lineMm(EM_BODY) : 0;
+  const textStackMm = m.lineMm(EM_ITEM_TITLE) + levelWordMm;
+  // The bars variant renders taller bars than the compact dots/pill box, so
+  // the reserved meter box follows the variant — same constants the meter
+  // paints with.
+  const meterBoxPx =
+    section.languageMeterVariant === "bars" ? LANGUAGE_BAR_HEIGHT_PX : LANGUAGE_METER_BOX_PX;
+  const meterMm = section.languageShowMeter ? pxToMm(meterBoxPx) : 0;
+  return Math.max(textStackMm, meterMm) + cellChromeMm; // tallest cell + padding + safety
 }
 
 export function estimateCertificationItemHeight(m: LayoutMetrics): number {

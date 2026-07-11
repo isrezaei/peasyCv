@@ -11,10 +11,13 @@ import { ProfileImageEditor } from "./ProfileImageEditor";
 
 interface PersonalInfoBlockProps {
   accentColor: string;
+  /** Decorative colour for the contact/link icons; unset falls back to the accent. */
+  markerColor?: string;
 }
 
 export const PersonalInfoBlock = memo(function PersonalInfoBlock({
   accentColor,
+  markerColor,
 }: PersonalInfoBlockProps) {
   const { personalInfo } = usePersonalInfo();
 
@@ -28,10 +31,11 @@ export const PersonalInfoBlock = memo(function PersonalInfoBlock({
         <VStack align="stretch" flex="1" minW="0" gap="12px">
           <PersonalInfoIdentity
             accentColor={accentColor}
+            markerColor={markerColor}
             rightSlot={<PersonalInfoSettings triggerSize="2xs" />}
           />
           <Box borderRadius="md" _groupHover={CONTENT_BORDER_HOVER}>
-            <PersonalInfoContacts accentColor={accentColor} />
+            <PersonalInfoContacts accentColor={accentColor} markerColor={markerColor} />
           </Box>
         </VStack>
       </HStack>

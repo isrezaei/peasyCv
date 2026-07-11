@@ -43,6 +43,11 @@ function createDefaultSections(): SectionMeta[] {
     visible: true,
     direction: 'rtl',
     order: index,
+    languageMeterVariant: 'bars' as const,
+    languageShowMeter: true,
+    languageShowLevelText: true,
+    showMonth: true,
+    monthFormat: 'name' as const,
   }));
 }
 
@@ -116,6 +121,8 @@ export function createDefaultResumeData(overrides: DefaultResumeOverrides = {}):
         projectLink: '',
         projectDescription:
           'نمونه: توضیح کوتاهی دربارهٔ نقش و حوزهٔ کاری خود در این موقعیت بنویسید.',
+        link: '',
+        linkVisible: true,
         responsibilities: [
           {
             id: randomUUID(),
@@ -151,15 +158,16 @@ export function createDefaultResumeData(overrides: DefaultResumeOverrides = {}):
     projects: [
       {
         id: randomUUID(),
-        name: 'پروژهٔ نمونه',
-        role: 'توسعه‌دهنده',
+        name: '',
+        role: '',
         link: '',
-        description: 'نمونه: هدف، نقش و نتیجهٔ این پروژه را در یک یا دو جمله توضیح دهید.',
+        linkVisible: true,
+        description: '',
       },
     ],
     languages: [
-      { id: randomUUID(), name: 'فارسی', level: 5 },
-      { id: randomUUID(), name: 'انگلیسی', level: 4 },
+      { id: randomUUID(), name: 'فارسی', level: 5, showBars: true, showLevelText: true },
+      { id: randomUUID(), name: 'انگلیسی', level: 4, showBars: true, showLevelText: true },
     ],
     certifications: [
       {

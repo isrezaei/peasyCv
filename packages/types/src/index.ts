@@ -94,6 +94,11 @@ export interface ExperienceItem {
   city: string;
   projectLink: string;
   projectDescription: string;
+  /** External project link, mirroring `ProjectItem.link` ('' or a valid http(s) URL). */
+  link: string;
+  /** Whether the entry's external link is rendered. Off hides the link (and its
+   *  icon) even when `link` holds a value, so a section option can suppress it. */
+  linkVisible: boolean;
   responsibilities: ResponsibilityItem[];
 }
 
@@ -127,6 +132,9 @@ export interface ProjectItem {
   name: string;
   role: string;
   link: string;
+  /** Whether the project's external link is rendered. Off hides the link (and its
+   *  icon) even when `link` holds a value, so a section option can suppress it. */
+  linkVisible: boolean;
   description: string;
 }
 
@@ -134,10 +142,21 @@ export interface ProjectItem {
 /** Proficiency on a 1–5 dot scale, matching the reference template meters. */
 export type LanguageLevel = 1 | 2 | 3 | 4 | 5;
 
+/**
+ * Which shape the Languages level meter renders with. Nominal (no order, no
+ * arithmetic), so it is stored as a string enum like `direction` and the
+ * theme/template ids — never an int ordinal like `LanguageLevel`.
+ */
+export type LanguageMeterVariant = "bars" | "dots" | "pill" | "line";
+
 export interface LanguageItem {
   id: ID;
   name: string;
   level: LanguageLevel;
+  /** Whether the 5-bar level meter renders. Independent of the level word. */
+  showBars: boolean;
+  /** Whether the level word (derived from `level`, never stored) renders. */
+  showLevelText: boolean;
 }
 
 // --- certifications --------------------------------------------------------
@@ -160,6 +179,13 @@ export type RemovableSectionType =
 
 export type SectionType = "personalInfo" | RemovableSectionType;
 
+/**
+ * How a period date's month renders: the localized month name («فروردین») or its
+ * ordinal («12»). The label is always DERIVED from the stored ISO date — never
+ * stored — like the languages level word.
+ */
+export type MonthFormat = "name" | "number";
+
 export interface SectionMeta {
   id: ID;
   type: RemovableSectionType;
@@ -167,6 +193,17 @@ export interface SectionMeta {
   visible: boolean;
   direction: Direction;
   order: number;
+  /** Languages-section display settings — section-wide, meaningful only for
+   *  type "languages" but present (defaulted) on every section like `direction`. */
+  languageMeterVariant: LanguageMeterVariant;
+  languageShowMeter: boolean;
+  languageShowLevelText: boolean;
+  /** Period-date display settings — section-wide, meaningful for the dated
+   *  sections ("experience", "education") but present (defaulted) on every
+   *  section like the languages settings. Each section row keeps its own pair,
+   *  so Experience and Education are configured independently. */
+  showMonth: boolean;
+  monthFormat: MonthFormat;
 }
 
 // --- theme -----------------------------------------------------------------
@@ -181,7 +218,21 @@ export type ThemeId =
   | "ocean"
   | "slate"
   | "grey"
-  | "indigo";
+  | "indigo"
+  | "navyGold"
+  | "crimsonCopper"
+  | "violetOrange"
+  | "midnightMint"
+  | "azurePeach"
+  | "charcoalLemon"
+  | "charcoalAmber"
+  | "smokyCoral"
+  | "charcoalJade"
+  | "purpleRose"
+  | "inkFuchsia"
+  | "graphiteGold"
+  | "greenBlue"
+  | "pinky";
 
 export type PageBackgroundMode = "theme" | "white";
 

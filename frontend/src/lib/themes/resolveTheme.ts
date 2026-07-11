@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import type { ThemeSettings } from "@/types";
-import { getThemePreset } from "./presets";
+import { getThemePreset, isVividThemeId } from "./presets";
 
 export interface ResolvedTheme {
   /** Strong accent used for section HEADINGS (the most prominent text tier). */
@@ -31,6 +31,18 @@ export interface ResolvedTheme {
   base: string;
   /** Text color that reads on top of the accent. */
   contrastText: string;
+  /**
+   * Decorative/marker colour override — rules, timeline rails, bullet markers,
+   * contact/link icons, heading bars/underlines, chip fills, the language-meter
+   * fill. UNSET in classic: the classic decorations draw from several sources
+   * (raw accent for rules/rails/icons, the `--rz-secondary` var for the meter,
+   * chip washes), so every seam falls back to its exact current source and
+   * classic output stays byte-identical by construction. VIVID sets it to the
+   * palette's RAW secondary, so decoration shows the chosen hex while the text
+   * tiers keep classic's role pattern (raw-primary headings, raw-secondary
+   * sub-headings, grey prose).
+   */
+  marker?: string;
 }
 
 function clampChannel(value: number): number {
@@ -123,6 +135,8 @@ export function deriveBodyText(accent: string): string {
  * preset's accent drives the whole family (heading → secondary → subtitle → body).
  */
 export function resolveTheme(theme: ThemeSettings): ResolvedTheme {
+  if (isVividThemeId(theme.themeId)) return resolveThemeVivid(theme);
+
   const preset = getThemePreset(theme.themeId);
 
   return {
@@ -133,6 +147,35 @@ export function resolveTheme(theme: ThemeSettings): ResolvedTheme {
     base: preset.base,
     soft: preset.soft,
     contrastText: preset.contrastText,
+  };
+}
+
+/**
+ * The VIVID resolution for the two-tone brand palettes (`vividThemeOrder`):
+ * classic's colour-ROLE pattern, sourced from the palette's RAW pair. The main
+ * headings and entry titles take the raw primary (`accentDark`); the sub-heading
+ * tier (company, university, the job title under the name) takes the raw
+ * secondary (`base`) — the role classic fills with its lighter tint; and
+ * descriptions keep classic's exact grey treatment ({@link deriveBodyText} of
+ * the primary). The page tint mirrors classic's background treatment too:
+ * classic's `soft` is an ~85% white mix of the base, so vivid applies the same
+ * 0.85 baseline to the raw secondary through the SAME {@link tintColor} +
+ * `backgroundIntensity` mechanism (intensity 1 reproduces classic's treatment
+ * exactly). Measured primary-text floor on the tint across the slider's whole
+ * 0.1–1.25 range: 5.96:1 (crimsonCopper) — above the 4.5:1 requirement.
+ */
+export function resolveThemeVivid(theme: ThemeSettings): ResolvedTheme {
+  const preset = getThemePreset(theme.themeId);
+
+  return {
+    accent: preset.accentDark,
+    secondary: preset.accentDark,
+    subtitle: preset.base,
+    bodyText: deriveBodyText(preset.accentDark),
+    base: preset.base,
+    soft: tintColor(preset.base, 0.85, theme.backgroundIntensity),
+    contrastText: preset.contrastText,
+    marker: preset.base,
   };
 }
 

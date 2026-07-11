@@ -30,6 +30,7 @@ export function DoubleColumnTemplate({ resume, theme }: TemplateProps) {
       resume={resume}
       accent={colors.accent}
       soft={colors.soft}
+      markerColor={colors.marker}
       showRule
       compact
       itemIds={itemIds}
@@ -54,7 +55,7 @@ export function DoubleColumnTemplate({ resume, theme }: TemplateProps) {
           <VStack align="stretch" gap="0">
             {page === 0 ? (
               <Box mb={gap}>
-                <PersonalInfoBlock accentColor={colors.accent} />
+                <PersonalInfoBlock accentColor={colors.accent} markerColor={colors.marker} />
               </Box>
             ) : null}
             <HStack align="flex-start" gap="6">

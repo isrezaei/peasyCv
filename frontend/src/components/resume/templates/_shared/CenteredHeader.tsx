@@ -16,6 +16,8 @@ interface CenteredHeaderProps {
   accentColor: string;
   /** Fallback subtitle tint (the page also supplies --rz-subtitle). */
   subtitleColor: string;
+  /** Decorative colour for the contact/link icons; unset falls back to the accent. */
+  markerColor?: string;
 }
 
 /**
@@ -24,7 +26,7 @@ interface CenteredHeaderProps {
  * editing, the settings gear, photo upload and hover reveal all carry over),
  * just centred via the new textAlign / justify options.
  */
-export function CenteredHeader({ accentColor, subtitleColor }: CenteredHeaderProps) {
+export function CenteredHeader({ accentColor, subtitleColor, markerColor }: CenteredHeaderProps) {
   const { personalInfo, updatePersonalInfo } = usePersonalInfo();
   const { fieldVisibility } = personalInfo;
 
@@ -55,13 +57,13 @@ export function CenteredHeader({ accentColor, subtitleColor }: CenteredHeaderPro
               placeholder={t.personalInfo.jobTitlePlaceholder}
               fontSize="md"
               fontWeight="bold"
-              color={`var(--rz-subtitle, ${subtitleColor})`}
+              color={markerColor ?? `var(--rz-subtitle, ${subtitleColor})`}
               textAlign="center"
             />
           </Box>
         ) : null}
         <Box borderRadius="md" _groupHover={CONTENT_BORDER_HOVER}>
-          <PersonalInfoContacts accentColor={accentColor} justify="center" />
+          <PersonalInfoContacts accentColor={accentColor} justify="center" markerColor={markerColor} />
         </Box>
       </VStack>
     </Box>

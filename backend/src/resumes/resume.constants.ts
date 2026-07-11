@@ -8,6 +8,8 @@ import type {
   CalendarSystem,
   FontFamilyId,
   LanguageLevel,
+  LanguageMeterVariant,
+  MonthFormat,
   PageBackgroundMode,
   PhotoStyle,
   RemovableSectionType,
@@ -54,6 +56,20 @@ export const THEME_IDS: ThemeId[] = [
   'slate',
   'grey',
   'indigo',
+  'navyGold',
+  'crimsonCopper',
+  'violetOrange',
+  'midnightMint',
+  'azurePeach',
+  'charcoalLemon',
+  'charcoalAmber',
+  'smokyCoral',
+  'charcoalJade',
+  'purpleRose',
+  'inkFuchsia',
+  'graphiteGold',
+  'greenBlue',
+  'pinky',
 ];
 
 export const PAGE_BACKGROUND_MODES: PageBackgroundMode[] = ['theme', 'white'];
@@ -83,3 +99,7 @@ export const PHOTO_STYLES: PhotoStyle[] = ['round', 'square'];
 export const CALENDAR_SYSTEMS: CalendarSystem[] = ['jalali', 'hijri', 'gregorian'];
 
 export const LANGUAGE_LEVELS: LanguageLevel[] = [1, 2, 3, 4, 5];
+
+export const LANGUAGE_METER_VARIANTS: LanguageMeterVariant[] = ['bars', 'dots', 'pill', 'line'];
+
+export const MONTH_FORMATS: MonthFormat[] = ['name', 'number'];

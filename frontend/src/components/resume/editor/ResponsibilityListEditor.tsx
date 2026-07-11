@@ -11,6 +11,8 @@ interface ResponsibilityListEditorProps {
   experienceId: ID;
   responsibilities: ResponsibilityItem[];
   accentColor: string;
+  /** Decorative colour for the bullet markers; unset falls back to the accent. */
+  markerColor?: string;
 }
 
 /** A Work-Experience entry always keeps at least one bullet line, so the list can
@@ -30,6 +32,7 @@ export const ResponsibilityListEditor = memo(function ResponsibilityListEditor({
   experienceId,
   responsibilities,
   accentColor,
+  markerColor,
 }: ResponsibilityListEditorProps) {
   const { addResponsibility, addResponsibilityAfter, updateResponsibility, removeResponsibility } =
     useExperience();
@@ -78,7 +81,7 @@ export const ResponsibilityListEditor = memo(function ResponsibilityListEditor({
     <VStack align="stretch" gap="1" mt="4">
       {responsibilities.map((responsibility, index) => (
         <HStack key={responsibility.id} align="start" gap="1.5">
-          <Box as="span" color={accentColor} fontSize="sm" lineHeight="1.5" aria-hidden flexShrink={0}>
+          <Box as="span" color={markerColor ?? accentColor} fontSize="sm" lineHeight="1.5" aria-hidden flexShrink={0}>
             •
           </Box>
           {/* Enter adds the next bullet; Backspace on an empty bullet removes it. */}

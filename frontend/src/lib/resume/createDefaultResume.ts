@@ -43,6 +43,11 @@ export function createDefaultSections(): SectionMeta[] {
     visible: true,
     direction: "rtl",
     order: index,
+    languageMeterVariant: "bars" as const,
+    languageShowMeter: true,
+    languageShowLevelText: true,
+    showMonth: true,
+    monthFormat: "name" as const,
   }));
 }
 
@@ -116,6 +121,8 @@ export function createDefaultExperience(): ExperienceItem[] {
       city: seed.city,
       projectLink: "",
       projectDescription: seed.projectDescription,
+      link: "",
+      linkVisible: true,
       responsibilities: [
         { id: createId(), text: seed.responsibilityOne },
         { id: createId(), text: seed.responsibilityTwo },
@@ -152,14 +159,15 @@ export function createDefaultEducation(): EducationItem[] {
 }
 
 export function createDefaultProjects(): ProjectItem[] {
-  const seed = t.defaults.project;
+  // Projects ship empty so ONLY the placeholder texts show; no seeded dummy data.
   return [
     {
       id: createId(),
-      name: seed.name,
-      role: seed.role,
+      name: "",
+      role: "",
       link: "",
-      description: seed.description,
+      linkVisible: true,
+      description: "",
     },
   ];
 }
@@ -169,6 +177,8 @@ export function createDefaultLanguages(): LanguageItem[] {
     id: createId(),
     name: language.name,
     level: language.level,
+    showBars: true,
+    showLevelText: true,
   }));
 }
 

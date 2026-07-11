@@ -8,7 +8,7 @@ export type BlockKind =
   | "skillGroup"
   | "educationItem"
   | "projectItem"
-  | "languageItem"
+  | "languageRow"
   | "certificationItem";
 
 export interface PageBlock {
@@ -16,6 +16,12 @@ export interface PageBlock {
   kind: BlockKind;
   sectionId: ID | null;
   refId: ID | null;
+  /**
+   * Item ids for a block that renders SEVERAL items as one vertical unit (the
+   * languages grid row). Single-item blocks keep using `refId` and leave this
+   * unset; a row block sets this and leaves `refId` null.
+   */
+  refIds?: ID[];
   heightMm: number;
   keepWithNext: boolean;
   /**

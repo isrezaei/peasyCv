@@ -3,13 +3,14 @@ import {
   estimateCertificationItemHeight,
   estimateEducationItemHeight,
   estimateExperienceItemHeight,
-  estimateLanguageItemHeight,
+  estimateLanguageRowHeight,
   estimatePersonalInfoHeight,
   estimateProjectItemHeight,
   estimateSectionTitleHeight,
   estimateSkillGroupHeight,
   estimateSummaryHeight,
 } from "./estimateHeight";
+import { LANGUAGE_GRID_COLUMNS } from "./constants";
 import type { LayoutMetrics } from "./metrics";
 import type { BlockKind, PageBlock } from "./types";
 
@@ -60,7 +61,7 @@ export function buildSectionBlocks(
           kind: "experienceItem" as BlockKind,
           sectionId: section.id,
           refId: item.id,
-          heightMm: estimateExperienceItemHeight(item, m),
+          heightMm: estimateExperienceItemHeight(item, section, m),
           keepWithNext: false,
           gapBeforeMm: m.withinGapMm,
         })),
@@ -90,7 +91,7 @@ export function buildSectionBlocks(
           kind: "educationItem" as BlockKind,
           sectionId: section.id,
           refId: item.id,
-          heightMm: estimateEducationItemHeight(item, m),
+          heightMm: estimateEducationItemHeight(item, section, m),
           keepWithNext: false,
           gapBeforeMm: m.withinGapMm,
         })),
@@ -113,14 +114,24 @@ export function buildSectionBlocks(
     }
     case "languages": {
       const hasContent = resume.languages.length > 0;
+      // Languages render as a fixed-column grid, so the pagination unit is one
+      // ROW of the grid, not one language — the packer can only break between
+      // rows, exactly where the painted grid breaks.
+      const rows: (typeof resume.languages)[] = [];
+      for (let i = 0; i < resume.languages.length; i += LANGUAGE_GRID_COLUMNS) {
+        rows.push(resume.languages.slice(i, i + LANGUAGE_GRID_COLUMNS));
+      }
+      // Display settings are section-wide, so every row shares one height.
+      const rowHeightMm = estimateLanguageRowHeight(section, m);
       return [
         buildSectionTitleBlock(section, hasContent, m),
-        ...resume.languages.map((item) => ({
-          id: `language-${item.id}`,
-          kind: "languageItem" as BlockKind,
+        ...rows.map((row) => ({
+          id: `language-row-${row[0].id}`,
+          kind: "languageRow" as BlockKind,
           sectionId: section.id,
-          refId: item.id,
-          heightMm: estimateLanguageItemHeight(m),
+          refId: null,
+          refIds: row.map((item) => item.id),
+          heightMm: rowHeightMm,
           keepWithNext: false,
           gapBeforeMm: m.withinGapMm,
         })),

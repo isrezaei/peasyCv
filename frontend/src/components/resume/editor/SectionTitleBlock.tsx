@@ -8,6 +8,8 @@ interface SectionTitleBlockProps {
   section: SectionMeta;
   accentColor: string;
   showRule?: boolean;
+  /** Decorative colour for the rule; unset falls back to the accent (classic). */
+  markerColor?: string;
 }
 
 /**
@@ -20,6 +22,7 @@ export const SectionTitleBlock = memo(function SectionTitleBlock({
   section,
   accentColor,
   showRule = false,
+  markerColor,
 }: SectionTitleBlockProps) {
   return (
     <Box dir={section.direction}>
@@ -43,7 +46,7 @@ export const SectionTitleBlock = memo(function SectionTitleBlock({
             flex="1"
             height="1px"
             opacity="0.18"
-            style={{ background: `linear-gradient(90deg, ${accentColor}, transparent)` }}
+            style={{ background: `linear-gradient(90deg, ${markerColor ?? accentColor}, transparent)` }}
           />
         ) : null}
       </HStack>

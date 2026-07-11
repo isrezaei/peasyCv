@@ -41,7 +41,7 @@ export function RuledSingleTemplate({ resume, theme }: TemplateProps) {
           <VStack align="stretch" gap="0" dir="rtl">
             {page === 0 ? (
               <Box mb={gap}>
-                <PlainHeader accentColor={colors.accent} />
+                <PlainHeader accentColor={colors.accent} markerColor={colors.marker} />
               </Box>
             ) : null}
             <ColumnBody
@@ -54,6 +54,7 @@ export function RuledSingleTemplate({ resume, theme }: TemplateProps) {
                   accent={colors.accent}
                   soft={colors.soft}
                   variant="solidUnderline"
+                  markerColor={colors.marker}
                   itemIds={itemIds}
                   showTitle={showTitle}
                 />

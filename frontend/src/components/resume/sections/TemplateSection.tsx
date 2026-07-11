@@ -16,6 +16,9 @@ interface TemplateSectionProps {
   variant?: SectionHeadingVariant;
   tone?: "onLight" | "onDark";
   chipColor?: string;
+  /** Decorative colour (heading treatment, rails, bullets, meter fill); unset
+   *  keeps each element's classic source. */
+  markerColor?: string;
   /**
    * Accepted for call-site compatibility. The HoverFrame is now ALWAYS the single
    * solid dots menu, so this no longer changes the control's form.
@@ -43,6 +46,7 @@ export function TemplateSection({
   variant = "rule",
   tone = "onLight",
   chipColor,
+  markerColor,
   itemIds,
   showTitle = true,
 }: TemplateSectionProps) {
@@ -58,6 +62,7 @@ export function TemplateSection({
             variant={variant}
             tone={tone}
             chipColor={chipColor}
+            markerColor={markerColor}
           />
         ) : null
       }
@@ -68,6 +73,7 @@ export function TemplateSection({
         accent={accent}
         soft={soft}
         tone={tone}
+        marker={markerColor}
         itemIds={itemIds}
       />
     </SectionHoverFrame>

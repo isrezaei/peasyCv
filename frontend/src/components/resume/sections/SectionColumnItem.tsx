@@ -11,6 +11,9 @@ interface SectionColumnItemProps {
   accent: string;
   soft: string;
   titleColor?: string;
+  /** Decorative colour (title rule, rails, bullets, meter fill); unset keeps
+   *  each element's classic source. */
+  markerColor?: string;
   showRule?: boolean;
   /** Light vs dark column — forwarded to the chips + dots control so they adapt. */
   tone?: "onLight" | "onDark";
@@ -32,6 +35,7 @@ export function SectionColumnItem({
   accent,
   soft,
   titleColor,
+  markerColor,
   showRule = false,
   tone = "onLight",
   itemIds,
@@ -43,7 +47,12 @@ export function SectionColumnItem({
       tone={tone}
       title={
         showTitle ? (
-          <SectionTitleBlock section={section} accentColor={titleColor ?? accent} showRule={showRule} />
+          <SectionTitleBlock
+            section={section}
+            accentColor={titleColor ?? accent}
+            showRule={showRule}
+            markerColor={markerColor}
+          />
         ) : null
       }
     >
@@ -53,6 +62,7 @@ export function SectionColumnItem({
         accent={accent}
         soft={soft}
         tone={tone}
+        marker={markerColor}
         itemIds={itemIds}
       />
     </SectionHoverFrame>

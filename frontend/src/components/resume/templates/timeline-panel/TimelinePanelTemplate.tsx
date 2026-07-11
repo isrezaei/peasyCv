@@ -43,6 +43,7 @@ export function TimelinePanelTemplate({ resume, theme }: TemplateProps) {
       accent={colors.accent}
       soft={colors.soft}
       variant="bar"
+      markerColor={colors.marker}
       compact
       itemIds={itemIds}
       showTitle={showTitle}
@@ -56,6 +57,7 @@ export function TimelinePanelTemplate({ resume, theme }: TemplateProps) {
       soft={mixWithWhite(colors.accent, 0.84)}
       titleColor={colors.accent}
       variant="plain"
+      markerColor={colors.marker}
       compact
       itemIds={itemIds}
       showTitle={showTitle}
@@ -79,7 +81,7 @@ export function TimelinePanelTemplate({ resume, theme }: TemplateProps) {
           <Box display="flex" flexDirection="column" minH="inherit">
             {page === 0 ? (
               <Box pt={padY} px={padX} pb="4" borderBottomWidth="1px" borderColor="blackAlpha.200">
-                <PlainHeader accentColor={colors.accent} />
+                <PlainHeader accentColor={colors.accent} markerColor={colors.marker} />
               </Box>
             ) : null}
             <HStack align="stretch" flex="1" gap="0">

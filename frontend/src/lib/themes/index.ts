@@ -1,6 +1,7 @@
-export { themePresets, themeOrder, getThemePreset } from "./presets";
+export { themePresets, themeOrder, vividThemeOrder, isVividThemeId, getThemePreset } from "./presets";
 export {
   resolveTheme,
+  resolveThemeVivid,
   darken,
   mixWithWhite,
   tintColor,

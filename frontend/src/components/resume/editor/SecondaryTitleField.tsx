@@ -9,6 +9,9 @@ interface SecondaryTitleFieldProps {
   placeholder?: string;
   /** The user's selected RESUME accent (resolved theme accent), not the app chrome color. */
   accentColor: string;
+  /** Explicit subtitle colour override (the vivid marker). Unset keeps the
+   *  classic source — the `--rz-subtitle` var with `accentColor` as fallback. */
+  markerColor?: string;
   fontSize?: string;
   fontWeight?: string;
 }
@@ -27,6 +30,7 @@ export const SecondaryTitleField = memo(function SecondaryTitleField({
   onChange,
   placeholder,
   accentColor,
+  markerColor,
   fontSize = "sm",
   fontWeight = "bold",
 }: SecondaryTitleFieldProps) {
@@ -35,7 +39,7 @@ export const SecondaryTitleField = memo(function SecondaryTitleField({
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      color={`var(--rz-subtitle, ${accentColor})`}
+      color={markerColor ?? `var(--rz-subtitle, ${accentColor})`}
       fontSize={fontSize}
       fontWeight={fontWeight}
     />

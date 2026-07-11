@@ -19,6 +19,8 @@ interface PersonalInfoContactsProps {
   color?: string;
   /** Cross-row alignment of the wrapped contact chips (e.g. centered header). */
   justify?: "flex-start" | "center";
+  /** Decorative colour for the contact/link icons; unset falls back to the accent. */
+  markerColor?: string;
 }
 
 interface ContactFieldProps {
@@ -42,14 +44,16 @@ export function PersonalInfoContacts({
   accentColor,
   color = "#52525b",
   justify = "flex-start",
+  markerColor,
 }: PersonalInfoContactsProps) {
   const { personalInfo, updatePersonalInfo } = usePersonalInfo();
   const { fieldVisibility } = personalInfo;
+  const iconColor = markerColor ?? accentColor;
 
   return (
     <Wrap gapX="2" gapY="1" align="center" justify={justify}>
       {fieldVisibility.phone ? (
-        <ContactField icon={<PhoneIcon />} iconColor={accentColor}>
+        <ContactField icon={<PhoneIcon />} iconColor={iconColor}>
           <EditableText
             value={personalInfo.phone}
             onChange={(value) => updatePersonalInfo({ phone: value })}
@@ -60,7 +64,7 @@ export function PersonalInfoContacts({
         </ContactField>
       ) : null}
       {fieldVisibility.email ? (
-        <ContactField icon={<MailIcon />} iconColor={accentColor}>
+        <ContactField icon={<MailIcon />} iconColor={iconColor}>
           <EditableText
             value={personalInfo.email}
             onChange={(value) => updatePersonalInfo({ email: value })}
@@ -71,7 +75,7 @@ export function PersonalInfoContacts({
         </ContactField>
       ) : null}
       {fieldVisibility.location ? (
-        <ContactField icon={<MapPinIcon />} iconColor={accentColor}>
+        <ContactField icon={<MapPinIcon />} iconColor={iconColor}>
           <EditableText
             value={personalInfo.location}
             onChange={(value) => updatePersonalInfo({ location: value })}
@@ -82,7 +86,7 @@ export function PersonalInfoContacts({
         </ContactField>
       ) : null}
       {fieldVisibility.dateOfBirth ? (
-        <ContactField icon={<CalendarIcon />} iconColor={accentColor}>
+        <ContactField icon={<CalendarIcon />} iconColor={iconColor}>
           <EditableText
             value={personalInfo.dateOfBirth}
             onChange={(value) => updatePersonalInfo({ dateOfBirth: value })}
@@ -93,7 +97,7 @@ export function PersonalInfoContacts({
         </ContactField>
       ) : null}
       {fieldVisibility.nationality ? (
-        <ContactField icon={<GlobeIcon />} iconColor={accentColor}>
+        <ContactField icon={<GlobeIcon />} iconColor={iconColor}>
           <EditableText
             value={personalInfo.nationality}
             onChange={(value) => updatePersonalInfo({ nationality: value })}
@@ -103,7 +107,7 @@ export function PersonalInfoContacts({
           />
         </ContactField>
       ) : null}
-      {fieldVisibility.links ? <LinksEditor accentColor={accentColor} /> : null}
+      {fieldVisibility.links ? <LinksEditor accentColor={accentColor} markerColor={markerColor} /> : null}
     </Wrap>
   );
 }
