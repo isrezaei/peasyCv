@@ -44,6 +44,7 @@ export function HeaderBandTemplate({ resume, theme }: TemplateProps) {
       accent={colors.accent}
       soft={colors.soft}
       variant="solidUnderline"
+      markerColor={colors.marker}
       compact
       itemIds={itemIds}
       showTitle={showTitle}

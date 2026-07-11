@@ -1,6 +1,6 @@
 "use client";
 
-import { VStack } from "@chakra-ui/react";
+import { Box, VStack } from "@chakra-ui/react";
 import { CertificationItemBlock } from "@/components/resume/editor/CertificationItemBlock";
 import { EducationItemBlock } from "@/components/resume/editor/EducationItemBlock";
 import { ExperienceItemBlock } from "@/components/resume/editor/ExperienceItemBlock";
@@ -8,6 +8,7 @@ import { LanguageItemBlock } from "@/components/resume/editor/LanguageItemBlock"
 import { ProjectItemBlock } from "@/components/resume/editor/ProjectItemBlock";
 import { SkillGroupBlock } from "@/components/resume/editor/SkillGroupBlock";
 import { SummaryBlock } from "@/components/resume/editor/SummaryBlock";
+import { LANGUAGE_GRID_COLUMNS, WITHIN_SECTION_GAP_MM } from "@/lib/pagination";
 import type { ResumeData, SectionMeta } from "@/types";
 
 interface SectionContentProps {
@@ -17,6 +18,9 @@ interface SectionContentProps {
   soft: string;
   /** Light vs dark surrounding column — forwarded to the skill chips so they blend. */
   tone?: "onLight" | "onDark";
+  /** Decorative colour (rails, bullets, meter fill); unset keeps each item's
+   *  classic per-element source. */
+  marker?: string;
   /**
    * Subset of item ids to render (in order), used by pagination so a section can
    * be split across pages. `null`/omitted renders every item (no split).
@@ -37,6 +41,7 @@ export function SectionContent({
   resume,
   accent,
   tone = "onLight",
+  marker,
   itemIds,
 }: SectionContentProps) {
   const direction = section.direction;
@@ -48,7 +53,15 @@ export function SectionContent({
       return (
         <VStack align="stretch" gap="2">
           {slice(resume.experience, itemIds).map((item) => (
-            <ExperienceItemBlock key={item.id} item={item} direction={direction} accentColor={accent} />
+            <ExperienceItemBlock
+              key={item.id}
+              item={item}
+              direction={direction}
+              accentColor={accent}
+              markerColor={marker}
+              showMonth={section.showMonth}
+              monthFormat={section.monthFormat}
+            />
           ))}
         </VStack>
       );
@@ -64,7 +77,15 @@ export function SectionContent({
       return (
         <VStack align="stretch" gap="2">
           {slice(resume.education, itemIds).map((item) => (
-            <EducationItemBlock key={item.id} item={item} direction={direction} accentColor={accent} />
+            <EducationItemBlock
+              key={item.id}
+              item={item}
+              direction={direction}
+              accentColor={accent}
+              markerColor={marker}
+              showMonth={section.showMonth}
+              monthFormat={section.monthFormat}
+            />
           ))}
         </VStack>
       );
@@ -77,12 +98,30 @@ export function SectionContent({
         </VStack>
       );
     case "languages":
+      // Same fixed-column grid the paginated canvas paints, re-chunked by the
+      // SAME column constant — a page's itemIds arrive in whole rows, so the
+      // rows re-form identically here. Row spacing mirrors the canvas's
+      // within-section block gap.
       return (
-        <VStack align="stretch" gap="1">
+        <Box
+          dir={direction}
+          display="grid"
+          gridTemplateColumns={`repeat(${LANGUAGE_GRID_COLUMNS}, 1fr)`}
+          columnGap="7"
+          rowGap={`${WITHIN_SECTION_GAP_MM}mm`}
+        >
           {slice(resume.languages, itemIds).map((item) => (
-            <LanguageItemBlock key={item.id} item={item} direction={direction} accentColor={accent} />
+            <LanguageItemBlock
+              key={item.id}
+              item={item}
+              direction={direction}
+              meterVariant={section.languageMeterVariant}
+              showMeter={section.languageShowMeter}
+              showLevelText={section.languageShowLevelText}
+              markerColor={marker}
+            />
           ))}
-        </VStack>
+        </Box>
       );
     case "certifications":
       return (

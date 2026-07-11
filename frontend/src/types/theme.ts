@@ -9,7 +9,21 @@ export type ThemeId =
   | "ocean"
   | "slate"
   | "grey"
-  | "indigo";
+  | "indigo"
+  | "navyGold"
+  | "crimsonCopper"
+  | "violetOrange"
+  | "midnightMint"
+  | "azurePeach"
+  | "charcoalLemon"
+  | "charcoalAmber"
+  | "smokyCoral"
+  | "charcoalJade"
+  | "purpleRose"
+  | "inkFuchsia"
+  | "graphiteGold"
+  | "greenBlue"
+  | "pinky"
 
 export type PageBackgroundMode = "theme" | "white";
 

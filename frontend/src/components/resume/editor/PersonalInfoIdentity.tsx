@@ -12,6 +12,9 @@ interface PersonalInfoIdentityProps {
   accentColor: string;
   nameColor?: string;
   subtitleColor?: string;
+  /** Colour for the sub-heading under the name (the vivid marker/secondary).
+   *  Unset keeps the classic `--rz-subtitle` source. The NAME never takes it. */
+  markerColor?: string;
   /**
    * Element placed at the end of the NAME row (space-between with the name).
    * PersonalInfoBlock passes the inline HoverFrame here; when omitted the sidebar
@@ -24,6 +27,7 @@ export function PersonalInfoIdentity({
   accentColor,
   nameColor,
   subtitleColor,
+  markerColor,
   rightSlot,
 }: PersonalInfoIdentityProps) {
   const { personalInfo, updatePersonalInfo } = usePersonalInfo();
@@ -58,6 +62,7 @@ export function PersonalInfoIdentity({
           onChange={(value) => updatePersonalInfo({ jobTitle: value })}
           placeholder={t.personalInfo.jobTitlePlaceholder}
           accentColor={subtitleColor ?? accentColor}
+          markerColor={markerColor}
           fontSize="md"
         />
       ) : null}

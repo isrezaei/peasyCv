@@ -27,6 +27,13 @@ interface SettingsPopoverProps {
    * longer changes its presentation.
    */
   tone?: "onLight" | "onDark";
+  /**
+   * Fully custom trigger element (rendered via `asChild`), for surfaces whose
+   * chrome the trigger must match exactly — e.g. the per-item gear mirroring
+   * the item trash button. Overrides the built-in dots / icon-button triggers;
+   * the caller owns the trigger's styling, including its reveal states.
+   */
+  trigger?: ReactNode;
 }
 
 /** Bare-dots glyph size per trigger size — chrome only, never in the PDF. */
@@ -46,6 +53,7 @@ export function SettingsPopover({
   triggerSize = "xs",
   icon,
   triggerRest,
+  trigger,
 }: SettingsPopoverProps) {
   const [open, setOpen] = useState(false);
   const dots = triggerRest != null;
@@ -59,7 +67,7 @@ export function SettingsPopover({
       unmountOnExit
     >
       <Popover.Trigger asChild>
-        {dots ? (
+        {trigger ?? (dots ? (
           // Dots HoverFrame: JUST the glyph — no button background or container.
           // It follows the resume's chosen accent (the per-column secondary tier
           // var, never a neutral/black) and lifts to full on section hover/open.
@@ -103,7 +111,7 @@ export function SettingsPopover({
           >
             {icon ?? <GearIcon />}
           </IconButton>
-        )}
+        ))}
       </Popover.Trigger>
       <Portal>
         <Popover.Positioner>

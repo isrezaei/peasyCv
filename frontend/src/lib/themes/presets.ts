@@ -94,6 +94,127 @@ export const themePresets: Record<ThemeId, ThemePreset> = {
     accentDark: "#5B5BD6",
     contrastText: "#FFFFFF",
   },
+  // Two-tone brand palettes: accentDark is the darker brand colour (drives all
+  // text tiers), base the lighter companion (decorative shapes / column tints),
+  // soft an ~85% white mix of the base like every entry above.
+  navyGold: {
+    id: "navyGold",
+    label: t.theme.names.navyGold,
+    soft: "#FAF2E4",
+    base: "#DDA94B",
+    accentDark: "#1E4174",
+    contrastText: "#FFFFFF",
+  },
+  crimsonCopper: {
+    id: "crimsonCopper",
+    label: t.theme.names.crimsonCopper,
+    soft: "#F4E8E0",
+    base: "#B5642E",
+    accentDark: "#A4193D",
+    contrastText: "#FFFFFF",
+  },
+  violetOrange: {
+    id: "violetOrange",
+    label: t.theme.names.violetOrange,
+    soft: "#F9E6DF",
+    base: "#DA5A2A",
+    accentDark: "#3B1877",
+    contrastText: "#FFFFFF",
+  },
+  midnightMint: {
+    id: "midnightMint",
+    label: t.theme.names.midnightMint,
+    soft: "#F3FDF8",
+    // Deepened from the original #ADEFD1 (same mint hue): as the vivid marker /
+    // subtitle colour it measures 4.32:1 on white and 3.29:1 on the default
+    // vivid page tint, clearing the 3:1 non-text floor the original missed.
+    base: "#94C5A2",
+    accentDark: "#1E8A60",
+    contrastText: "#FFFFFF",
+  },
+  azurePeach: {
+    id: "azurePeach",
+    label: t.theme.names.azurePeach,
+    soft: "#FCF1EC",
+    base: "#EEA47F",
+    accentDark: "#00539C",
+    contrastText: "#FFFFFF",
+  },
+  charcoalLemon: {
+    id: "charcoalLemon",
+    label: t.theme.names.charcoalLemon,
+    soft: "#FFFBDC",
+    // Deepened from the original #FEE715 (same yellow hue): as the vivid marker /
+    // subtitle colour it measures 4.33:1 on white and 3.32:1 on the default
+    // vivid page tint, clearing the 3:1 non-text floor the original missed.
+    base: "#8F7800",
+    accentDark: "#101820",
+    contrastText: "#FFFFFF",
+  },
+  charcoalAmber: {
+    id: "charcoalAmber",
+    label: t.theme.names.charcoalAmber,
+    soft: "#FDF2E4",
+    base: "#F2AA4C",
+    accentDark: "#5D2523",
+    contrastText: "#FFFFFF",
+  },
+  smokyCoral: {
+    id: "smokyCoral",
+    label: t.theme.names.smokyCoral,
+    soft: "#FCE9E8",
+    base: "#87C94C",
+    accentDark: "#603F83",
+    contrastText: "#FFFFFF",
+  },
+  charcoalJade: {
+    id: "charcoalJade",
+    label: t.theme.names.charcoalJade,
+    soft: "#DDEBE4",
+    base: "#1A7A4C",
+    accentDark: "#101820",
+    contrastText: "#FFFFFF",
+  },
+  purpleRose: {
+    id: "purpleRose",
+    label: t.theme.names.purpleRose,
+    soft: "#FAE8ED",
+    base: "#DF6589",
+    accentDark: "#3165F6",
+    contrastText: "#FFFFFF",
+  },
+  inkFuchsia: {
+    id: "inkFuchsia",
+    label: t.theme.names.inkFuchsia,
+    soft: "#F8E4EC",
+    base: "#CE4A7E",
+    accentDark: "#1C1C1B",
+    contrastText: "#FFFFFF",
+  },
+  graphiteGold: {
+    id: "graphiteGold",
+    label: t.theme.names.graphiteGold,
+    soft: "#FEF8E3",
+    base: "#AFAEAC",
+    accentDark: "#53929E",
+    contrastText: "#FFFFFF",
+  },
+  greenBlue : {
+    id: "greenBlue",
+    label: t.theme.names.greenBlue,
+    soft: "#FEF8E3",
+    base: "#9FCFEB",
+    accentDark: "#3DB86E",
+    contrastText: "#FFFFFF",
+  },
+  pinky : {
+    id: "pinky",
+    label: t.theme.names.pinky,
+    soft: "#FEF8E3",
+    base: "#F4A2A1",
+    accentDark: "#CC4261",
+    contrastText: "#FFFFFF",
+  }
 };
 
 export const themeOrder: ThemeId[] = [
@@ -109,6 +230,33 @@ export const themeOrder: ThemeId[] = [
   "slate",
   "grey",
 ];
+
+/**
+ * The two-tone brand palettes rendered by the VIVID logic (raw primary text on a
+ * lightened-secondary background) instead of the classic accent-derivation. This
+ * array is the single source of truth for the vivid family: it is both the
+ * display order of the «غیرهمسان» swatch grid and, via {@link isVividThemeId},
+ * the membership test that routes rendering to `resolveThemeVivid`. The ids stay
+ * in `themePresets`/`THEME_IDS` so saved resumes keep validating; only the
+ * display list and render path are split.
+ */
+export const vividThemeOrder: ThemeId[] = [
+  "crimsonCopper",
+  "violetOrange",
+  "midnightMint",
+  "azurePeach",
+  "charcoalAmber",
+  "smokyCoral",
+  "purpleRose",
+  "graphiteGold",
+  "greenBlue",
+  "pinky"
+];
+
+/** Whether a theme id belongs to the vivid family (mode is derived, never stored). */
+export function isVividThemeId(themeId: ThemeId): boolean {
+  return vividThemeOrder.includes(themeId);
+}
 
 export function getThemePreset(themeId: ThemeId): ThemePreset {
   return themePresets[themeId];

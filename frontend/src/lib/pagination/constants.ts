@@ -1,3 +1,5 @@
+import type { MonthFormat } from "@/types";
+
 export const A4_WIDTH_MM = 210;
 export const A4_HEIGHT_MM = 297;
 
@@ -77,8 +79,75 @@ export const MULTILINE_ROWS = 1;
  */
 export const WITHIN_SECTION_GAP_MM = 2;
 
+/**
+ * Fixed column count of the Languages grid. The print surface is a fixed A4
+ * width, so the count is a constant (NEVER derived from the editor viewport —
+ * a responsive count would make row heights unestimable). Single source of
+ * truth consumed by BOTH the pagination chunking (`buildBlocks`) and the grid
+ * renderers, so the packed rows and the painted rows can never diverge.
+ */
+export const LANGUAGE_GRID_COLUMNS = 3;
+
+/**
+ * Fixed height (px) of one bar of the "bars" meter variant — deliberately
+ * taller than the compact box the other beside-text variants use. Structural
+ * chrome (does not scale with the font sliders), so the meter — not the
+ * text — can be a cell's tallest element; the row estimator takes the max of
+ * both using this SAME constant the meter renders with.
+ */
+export const LANGUAGE_BAR_HEIGHT_PX = 24;
+
+/**
+ * Fixed box size (px) of the compact beside-text meter variants: the dot
+ * diameter and the pill track height (its width is 5× this). Shared by the
+ * meter renderer and the language-row estimator like
+ * {@link LANGUAGE_BAR_HEIGHT_PX}, so paint and reserve can never diverge.
+ */
+export const LANGUAGE_METER_BOX_PX = 14;
+
+/**
+ * Fixed thickness (px) of the "line" meter variant's full-width track, which
+ * stacks UNDER the text instead of sitting beside it. Structural chrome like
+ * {@link LANGUAGE_BAR_HEIGHT_PX}, shared by the meter renderer and the
+ * language-row estimator so the painted track and the reserved height can
+ * never diverge. Proven against the live DOM with the row-height probe.
+ */
+export const LANGUAGE_LINE_TRACK_PX = 6;
+
+/** Fixed gap (px) between the text line and the stacked "line" track (mt=1). */
+export const LANGUAGE_LINE_GAP_PX = 4;
+
 /** Height in px of the small (2xs) inline control buttons that show on screen. */
 export const CONTROL_BUTTON_PX = 22;
+
+/**
+ * Fixed width (mm) of the Experience/Education date column, per period-date
+ * display mode. The column follows the LENGTH CLASS of its date text — the full
+ * month name needs the historical 25mm, the numeric month and the bare year
+ * progressively less — but stays uniform within a section (one shared mode) so
+ * the timeline rails of consecutive entries align. Single source of truth
+ * consumed by BOTH the entry blocks (the rendered `width`) and the entry-height
+ * estimators (the main column's wrap width), like {@link LANGUAGE_BAR_HEIGHT_PX},
+ * so paint and reserve can never diverge.
+ */
+export const DATE_COLUMN_MONTH_NAME_MM = 25;
+export const DATE_COLUMN_MONTH_NUMBER_MM = 18;
+export const DATE_COLUMN_YEAR_MM = 16;
+
+/** The one mapping from a section's period-date settings to its date-column width. */
+export function periodDateColumnMm(showMonth: boolean, monthFormat: MonthFormat): number {
+  if (!showMonth) return DATE_COLUMN_YEAR_MM;
+  return monthFormat === "number" ? DATE_COLUMN_MONTH_NUMBER_MM : DATE_COLUMN_MONTH_NAME_MM;
+}
+
+/**
+ * Fixed horizontal chrome (px) between an entry's date column and its main
+ * column: the two `gap="3"` (12px) HStack gaps flanking the timeline rail plus
+ * the rail's own 9px width and `mx="1"` (2 × 4px) margins — 12+12+9+8. Read by
+ * the entry estimators to turn the date-column width into the main column's
+ * real wrap width.
+ */
+export const TIMELINE_CHROME_PX = 41;
 
 /**
  * Bottom-of-page safety buffer (mm) subtracted from the usable height so that

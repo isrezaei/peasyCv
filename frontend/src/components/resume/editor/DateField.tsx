@@ -29,6 +29,11 @@ interface DateFieldProps {
    */
   monthYear?: boolean;
   /**
+   * Display format token (e.g. from `periodDateFormat`). Presentation only — the
+   * stored value stays the full ISO date, so hiding the month loses nothing.
+   */
+  format?: string;
+  /**
    * "Until now" support for an end date. When `onPresentChange` is provided the
    * popover shows a «تا اکنون» toggle and the trigger renders that label while
    * `present` is true, marking an ongoing role instead of a fixed end date.
@@ -58,6 +63,7 @@ export function DateField({
   color = "fg.muted",
   fontWeight = "normal",
   monthYear = false,
+  format,
   present = false,
   onPresentChange,
 }: DateFieldProps) {
@@ -68,7 +74,7 @@ export function DateField({
   const system: CalendarSystem = monthYear ? "jalali" : calendar;
   const display = present
     ? t.calendars.present
-    : formatStoredDate(value, system);
+    : formatStoredDate(value, system, format);
 
   const handleSelect = (iso: string) => {
     onChange(iso);

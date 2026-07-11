@@ -9,6 +9,7 @@ import type { CertificationItem, Direction } from "@/types";
 import { DateField } from "./DateField";
 import { EditableText } from "./EditableText";
 import { ITEM_HOVER_OUTLINE, itemRemoveButtonProps } from "./HoverFrame";
+import { SectionOptionsGear } from "./SectionOptionsGear";
 
 interface CertificationItemBlockProps {
   item: CertificationItem;
@@ -58,16 +59,25 @@ export const CertificationItemBlock = memo(function CertificationItemBlock({
         </HStack>
       </VStack>
 
-      <IconButton
-        aria-label={t.certifications.removeEntry}
-        {...itemRemoveButtonProps}
+      {/* Item chrome overlay — off the layout flow (content clears it via the
+          pre-existing pe="6"). DOM order gear→trash keeps the trash flush at
+          the inline-end corner it has always occupied. */}
+      <Box
+        className="no-print"
+        display="flex"
         position="absolute"
         insetInlineEnd="0"
         top="0"
-        onClick={() => removeCertification(item.id)}
       >
-        <TrashIcon />
-      </IconButton>
+        <SectionOptionsGear sectionType="certifications" item={item} />
+        <IconButton
+          aria-label={t.certifications.removeEntry}
+          {...itemRemoveButtonProps}
+          onClick={() => removeCertification(item.id)}
+        >
+          <TrashIcon />
+        </IconButton>
+      </Box>
     </Box>
   );
 });

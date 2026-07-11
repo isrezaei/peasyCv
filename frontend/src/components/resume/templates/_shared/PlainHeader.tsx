@@ -22,6 +22,8 @@ interface PlainHeaderProps {
   /** Draw a hairline divider beneath the header. */
   divider?: boolean;
   photoSize?: string;
+  /** Decorative colour for the contact/link icons; unset falls back to the accent. */
+  markerColor?: string;
 }
 
 /**
@@ -38,6 +40,7 @@ export function PlainHeader({
   showContacts = true,
   divider = false,
   photoSize = "86px",
+  markerColor,
 }: PlainHeaderProps) {
   const { personalInfo } = usePersonalInfo();
   const withPhoto = showPhoto && personalInfo.fieldVisibility.photo;
@@ -56,11 +59,12 @@ export function PlainHeader({
             accentColor={accentColor}
             nameColor={nameColor}
             subtitleColor={subtitleColor}
+            markerColor={markerColor}
             rightSlot={<PersonalInfoSettings triggerSize="2xs" />}
           />
           {showContacts ? (
             <Box borderRadius="md" _groupHover={CONTENT_BORDER_HOVER}>
-              <PersonalInfoContacts accentColor={accentColor} />
+              <PersonalInfoContacts accentColor={accentColor} markerColor={markerColor} />
             </Box>
           ) : null}
         </VStack>

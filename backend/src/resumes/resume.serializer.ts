@@ -2,6 +2,8 @@ import { Prisma } from '@prisma/client';
 import type {
   ImageMeta,
   LanguageLevel,
+  LanguageMeterVariant,
+  MonthFormat,
   PersonalInfo,
   ResumeData,
   ThemeSettings,
@@ -55,6 +57,11 @@ export function serializeResume(row: ResumeWithRelations): ResumeData {
       visible: s.visible,
       direction: s.direction as 'rtl' | 'ltr',
       order: s.order,
+      languageMeterVariant: s.languageMeterVariant as LanguageMeterVariant,
+      languageShowMeter: s.languageShowMeter,
+      languageShowLevelText: s.languageShowLevelText,
+      showMonth: s.showMonth,
+      monthFormat: s.monthFormat as MonthFormat,
     })),
     personalInfo: serializePersonalInfo(row.personalInfo, row.links),
     summary: { html: row.summaryHtml },
@@ -66,6 +73,8 @@ export function serializeResume(row: ResumeWithRelations): ResumeData {
       city: e.city,
       projectLink: e.projectLink,
       projectDescription: e.projectDescription,
+      link: e.link,
+      linkVisible: e.linkVisible,
       responsibilities: e.responsibilities.map((r) => ({ id: r.id, text: r.text })),
     })),
     skills: row.skillGroups.map((g) => ({
@@ -88,12 +97,15 @@ export function serializeResume(row: ResumeWithRelations): ResumeData {
       name: p.name,
       role: p.role,
       link: p.link,
+      linkVisible: p.linkVisible,
       description: p.description,
     })),
     languages: row.languages.map((l) => ({
       id: l.id,
       name: l.name,
       level: l.level as LanguageLevel,
+      showBars: l.showBars,
+      showLevelText: l.showLevelText,
     })),
     certifications: row.certifications.map((c) => ({
       id: c.id,
@@ -259,6 +271,11 @@ export function buildSectionRows(
     visible: s.visible,
     direction: s.direction,
     order: s.order,
+    languageMeterVariant: s.languageMeterVariant,
+    languageShowMeter: s.languageShowMeter,
+    languageShowLevelText: s.languageShowLevelText,
+    showMonth: s.showMonth,
+    monthFormat: s.monthFormat,
   }));
 }
 
@@ -297,6 +314,7 @@ export function buildProjectRows(
     name: p.name,
     role: p.role,
     link: p.link,
+    linkVisible: p.linkVisible,
     description: p.description,
     position,
   }));
@@ -311,6 +329,8 @@ export function buildLanguageRows(
     resumeId,
     name: l.name,
     level: l.level,
+    showBars: l.showBars,
+    showLevelText: l.showLevelText,
     position,
   }));
 }
@@ -345,6 +365,8 @@ export function buildExperienceCreateInput(
     city: exp.city,
     projectLink: exp.projectLink,
     projectDescription: exp.projectDescription,
+    link: exp.link,
+    linkVisible: exp.linkVisible,
     position,
     responsibilities: {
       create: exp.responsibilities.map((r, i) => ({ id: r.id, text: r.text, position: i })),

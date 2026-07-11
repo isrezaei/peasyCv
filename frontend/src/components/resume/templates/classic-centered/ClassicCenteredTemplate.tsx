@@ -47,7 +47,7 @@ export function ClassicCenteredTemplate({ resume, theme }: TemplateProps) {
           <VStack align="stretch" gap="0" dir="rtl">
             {page === 0 ? (
               <Box mb={gap}>
-                <CenteredHeader accentColor={colors.accent} subtitleColor={colors.subtitle} />
+                <CenteredHeader accentColor={colors.accent} subtitleColor={colors.subtitle} markerColor={colors.marker} />
               </Box>
             ) : null}
             <ColumnBody
@@ -60,6 +60,7 @@ export function ClassicCenteredTemplate({ resume, theme }: TemplateProps) {
                   accent={colors.accent}
                   soft={colors.soft}
                   variant="centered"
+                  markerColor={colors.marker}
                   itemIds={itemIds}
                   showTitle={showTitle}
                 />

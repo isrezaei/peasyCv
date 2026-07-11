@@ -8,7 +8,10 @@ import type {
   ThemeSettings,
 } from "@/types";
 import { t } from "@/lib/i18n";
+import { LANGUAGE_METER_VARIANTS } from "@/types/languages";
+import { MONTH_FORMATS } from "@/types/sections";
 import { createId } from "@/lib/utils/id";
+import { sanitizeProjectUrl } from "./sanitizeUrl";
 import {
   createDefaultPersonalInfo,
   createDefaultResume,
@@ -177,6 +180,11 @@ function normalizeSections(sections: SectionMeta[] | undefined): SectionMeta[] {
         visible: type === "projects" || type === "languages" || type === "certifications" ? false : true,
         direction: "rtl",
         order: existing.length,
+        languageMeterVariant: "bars",
+        languageShowMeter: true,
+        languageShowLevelText: true,
+        showMonth: true,
+        monthFormat: "name",
       });
     }
   });
@@ -186,6 +194,20 @@ function normalizeSections(sections: SectionMeta[] | undefined): SectionMeta[] {
       ...section,
       title: resolveSectionTitle(section),
       order: typeof section.order === "number" ? section.order : index,
+      // Section-wide Languages display settings arrived after resumes were first
+      // persisted — backfill them so old payloads hydrate complete and the strict
+      // SectionMetaDto can't 400 on the next save.
+      languageMeterVariant: LANGUAGE_METER_VARIANTS.includes(section.languageMeterVariant)
+        ? section.languageMeterVariant
+        : "bars",
+      languageShowMeter:
+        typeof section.languageShowMeter === "boolean" ? section.languageShowMeter : true,
+      languageShowLevelText:
+        typeof section.languageShowLevelText === "boolean" ? section.languageShowLevelText : true,
+      // Period-date display settings arrived after the language ones — same
+      // backfill so the strict SectionMetaDto can't 400 an old payload.
+      showMonth: typeof section.showMonth === "boolean" ? section.showMonth : true,
+      monthFormat: MONTH_FORMATS.includes(section.monthFormat) ? section.monthFormat : "name",
     }))
     .sort((a, b) => a.order - b.order)
     .map((section, index) => ({ ...section, order: index }));
@@ -214,11 +236,38 @@ export function normalizeResume(raw: Partial<ResumeData> | null | undefined): Re
     sections: normalizeSections(raw.sections),
     personalInfo: normalizePersonalInfo(raw.personalInfo),
     summary: raw.summary ?? { html: "" },
-    experience: raw.experience ?? [],
+    // Same DTO boundary as `projects` below, for the Experience link pair that
+    // mirrors it: `link` must be '' or a valid http(s) URL and `linkVisible` a
+    // real boolean, so a payload persisted before the fields existed can't 400
+    // the next save.
+    experience: (raw.experience ?? []).map((exp) => ({
+      ...exp,
+      link: typeof exp.link === "string" ? sanitizeProjectUrl(exp.link) : "",
+      linkVisible: typeof exp.linkVisible === "boolean" ? exp.linkVisible : true,
+    })),
     skills: raw.skills ?? [],
     education: raw.education ?? [],
-    projects: raw.projects ?? [],
-    languages: raw.languages ?? [],
+    // The single boundary enforcing ProjectItemDto's contract on hydrated data,
+    // for BOTH strictly-validated project fields: `linkVisible` must be a real
+    // boolean (payloads persisted before the field existed lack it; links were
+    // always shown before the option), and `link` must be '' or a valid http(s)
+    // URL (a legacy `github.com/foo` was legal under the old @IsString() and
+    // would now 400 the next save). Every hydration surface funnels through
+    // here, so nothing the store holds can fail the DTO.
+    projects: (raw.projects ?? []).map((project) => ({
+      ...project,
+      link: typeof project.link === "string" ? sanitizeProjectUrl(project.link) : "",
+      linkVisible: typeof project.linkVisible === "boolean" ? project.linkVisible : true,
+    })),
+    // Same boundary for the language display flags (payloads persisted before
+    // the fields existed lack them; bars and the level word were always shown)
+    // plus a defensive level, so a strict DTO cannot 400 an old resume on save.
+    languages: (raw.languages ?? []).map((language) => ({
+      ...language,
+      level: typeof language.level === "number" ? language.level : 3,
+      showBars: typeof language.showBars === "boolean" ? language.showBars : true,
+      showLevelText: typeof language.showLevelText === "boolean" ? language.showLevelText : true,
+    })),
     certifications: raw.certifications ?? [],
     createdAt: raw.createdAt ?? defaults.createdAt,
     updatedAt: raw.updatedAt ?? defaults.updatedAt,

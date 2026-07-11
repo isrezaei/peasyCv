@@ -9,7 +9,7 @@ import { RichTextField } from "./RichTextField";
  * Resume typography is expressed in em so a single font-size value on the page
  * content root scales every field proportionally (the FONT SIZE slider).
  */
-const SIZE_EM: Record<string, string> = {
+export const SIZE_EM: Record<string, string> = {
   "2xl": "1.85em",
   xl: "1.4em",
   lg: "1.16em",

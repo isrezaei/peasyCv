@@ -1,6 +1,7 @@
 "use client";
 
-import { Box, Separator, Text, VStack } from "@chakra-ui/react";
+import { useState } from "react";
+import { Box, SegmentGroup, Separator, Text, VStack } from "@chakra-ui/react";
 import AdvertisingUi from "@/components/ads/advertising.ui";
 import { LabeledSlider } from "@/components/ui/LabeledSlider";
 import { PanelGroup } from "@/components/ui/PanelGroup";
@@ -8,6 +9,7 @@ import { SwitchField } from "@/components/ui/SwitchField";
 import { useDesign } from "@/hooks/store/useDesign";
 import { COLORS, RADII, SHADOWS } from "@/lib/design/tokens";
 import { t } from "@/lib/i18n";
+import { isVividThemeId } from "@/lib/themes";
 import { BackgroundGrid } from "./BackgroundGrid";
 import { ColorSwatchGrid } from "./ColorSwatchGrid";
 
@@ -32,12 +34,38 @@ export function DesignPanel() {
     setColumnIntensity,
   } = useDesign();
 
+  // Which palette family the picker is browsing. Local state only — the ACTIVE
+  // mode is derived from the persisted themeId (vivid ids form their own set),
+  // so browsing the other tab changes nothing until a swatch is picked.
+  const [paletteMode, setPaletteMode] = useState<"classic" | "vivid">(() =>
+    isVividThemeId(theme.themeId) ? "vivid" : "classic",
+  );
+
   return (
     <VStack align="stretch" gap="0">
       {/* BLOCK 1 — COLORS (the primary colour picker). */}
       <VStack align="stretch" gap="26px">
         <PanelGroup label={t.design.colors} description={t.design.colorsDesc}>
-          <ColorSwatchGrid />
+          <VStack align="stretch" gap="14px">
+            <SegmentGroup.Root
+              size="sm"
+              width="100%"
+              value={paletteMode}
+              onValueChange={(details) =>
+                setPaletteMode(details.value === "vivid" ? "vivid" : "classic")
+              }
+            >
+              <SegmentGroup.Indicator />
+              <SegmentGroup.Items
+                flex="1"
+                items={[
+                  { value: "classic", label: t.design.paletteModeClassic },
+                  { value: "vivid", label: t.design.paletteModeVivid },
+                ]}
+              />
+            </SegmentGroup.Root>
+            <ColorSwatchGrid variant={paletteMode} />
+          </VStack>
         </PanelGroup>
         <AdvertisingUi AdvertisingId={BLOCK_AD_IDS[0]} isShow={true} />
       </VStack>
@@ -59,8 +87,10 @@ export function DesignPanel() {
               </Text>
             </Box>
             <BackgroundGrid />
-            {/* Pattern intensity — scales the whole pattern lighter or stronger. */}
-            {theme.backgroundPattern !== "none" ? (
+            {/* Pattern intensity — scales the whole pattern lighter or stronger.
+                A vivid palette also drives its page tint from this value, so the
+                slider stays visible there even with no pattern selected. */}
+            {theme.backgroundPattern !== "none" || isVividThemeId(theme.themeId) ? (
               <LabeledSlider
                 label={t.design.backgroundIntensity}
                 value={theme.backgroundIntensity}

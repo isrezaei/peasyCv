@@ -32,6 +32,7 @@ export function CompactDuoTemplate({ resume, theme }: TemplateProps) {
       accent={colors.accent}
       soft={colors.soft}
       variant="plain"
+      markerColor={colors.marker}
       compact
       itemIds={itemIds}
       showTitle={showTitle}
@@ -55,7 +56,7 @@ export function CompactDuoTemplate({ resume, theme }: TemplateProps) {
           <VStack align="stretch" gap="0">
             {page === 0 ? (
               <Box mb={gap}>
-                <PlainHeader accentColor={colors.accent} divider />
+                <PlainHeader accentColor={colors.accent} divider markerColor={colors.marker} />
               </Box>
             ) : null}
             <HStack align="flex-start" gap="6" dir="rtl">

@@ -7,8 +7,10 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUrl,
   Max,
   Min,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 import type {
@@ -24,7 +26,9 @@ import type {
   ImageMeta,
   LanguageItem,
   LanguageLevel,
+  LanguageMeterVariant,
   LinkItem,
+  MonthFormat,
   PageBackgroundMode,
   PersonalInfo,
   PersonalInfoFieldVisibility,
@@ -47,7 +51,9 @@ import {
   DIRECTIONS,
   FONT_FAMILIES,
   LANGUAGE_LEVELS,
+  LANGUAGE_METER_VARIANTS,
   LOCALES,
+  MONTH_FORMATS,
   PAGE_BACKGROUND_MODES,
   PHOTO_STYLES,
   SECTION_TYPES,
@@ -158,6 +164,16 @@ export class ExperienceItemDto implements ExperienceItem {
   @IsString() projectLink!: string;
   @IsString() projectDescription!: string;
 
+  // Same property-scoped guard as ProjectItemDto.link (see the caveat there):
+  // '' passes untouched, anything else must be an explicit http(s) URL because
+  // it renders as a live href on the public share page.
+  @ValidateIf((o: ExperienceItemDto) => o.link !== '')
+  @IsString()
+  @IsUrl({ protocols: ['http', 'https'], require_protocol: true })
+  link!: string;
+
+  @IsBoolean() linkVisible!: boolean;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ResponsibilityItemDto)
@@ -200,7 +216,18 @@ export class ProjectItemDto implements ProjectItem {
   @IsString() id!: string;
   @IsString() name!: string;
   @IsString() role!: string;
-  @IsString() link!: string;
+
+  // `@ValidateIf` is property-scoped: when it returns false (the empty link)
+  // EVERY decorator on this property is skipped, `@IsString()` included. Safe
+  // here — the only skipped value is '', which is a string — but a decorator
+  // added below will NOT run for ''. The value is rendered as a live href on
+  // the public share page, so only explicit http(s) URLs may pass.
+  @ValidateIf((o: ProjectItemDto) => o.link !== '')
+  @IsString()
+  @IsUrl({ protocols: ['http', 'https'], require_protocol: true })
+  link!: string;
+
+  @IsBoolean() linkVisible!: boolean;
   @IsString() description!: string;
 }
 
@@ -212,6 +239,9 @@ export class LanguageItemDto implements LanguageItem {
 
   @IsIn(LANGUAGE_LEVELS)
   level!: LanguageLevel;
+
+  @IsBoolean() showBars!: boolean;
+  @IsBoolean() showLevelText!: boolean;
 }
 
 // --- certifications --------------------------------------------------------
@@ -238,6 +268,17 @@ export class SectionMetaDto implements SectionMeta {
   direction!: Direction;
 
   @IsInt() order!: number;
+
+  @IsIn(LANGUAGE_METER_VARIANTS)
+  languageMeterVariant!: LanguageMeterVariant;
+
+  @IsBoolean() languageShowMeter!: boolean;
+  @IsBoolean() languageShowLevelText!: boolean;
+
+  @IsBoolean() showMonth!: boolean;
+
+  @IsIn(MONTH_FORMATS)
+  monthFormat!: MonthFormat;
 }
 
 // --- theme -----------------------------------------------------------------

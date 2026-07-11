@@ -39,4 +39,15 @@ export const createSectionsSlice: SliceCreator<SectionsSlice> = (set) => ({
         updatedAt: touch(),
       },
     })),
+
+  setSectionLanguageSettings: (id, patch) =>
+    set((state) => ({
+      resume: {
+        ...state.resume,
+        sections: state.resume.sections.map((section) =>
+          section.id === id ? { ...section, ...patch } : section,
+        ),
+        updatedAt: touch(),
+      },
+    })),
 });

@@ -11,7 +11,9 @@ import type {
   ImageMeta,
   LanguageItem,
   LanguageLevel,
+  LanguageMeterVariant,
   LinkItem,
+  MonthFormat,
   PageBackgroundMode,
   PersonalInfo,
   PersonalInfoFieldVisibility,
@@ -80,6 +82,19 @@ export interface SectionsSlice {
   reorderSections: (orderedIds: ID[]) => void;
   toggleSectionVisibility: (id: ID) => void;
   setSectionDirection: (id: ID, direction: Direction) => void;
+  // The generic section-wide display-settings patch (implementation just spreads
+  // it onto the section row); carries the languages settings and the
+  // experience/education period-date settings.
+  setSectionLanguageSettings: (
+    id: ID,
+    patch: Partial<{
+      languageMeterVariant: LanguageMeterVariant;
+      languageShowMeter: boolean;
+      languageShowLevelText: boolean;
+      showMonth: boolean;
+      monthFormat: MonthFormat;
+    }>,
+  ) => void;
 }
 
 export interface ThemeSlice {

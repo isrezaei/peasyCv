@@ -11,6 +11,7 @@ export function useSectionActions() {
     useShallow((state) => ({
       toggleSectionVisibility: state.toggleSectionVisibility,
       setSectionDirection: state.setSectionDirection,
+      setSectionLanguageSettings: state.setSectionLanguageSettings,
     })),
   );
 }

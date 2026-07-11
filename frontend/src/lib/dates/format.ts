@@ -1,5 +1,5 @@
 import DateObject from "react-date-object";
-import type { CalendarSystem } from "@/types";
+import type { CalendarSystem, MonthFormat } from "@/types";
 import { getCalendarConfig, gregorianCalendar } from "./calendars";
 
 /** Canonical stored shape: an ISO calendar date (Gregorian), e.g. "2021-09-01". */
@@ -7,6 +7,18 @@ const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** Default display token for resume dates — month name + year (e.g. «خرداد ۱۴۰۰»). */
 export const DEFAULT_DATE_FORMAT = "MMMM YYYY";
+
+/**
+ * THE single mapping from the section-wide period-date settings (showMonth /
+ * monthFormat) to a display format token, shared by the Experience and Education
+ * date fields. The month label is always DERIVED here from the stored ISO date —
+ * calendar-aware through {@link formatStoredDate} (Jalali for the month/year
+ * fields), so «فروردین» / «۰۱» come from the calendar locale and are never stored.
+ */
+export function periodDateFormat(showMonth: boolean, monthFormat: MonthFormat): string {
+  if (!showMonth) return "YYYY";
+  return monthFormat === "number" ? "YYYY/MM" : DEFAULT_DATE_FORMAT;
+}
 
 export function isStoredDate(value: string): boolean {
   return ISO_DATE_RE.test(value);

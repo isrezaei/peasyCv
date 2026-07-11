@@ -54,6 +54,7 @@ export function AsidePhotoTemplate({ resume, theme }: TemplateProps) {
       titleColor={asideHeading}
       variant="chip"
       chipColor={asideChip}
+      markerColor={colors.marker}
       compact
       itemIds={itemIds}
       showTitle={showTitle}
@@ -67,6 +68,7 @@ export function AsidePhotoTemplate({ resume, theme }: TemplateProps) {
       soft={colors.soft}
       variant="chip"
       chipColor={mainChip}
+      markerColor={colors.marker}
       compact
       itemIds={itemIds}
       showTitle={showTitle}
@@ -107,7 +109,7 @@ export function AsidePhotoTemplate({ resume, theme }: TemplateProps) {
                       <ProfileImageEditor size="120px" />
                     </Box>
                   ) : null}
-                  <PersonalInfoContacts accentColor={asideHeading} color={asideText} />
+                  <PersonalInfoContacts accentColor={asideHeading} color={asideText} markerColor={colors.marker} />
                 </VStack>
               ) : null}
               <ColumnBody blocks={pages.side[page] ?? []} sections={resume.sections} renderSection={renderSide} />
@@ -116,7 +118,7 @@ export function AsidePhotoTemplate({ resume, theme }: TemplateProps) {
             <VStack align="stretch" flex="1" minW="0" paddingBlock={padY} paddingInline={padX} gap="0" dir="rtl">
               {page === 0 ? (
                 <Box mb={gap}>
-                  <PlainHeader accentColor={colors.accent} showPhoto={false} showContacts={false} divider />
+                  <PlainHeader accentColor={colors.accent} showPhoto={false} showContacts={false} divider markerColor={colors.marker} />
                 </Box>
               ) : null}
               <ColumnBody blocks={pages.main[page] ?? []} sections={resume.sections} renderSection={renderMain} />

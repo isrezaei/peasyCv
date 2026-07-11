@@ -52,6 +52,7 @@ export function AsideDarkTemplate({ resume, theme }: TemplateProps) {
       accent={colors.accent}
       soft={colors.soft}
       variant="underline"
+      markerColor={colors.marker}
       compact
       itemIds={itemIds}
       showTitle={showTitle}
@@ -66,6 +67,7 @@ export function AsideDarkTemplate({ resume, theme }: TemplateProps) {
       titleColor={asideHeading}
       variant="underline"
       tone="onDark"
+      markerColor={colors.marker}
       compact
       itemIds={itemIds}
       showTitle={showTitle}
@@ -90,7 +92,7 @@ export function AsideDarkTemplate({ resume, theme }: TemplateProps) {
             <VStack align="stretch" flex="1" minW="0" paddingBlock={padY} paddingInline={padX} gap="0" dir="rtl">
               {page === 0 ? (
                 <Box mb={gap}>
-                  <PlainHeader accentColor={colors.accent} showPhoto={false} />
+                  <PlainHeader accentColor={colors.accent} showPhoto={false} markerColor={colors.marker} />
                 </Box>
               ) : null}
               <ColumnBody blocks={pages.main[page] ?? []} sections={resume.sections} renderSection={renderMain} />

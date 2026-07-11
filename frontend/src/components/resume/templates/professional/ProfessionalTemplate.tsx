@@ -78,7 +78,7 @@ export function ProfessionalTemplate({ resume, theme }: TemplateProps) {
                   data-block-kind={block.kind}
                   mt={mt}
                 >
-                  <BlockRenderer block={block} resume={resume} accent={colors.accent} soft={colors.soft} />
+                  <BlockRenderer block={block} resume={resume} accent={colors.accent} soft={colors.soft} marker={colors.marker} />
                 </Box>
               );
 

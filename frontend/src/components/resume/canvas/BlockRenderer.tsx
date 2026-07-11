@@ -1,3 +1,4 @@
+import { Box } from "@chakra-ui/react";
 import { CertificationItemBlock } from "@/components/resume/editor/CertificationItemBlock";
 import { EducationItemBlock } from "@/components/resume/editor/EducationItemBlock";
 import { ExperienceItemBlock } from "@/components/resume/editor/ExperienceItemBlock";
@@ -7,7 +8,7 @@ import { ProjectItemBlock } from "@/components/resume/editor/ProjectItemBlock";
 import { SectionTitleBlock } from "@/components/resume/editor/SectionTitleBlock";
 import { SkillGroupBlock } from "@/components/resume/editor/SkillGroupBlock";
 import { SummaryBlock } from "@/components/resume/editor/SummaryBlock";
-import type { PageBlock } from "@/lib/pagination";
+import { LANGUAGE_GRID_COLUMNS, type PageBlock } from "@/lib/pagination";
 import type { ResumeData } from "@/types";
 
 interface BlockRendererProps {
@@ -15,9 +16,12 @@ interface BlockRendererProps {
   resume: ResumeData;
   accent: string;
   soft: string;
+  /** Decorative colour (rails, rules, bullets, icons, meter fill); unset keeps
+   *  each block's classic per-element source. */
+  marker?: string;
 }
 
-export function BlockRenderer({ block, resume, accent }: BlockRendererProps) {
+export function BlockRenderer({ block, resume, accent, marker }: BlockRendererProps) {
   const section = block.sectionId
     ? resume.sections.find((candidate) => candidate.id === block.sectionId) ?? null
     : null;
@@ -25,15 +29,24 @@ export function BlockRenderer({ block, resume, accent }: BlockRendererProps) {
 
   switch (block.kind) {
     case "personalInfo":
-      return <PersonalInfoBlock accentColor={accent} />;
+      return <PersonalInfoBlock accentColor={accent} markerColor={marker} />;
     case "sectionTitle":
-      return section ? <SectionTitleBlock section={section} accentColor={accent} /> : null;
+      return section ? (
+        <SectionTitleBlock section={section} accentColor={accent} markerColor={marker} />
+      ) : null;
     case "summary":
       return <SummaryBlock direction={direction} />;
     case "experienceItem": {
       const item = resume.experience.find((candidate) => candidate.id === block.refId);
       return item ? (
-        <ExperienceItemBlock item={item} direction={direction} accentColor={accent} />
+        <ExperienceItemBlock
+          item={item}
+          direction={direction}
+          accentColor={accent}
+          markerColor={marker}
+          showMonth={section?.showMonth ?? true}
+          monthFormat={section?.monthFormat ?? "name"}
+        />
       ) : null;
     }
     case "skillGroup": {
@@ -43,7 +56,14 @@ export function BlockRenderer({ block, resume, accent }: BlockRendererProps) {
     case "educationItem": {
       const item = resume.education.find((candidate) => candidate.id === block.refId);
       return item ? (
-        <EducationItemBlock item={item} direction={direction} accentColor={accent} />
+        <EducationItemBlock
+          item={item}
+          direction={direction}
+          accentColor={accent}
+          markerColor={marker}
+          showMonth={section?.showMonth ?? true}
+          monthFormat={section?.monthFormat ?? "name"}
+        />
       ) : null;
     }
     case "projectItem": {
@@ -52,10 +72,28 @@ export function BlockRenderer({ block, resume, accent }: BlockRendererProps) {
         <ProjectItemBlock item={item} direction={direction} accentColor={accent} />
       ) : null;
     }
-    case "languageItem": {
-      const item = resume.languages.find((candidate) => candidate.id === block.refId);
-      return item ? (
-        <LanguageItemBlock item={item} direction={direction} accentColor={accent} />
+    case "languageRow": {
+      const wanted = new Set(block.refIds ?? []);
+      const items = resume.languages.filter((candidate) => wanted.has(candidate.id));
+      return section && items.length > 0 ? (
+        <Box
+          dir={direction}
+          display="grid"
+          gridTemplateColumns={`repeat(${LANGUAGE_GRID_COLUMNS}, 1fr)`}
+          columnGap="7"
+        >
+          {items.map((item) => (
+            <LanguageItemBlock
+              key={item.id}
+              item={item}
+              direction={direction}
+              meterVariant={section.languageMeterVariant}
+              showMeter={section.languageShowMeter}
+              showLevelText={section.languageShowLevelText}
+              markerColor={marker}
+            />
+          ))}
+        </Box>
       ) : null;
     }
     case "certificationItem": {

@@ -4,8 +4,10 @@ import { memo } from "react";
 import { HStack, Icon, IconButton, Stack, VStack } from "@chakra-ui/react";
 import { TrashIcon } from "@/components/ui/icons";
 import { useEducation } from "@/hooks/store/useEducation";
+import { periodDateFormat } from "@/lib/dates/format";
 import { t } from "@/lib/i18n";
-import type { Direction, EducationItem } from "@/types";
+import { periodDateColumnMm } from "@/lib/pagination";
+import type { Direction, EducationItem, MonthFormat } from "@/types";
 import { DateField } from "./DateField";
 import { EditableText } from "./EditableText";
 import { ITEM_HOVER_OUTLINE, itemRemoveButtonProps } from "./HoverFrame";
@@ -17,6 +19,11 @@ interface EducationItemBlockProps {
   item: EducationItem;
   direction: Direction;
   accentColor: string;
+  /** Decorative colour for the timeline rail; unset falls back to the accent. */
+  markerColor?: string;
+  /** Section-wide period-date display settings (see SectionMeta.showMonth). */
+  showMonth?: boolean;
+  monthFormat?: MonthFormat;
 }
 
 /**
@@ -28,8 +35,15 @@ export const EducationItemBlock = memo(function EducationItemBlock({
   item,
   direction,
   accentColor,
+  markerColor,
+  showMonth = true,
+  monthFormat = "name",
 }: EducationItemBlockProps) {
   const { updateEducation, removeEducation } = useEducation();
+  // Derived display only — the store keeps the full ISO date either way.
+  const dateFormat = periodDateFormat(showMonth, monthFormat);
+  // The SAME width the pagination estimator reserves (matching Experience).
+  const dateColumnWidth = `${periodDateColumnMm(showMonth, monthFormat)}mm`;
 
   return (
     <HStack
@@ -38,15 +52,17 @@ export const EducationItemBlock = memo(function EducationItemBlock({
       justify="space-between"
       position="relative"
       dir={direction}
-      pb="2"
+      pb="1.5"
       borderRadius="md"
       _hover={ITEM_HOVER_OUTLINE}
     >
       <HStack w="full" align="flex-start" gap="3" dir="rtl">
-        {/* Date / location column (always on the left, matching Experience). */}
-        <Stack width="25mm" dir={direction} gap={1}>
+        {/* Date / location column (always on the left, matching Experience).
+            Width follows the date text's length class, like Experience. */}
+        <Stack width={dateColumnWidth} dir={direction} gap={1}>
           <DateField
             monthYear
+            format={dateFormat}
             value={item.startDate}
             onChange={(value) => updateEducation(item.id, { startDate: value })}
             placeholder={t.education.startDate}
@@ -57,6 +73,7 @@ export const EducationItemBlock = memo(function EducationItemBlock({
 
           <DateField
             monthYear
+            format={dateFormat}
             value={item.endDate}
             onChange={(value) => updateEducation(item.id, { endDate: value })}
             placeholder={t.education.endDate}
@@ -78,7 +95,7 @@ export const EducationItemBlock = memo(function EducationItemBlock({
         </Stack>
 
         {/* Timeline rail */}
-        <TimelineRail accentColor={accentColor} />
+        <TimelineRail accentColor={markerColor ?? accentColor} />
 
         {/* Main column */}
         <VStack align="stretch" flex="1" minW="0" gap="0.5" dir={direction}>

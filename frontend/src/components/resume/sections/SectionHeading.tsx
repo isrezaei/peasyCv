@@ -24,6 +24,9 @@ interface SectionHeadingProps {
   tone?: "onLight" | "onDark";
   /** Chip fill for the `chip` variant (defaults to a faint accent wash). */
   chipColor?: string;
+  /** Decorative colour for the rules/bar/underline/chip fill; unset falls back
+   *  to the accent (or chipColor for the chip), keeping classic unchanged. */
+  markerColor?: string;
 }
 
 /**
@@ -39,8 +42,10 @@ export const SectionHeading = memo(function SectionHeading({
   variant = "rule",
   tone = "onLight",
   chipColor,
+  markerColor,
 }: SectionHeadingProps) {
   const ruleColor = tone === "onDark" ? "rgba(255,255,255,0.18)" : "blackAlpha.200";
+  const marker = markerColor ?? accentColor;
   const small = variant === "plain";
 
   const heading = (
@@ -65,7 +70,7 @@ export const SectionHeading = memo(function SectionHeading({
     return (
       <VStack dir={section.direction} gap="0.5" align="stretch" width="full">
         <Box textAlign="center">{heading}</Box>
-        <Box width="full" height="1px" borderRadius="full" bg={accentColor} opacity="0.16" />
+        <Box width="full" height="1px" borderRadius="full" bg={marker} opacity="0.16" />
       </VStack>
     );
   }
@@ -76,7 +81,7 @@ export const SectionHeading = memo(function SectionHeading({
         dir={section.direction}
         pb="1"
         borderBottomWidth={variant === "solidUnderline" ? "2px" : "1px"}
-        borderColor={variant === "solidUnderline" ? accentColor : ruleColor}
+        borderColor={variant === "solidUnderline" ? marker : ruleColor}
       >
         {heading}
       </Box>
@@ -86,7 +91,7 @@ export const SectionHeading = memo(function SectionHeading({
   if (variant === "bar") {
     return (
       <HStack dir={section.direction} gap="2" align="center">
-        <Box width="4px" height="0.95em" borderRadius="full" bg={accentColor} flexShrink={0} />
+        <Box width="4px" height="0.95em" borderRadius="full" bg={marker} flexShrink={0} />
         {heading}
       </HStack>
     );
@@ -105,7 +110,7 @@ export const SectionHeading = memo(function SectionHeading({
           justifyContent="center"
           flexShrink={0}
           color={accentColor}
-          bg={chipColor ?? "rgba(0,0,0,0.05)"}
+          bg={markerColor ?? chipColor ?? "rgba(0,0,0,0.05)"}
         >
           <Box as="span" fontSize="0.95em" display="inline-flex">
             <ChipIcon />
@@ -129,7 +134,7 @@ export const SectionHeading = memo(function SectionHeading({
           flex="1"
           height="1px"
           opacity="0.18"
-          style={{ background: `linear-gradient(90deg, ${accentColor}, transparent)` }}
+          style={{ background: `linear-gradient(90deg, ${marker}, transparent)` }}
         />
       </HStack>
     </Box>

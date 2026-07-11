@@ -40,10 +40,12 @@ export function SidebarColumnTemplate({ resume, theme }: TemplateProps) {
   const nameGap = `${(theme.sectionSpacing * 0.5).toFixed(1)}mm`;
   const pages = useColumnLayout(resume, LAYOUT);
 
-  const sidebarBg = tintColor(colors.base, 0.45, theme.columnIntensity);
+  // In vivid, `marker` equals `base`, so the fill keeps sourcing the palette's
+  // secondary exactly as before; classic (marker unset) is byte-identical.
+  const sidebarBg = tintColor(colors.marker ?? colors.base, 0.45, theme.columnIntensity);
   const sidebarHeading = colors.accent;
   const sidebarText = darken(colors.accent, 0.3);
-  const sidebarChip = mixWithWhite(colors.accent, 0.84);
+  const sidebarChip = colors.marker ?? mixWithWhite(colors.accent, 0.84);
 
   const renderSide = ({ section, itemIds, showTitle }: ColumnSectionRun) => (
     <SectionColumnItem
@@ -52,6 +54,7 @@ export function SidebarColumnTemplate({ resume, theme }: TemplateProps) {
       accent={sidebarText}
       soft={sidebarChip}
       titleColor={sidebarHeading}
+      markerColor={colors.marker}
       showRule
       itemIds={itemIds}
       showTitle={showTitle}
@@ -63,6 +66,7 @@ export function SidebarColumnTemplate({ resume, theme }: TemplateProps) {
       resume={resume}
       accent={colors.accent}
       soft={colors.soft}
+      markerColor={colors.marker}
       showRule
       itemIds={itemIds}
       showTitle={showTitle}
@@ -103,7 +107,7 @@ export function SidebarColumnTemplate({ resume, theme }: TemplateProps) {
                       <ProfileImageEditor size="96px" />
                     </Box>
                   ) : null}
-                  <PersonalInfoContacts accentColor={sidebarHeading} color={sidebarText} />
+                  <PersonalInfoContacts accentColor={sidebarHeading} color={sidebarText} markerColor={colors.marker} />
                 </VStack>
               ) : null}
               <ColumnBody blocks={pages.side[page] ?? []} sections={resume.sections} renderSection={renderSide} />
@@ -118,7 +122,7 @@ export function SidebarColumnTemplate({ resume, theme }: TemplateProps) {
             <VStack align="stretch" flex="1" minW="0" paddingBlock={padY} paddingInline={padX} gap="0" dir="rtl">
               {page === 0 ? (
                 <Box flexShrink={0} mb={nameGap}>
-                  <PersonalInfoIdentity accentColor={colors.accent} />
+                  <PersonalInfoIdentity accentColor={colors.accent} markerColor={colors.marker} />
                 </Box>
               ) : null}
               <ColumnBody blocks={pages.main[page] ?? []} sections={resume.sections} renderSection={renderMain} />

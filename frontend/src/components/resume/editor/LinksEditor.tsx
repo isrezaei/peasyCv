@@ -8,6 +8,9 @@ import { EditableText } from "./EditableText";
 
 interface LinksEditorProps {
   accentColor: string;
+  /** Decorative colour for the link icon; unset falls back to the accent. The
+   *  editable label text always keeps the accent (text is never marker-coloured). */
+  markerColor?: string;
 }
 
 /**
@@ -15,14 +18,14 @@ interface LinksEditorProps {
  * and removing links is handled from the personal-info settings popover (the
  * header's hover-settings element), so this surface only edits existing links.
  */
-export function LinksEditor({ accentColor }: LinksEditorProps) {
+export function LinksEditor({ accentColor, markerColor }: LinksEditorProps) {
   const { personalInfo, updateLink } = usePersonalInfo();
 
   return (
     <Wrap gap="2" align="center">
       {personalInfo.links.map((link) => (
         <HStack key={link.id} gap="1" color={accentColor}>
-          <chakra.span fontSize="xs" color={accentColor}>
+          <chakra.span fontSize="xs" color={markerColor ?? accentColor}>
             <LinkIcon />
           </chakra.span>
           <EditableText

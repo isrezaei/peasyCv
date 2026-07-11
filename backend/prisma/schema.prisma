@@ -176,6 +176,16 @@ model Section {
   visible   Boolean
   direction String // "rtl" | "ltr"
   order     Int
+  // Languages-section display settings — section-wide, meaningful only for
+  // type "languages" but defaulted on every row like `direction`.
+  languageMeterVariant  String  @default("bars") // LanguageMeterVariant
+  languageShowMeter     Boolean @default(true)
+  languageShowLevelText Boolean @default(true)
+  // Period-date display settings — section-wide, meaningful for the dated
+  // sections ("experience", "education") but defaulted on every row like the
+  // languages settings. Each section row keeps its own independent pair.
+  showMonth   Boolean @default(true)
+  monthFormat String  @default("name") // MonthFormat: "name" | "number"
 
   @@index([resumeId])
 }
@@ -192,6 +202,9 @@ model Experience {
   city               String           @default("")
   projectLink        String           @default("")
   projectDescription String           @default("")
+  // External link + visibility flag, mirroring Project.link / Project.linkVisible.
+  link               String           @default("")
+  linkVisible        Boolean          @default(true)
   position           Int
   responsibilities   Responsibility[]
 
@@ -252,6 +265,7 @@ model Project {
   name        String @default("")
   role        String @default("")
   link        String @default("")
+  linkVisible Boolean @default(true)
   description String @default("")
   position    Int
 
@@ -264,6 +278,8 @@ model Language {
   resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   name     String @default("")
   level    Int // LanguageLevel 1..5
+  showBars      Boolean @default(true)
+  showLevelText Boolean @default(true)
   position Int
 
   @@index([resumeId])

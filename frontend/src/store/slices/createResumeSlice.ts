@@ -126,6 +126,8 @@ export const createResumeSlice: SliceCreator<ResumeSlice> = (set) => ({
             city: "",
             projectLink: "",
             projectDescription: "",
+            link: "",
+            linkVisible: true,
             // A fresh entry starts with two empty bullet lines to invite content.
             responsibilities: [
               { id: createId(), text: "" },
@@ -349,7 +351,7 @@ export const createResumeSlice: SliceCreator<ResumeSlice> = (set) => ({
         ...state.resume,
         projects: [
           ...state.resume.projects,
-          { id: createId(), name: "", role: "", link: "", description: "" },
+          { id: createId(), name: "", role: "", link: "", linkVisible: true, description: "" },
         ],
         updatedAt: touch(),
       },
@@ -379,7 +381,10 @@ export const createResumeSlice: SliceCreator<ResumeSlice> = (set) => ({
     set((state) => ({
       resume: {
         ...state.resume,
-        languages: [...state.resume.languages, { id: createId(), name: "", level: 3 }],
+        languages: [
+          ...state.resume.languages,
+          { id: createId(), name: "", level: 3, showBars: true, showLevelText: true },
+        ],
         updatedAt: touch(),
       },
     })),
