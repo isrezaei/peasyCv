@@ -64,9 +64,21 @@ const id = (p) => `${p}-${Math.random().toString(36).slice(2, 9)}`;
 /**
  * Schema-valid worst case (all sections, many items). `modes` tunes the display
  * settings under test: `showMonth` / `monthFormat` land on the experience and
- * education section rows, `linkVisible` on every experience item.
+ * education section rows, `linkVisible` on every experience item, and the
+ * achievements options populate/tune the Key-Achievements section (absent from
+ * the baseline scenarios so their numbers stay comparable across changes —
+ * normalizeResume backfills it hidden). `templateId` lets the achievements
+ * scenarios run on a column template to prove the stacked (1-per-row) layout.
  */
-function buildWorstCase({ showMonth = true, monthFormat = "name", linkVisible = true } = {}) {
+function buildWorstCase({
+  showMonth = true,
+  monthFormat = "name",
+  linkVisible = true,
+  withAchievements = false,
+  achievementShowDescription = true,
+  achievementShowIcons = true,
+  templateId = "professional-single-column",
+} = {}) {
   const sectionTypes = [
     "summary",
     "experience",
@@ -75,6 +87,7 @@ function buildWorstCase({ showMonth = true, monthFormat = "name", linkVisible = 
     "projects",
     "languages",
     "certifications",
+    ...(withAchievements ? ["achievements"] : []),
   ];
   const sections = sectionTypes.map((type, index) => ({
     id: id("sec"),
@@ -88,6 +101,8 @@ function buildWorstCase({ showMonth = true, monthFormat = "name", linkVisible = 
     languageShowLevelText: true,
     showMonth,
     monthFormat,
+    achievementShowDescription,
+    achievementShowIcons,
   }));
 
   const experience = Array.from({ length: 6 }, (_, i) => ({
@@ -148,12 +163,29 @@ function buildWorstCase({ showMonth = true, monthFormat = "name", linkVisible = 
     date: "2022-05-01",
   }));
 
+  // Mixed lengths on purpose: long titles that wrap at half width, long
+  // descriptions beside short ones, so a row's max-of-members height and the
+  // title wrap estimate are both exercised.
+  const achievements = withAchievements
+    ? Array.from({ length: 6 }, (_, i) => ({
+        id: id("ach"),
+        title:
+          i % 2 === 0
+            ? `طراحی و توسعهٔ پایگاه‌دادهٔ مقیاس‌پذیر با اکوسیستم Node.js شماره ${i + 1}`
+            : `دستاورد کوتاه ${i + 1}`,
+        description:
+          i % 3 === 0
+            ? "طراحی و پیاده‌سازی پایگاه‌های دادهٔ بهینه و مقیاس‌پذیر با PostgreSQL و MongoDB در اپلیکیشن‌های مبتنی بر Node.js که به دو تا سه خط متن می‌رسد و ارتفاع واقعی سلول را می‌سنجد."
+            : "توضیح کوتاه‌تری دربارهٔ نتیجهٔ این دستاورد.",
+      }))
+    : [];
+
   const now = new Date().toISOString();
   return {
     id: id("resume"),
     title: "رزومه نمونه",
     locale: "fa",
-    templateId: "professional-single-column",
+    templateId,
     theme: {
       themeId: "sage",
       pageBackground: "theme",
@@ -203,6 +235,7 @@ function buildWorstCase({ showMonth = true, monthFormat = "name", linkVisible = 
     projects,
     languages,
     certifications,
+    achievements,
     createdAt: now,
     updatedAt: now,
   };
@@ -226,6 +259,21 @@ async function measureOverflow(page, label) {
         if (br.bottom > maxBottom) {
           maxBottom = br.bottom;
           lastKind = b.getAttribute("data-block-kind");
+        }
+      }
+      // Column templates carry no [data-block-id] blocks; walk the painted
+      // content instead (verify-pagination-all's approach), skipping the
+      // on-screen editor chrome and the clipped decorative background.
+      if (blocks.length === 0) {
+        for (const el of pageEl.querySelectorAll("*")) {
+          if (el.closest(".no-print")) continue;
+          if (el.closest("[data-rz-decorations]")) continue;
+          const r = el.getBoundingClientRect();
+          if (r.width === 0 && r.height === 0) continue;
+          if (r.bottom > maxBottom) {
+            maxBottom = r.bottom;
+            lastKind = el.tagName.toLowerCase();
+          }
         }
       }
       return {
@@ -317,6 +365,29 @@ const scenarios = [
     label: "TYPICAL (seed-like item counts)",
     fixture: buildTypical(),
     shot: "measure-default.png",
+  },
+  // Key-Achievements matrix: the width-adaptive grid (2-up at full width,
+  // stacked in a column template's narrower main) and each section-wide
+  // display toggle, proven against the live Chrome render.
+  {
+    label: "ACHIEVEMENTS — 2-up grid (professional, full width)",
+    fixture: buildWorstCase({ withAchievements: true }),
+    shot: "measure-ach-2up.png",
+  },
+  {
+    label: "ACHIEVEMENTS — stacked (sidebar-column, narrow main)",
+    fixture: buildWorstCase({ withAchievements: true, templateId: "sidebar-column" }),
+    shot: "measure-ach-stacked.png",
+  },
+  {
+    label: "ACHIEVEMENTS — description HIDDEN",
+    fixture: buildWorstCase({ withAchievements: true, achievementShowDescription: false }),
+    shot: "measure-ach-no-desc.png",
+  },
+  {
+    label: "ACHIEVEMENTS — icons HIDDEN",
+    fixture: buildWorstCase({ withAchievements: true, achievementShowIcons: false }),
+    shot: "measure-ach-no-icons.png",
   },
 ];
 

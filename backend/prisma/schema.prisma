@@ -92,6 +92,7 @@ model Resume {
   projects       Project[]
   languages      Language[]
   certifications Certification[]
+  achievements   Achievement[]
 
   @@index([userId])
 }
@@ -111,6 +112,7 @@ model ResumeTheme {
   pageMargin          Float
   sectionSpacing      Float
   columnIntensity     Float
+  showSectionIcons    Boolean @default(false)
 }
 
 model ResumePersonalInfo {
@@ -127,6 +129,7 @@ model ResumePersonalInfo {
   nationality   String  @default("")
   uppercaseName Boolean @default(false)
   photoStyle    String  @default("round") // "round" | "square"
+  imageSide     String  @default("left") // "left" | "right"
 
   // PersonalInfoFieldVisibility (fv* = field visibility flags).
   fvJobTitle    Boolean @default(true)
@@ -186,6 +189,10 @@ model Section {
   // languages settings. Each section row keeps its own independent pair.
   showMonth   Boolean @default(true)
   monthFormat String  @default("name") // MonthFormat: "name" | "number"
+  // Achievements display settings — section-wide, meaningful only for type
+  // "achievements" but defaulted on every row like the languages settings.
+  achievementShowDescription Boolean @default(true)
+  achievementShowIcons       Boolean @default(true)
 
   @@index([resumeId])
 }
@@ -293,6 +300,17 @@ model Certification {
   issuer   String @default("")
   date     String @default("")
   position Int
+
+  @@index([resumeId])
+}
+
+model Achievement {
+  id          String @id // client id
+  resumeId    String
+  resume      Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  title       String @default("")
+  description String @default("")
+  position    Int
 
   @@index([resumeId])
 }

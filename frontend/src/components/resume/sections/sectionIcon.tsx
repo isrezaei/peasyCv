@@ -1,5 +1,6 @@
 import type { IconType } from "react-icons";
 import {
+  AchievementsIcon,
   CertificationsIcon,
   EducationIcon,
   ExperienceIcon,
@@ -23,6 +24,7 @@ const SECTION_ICONS: Record<RemovableSectionType, IconType> = {
   projects: ProjectsIcon,
   languages: LanguagesIcon,
   certifications: CertificationsIcon,
+  achievements: AchievementsIcon,
 };
 
 export function getSectionIcon(type: RemovableSectionType): IconType {

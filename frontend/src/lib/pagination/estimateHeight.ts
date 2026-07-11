@@ -1,4 +1,5 @@
 import type {
+  AchievementItem,
   EducationItem,
   ExperienceItem,
   PersonalInfo,
@@ -8,6 +9,10 @@ import type {
 } from "@/types";
 import { shouldRenderProjectLink } from "@/lib/resume/projectLink";
 import {
+  ACHIEVEMENT_CELL_PAD_PX,
+  ACHIEVEMENT_GRID_GAP_MM,
+  ACHIEVEMENT_ICON_BOX_PX,
+  ACHIEVEMENT_ICON_COL_PX,
   DATE_COLUMN_MONTH_NAME_MM,
   EM_BODY,
   EM_ITEM_TITLE,
@@ -306,4 +311,40 @@ export function estimateLanguageRowHeight(section: SectionMeta, m: LayoutMetrics
 
 export function estimateCertificationItemHeight(m: LayoutMetrics): number {
   return m.lineMm(EM_ITEM_TITLE) + m.lineMm(EM_BODY) + pxToMm(8); // name + issuer/date + pb=1.5
+}
+
+/**
+ * One Key-Achievements grid cell: the diamond icon beside a text stack of the
+ * (always-shown, wrapping) title and, when the section shows it, the grey
+ * description. Wrap capacities scale from `bodyCharsPerLine` by the ratio of
+ * the cell's real TEXT width to the flow's full content width (the
+ * `entryBodyCharsPerLine` mechanism), and the title's capacity additionally by
+ * the em ratio (chars-per-line ∝ 1/font-size). The icon column and the cell's
+ * vertical chrome are fixed-px shared constants, so paint and reserve read
+ * identical geometry. `cols` MUST be the {@link achievementGridColumns} value
+ * the row chunking used, so the assumed cell width matches the painted grid.
+ */
+export function estimateAchievementItemHeight(
+  item: AchievementItem,
+  section: SectionMeta,
+  m: LayoutMetrics,
+  cols: number,
+): number {
+  const cellWidthMm = (m.contentWidthMm - ACHIEVEMENT_GRID_GAP_MM * (cols - 1)) / cols;
+  const iconColMm = section.achievementShowIcons ? pxToMm(ACHIEVEMENT_ICON_COL_PX) : 0;
+  const widthRatio = Math.max(0.1, (cellWidthMm - iconColMm) / m.contentWidthMm);
+
+  const titleChars = Math.max(
+    12,
+    Math.round(m.bodyCharsPerLine * widthRatio * (EM_BODY / EM_ITEM_TITLE)),
+  );
+  const titleMm =
+    Math.max(MULTILINE_ROWS, estimateHtmlLines(item.title, titleChars)) * m.lineMm(EM_ITEM_TITLE);
+
+  const descMm = section.achievementShowDescription
+    ? multilineMm(m, EM_BODY, item.description, Math.max(12, Math.round(m.bodyCharsPerLine * widthRatio)))
+    : 0;
+
+  const iconMm = section.achievementShowIcons ? pxToMm(ACHIEVEMENT_ICON_BOX_PX) : 0;
+  return Math.max(titleMm + descMm, iconMm) + pxToMm(ACHIEVEMENT_CELL_PAD_PX);
 }

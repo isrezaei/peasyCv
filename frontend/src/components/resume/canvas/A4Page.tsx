@@ -47,7 +47,13 @@ export function A4Page({
   return (
     <Box
       data-page-index={pageIndex}
-      className="a4-page"
+      // `light` is Chakra's color-mode scope class: it re-pins EVERY semantic
+      // token (fg.*, bg.*, border, shadows…) to its light value for this whole
+      // subtree, so the app's dark mode can never bleed into the page. The
+      // explicit `color` stops the dark body colour from being inherited by
+      // any unstyled text (same #18181b the body sets in light mode), and
+      // `colorScheme` keeps native inputs/carets rendering light.
+      className="a4-page light"
       position="relative"
       width={`${A4_WIDTH_MM}mm`}
       height={autoHeight ? "auto" : `${A4_HEIGHT_MM}mm`}
@@ -58,6 +64,8 @@ export function A4Page({
         fontFamily: fontStack,
         fontSize: `${BASE_FONT_PX * fontScale}px`,
         lineHeight,
+        color: "#18181b",
+        colorScheme: "light",
       }}
     >
       {decorations ? (

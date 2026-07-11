@@ -32,6 +32,7 @@ export function DesignPanel() {
     setPageBackground,
     setBackgroundIntensity,
     setColumnIntensity,
+    setShowSectionIcons,
   } = useDesign();
 
   // Which palette family the picker is browsing. Local state only — the ACTIVE
@@ -65,18 +66,30 @@ export function DesignPanel() {
               />
             </SegmentGroup.Root>
             <ColorSwatchGrid variant={paletteMode} />
+            {/* Resume-wide section-icon toggle — a marker chip beside each heading,
+                tinted from the same palette the swatches above choose. */}
+            <Box style={{ borderRadius: RADII.card, boxShadow: SHADOWS.cardSoft, background: "var(--chakra-colors-bg-panel)", padding: "13px 14px" }}>
+              <SwitchField
+                label={t.design.sectionIcons}
+                checked={theme.showSectionIcons}
+                onChange={setShowSectionIcons}
+              />
+              <Text fontSize="11px" lineHeight="1.6" mt="3px" style={{ color: COLORS.muted }}>
+                {t.design.sectionIconsHint}
+              </Text>
+            </Box>
           </VStack>
         </PanelGroup>
         <AdvertisingUi AdvertisingId={BLOCK_AD_IDS[0]} isShow={true} />
       </VStack>
 
-      <Separator my="22px" size="xs" borderColor="blackAlpha.200" />
+      <Separator my="22px" size="xs" borderColor={{ base: "blackAlpha.200", _dark: "border" }} />
 
       {/* BLOCK 2 — BACKGROUNDS (page colour + decorative pattern). */}
       <VStack align="stretch" gap="26px">
         <PanelGroup label={t.design.backgrounds} description={t.design.backgroundsDesc}>
           <VStack align="stretch" gap="20px">
-            <Box style={{ borderRadius: RADII.card, boxShadow: SHADOWS.cardSoft, background: "#fff", padding: "13px 14px" }}>
+            <Box style={{ borderRadius: RADII.card, boxShadow: SHADOWS.cardSoft, background: "var(--chakra-colors-bg-panel)", padding: "13px 14px" }}>
               <SwitchField
                 label={t.design.coloredPage}
                 checked={theme.pageBackground === "theme"}
@@ -121,7 +134,7 @@ export function DesignPanel() {
         <AdvertisingUi AdvertisingId={BLOCK_AD_IDS[1]} isShow={true} />
       </VStack>
 
-      <Separator my="22px" size="xs" borderColor="blackAlpha.200" />
+      <Separator my="22px" size="xs" borderColor={{ base: "blackAlpha.200", _dark: "border" }} />
 
       {/* BLOCK 3 — TEXT & SIZE settings (typography + spacing/margins). */}
       <VStack align="stretch" gap="26px">

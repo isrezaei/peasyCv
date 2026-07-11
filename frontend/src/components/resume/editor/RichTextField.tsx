@@ -173,7 +173,9 @@ export const RichTextField = memo(
           css={{
             "&:empty:before": {
               content: "attr(data-placeholder)",
-              color: "var(--chakra-colors-fg-subtle)",
+              // Follows the surface via --rz-placeholder (set on tinted/dark
+              // columns); falls back to the default subtle grey elsewhere.
+              color: "var(--rz-placeholder, var(--chakra-colors-fg-subtle))",
               fontWeight: "normal",
               pointerEvents: "none",
             },

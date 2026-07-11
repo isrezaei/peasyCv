@@ -94,7 +94,7 @@ export function MonthYearPicker({ value, system, onSelect }: MonthYearPickerProp
               fontSize="xs"
               fontWeight={isSelected ? "bold" : "normal"}
               bg={isSelected ? "accent.solid" : "transparent"}
-              color={isSelected ? "white" : isCurrent ? "accent.fg" : "fg.muted"}
+              color={isSelected ? "accent.contrast" : isCurrent ? "accent.fg" : "fg.muted"}
               borderWidth={isCurrent && !isSelected ? "1px" : "0"}
               borderColor="accent.emphasized"
               transition="background 0.1s"

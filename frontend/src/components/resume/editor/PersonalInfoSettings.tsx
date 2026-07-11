@@ -29,8 +29,15 @@ export function PersonalInfoSettings({
   triggerSize = "2xs",
   tone = "onLight",
 }: PersonalInfoSettingsProps = {}) {
-  const { personalInfo, toggleField, setUppercaseName, setPhotoStyle, addLink, removeLink } =
-    usePersonalInfo();
+  const {
+    personalInfo,
+    toggleField,
+    setUppercaseName,
+    setPhotoStyle,
+    setImageSide,
+    addLink,
+    removeLink,
+  } = usePersonalInfo();
 
   return (
     <SettingsPopover
@@ -109,6 +116,29 @@ export function PersonalInfoSettings({
               items={[
                 { value: "round", label: t.personalInfo.photoRound },
                 { value: "square", label: t.personalInfo.photoSquare },
+              ]}
+            />
+          </SegmentGroup.Root>
+        </Box>
+
+        <Box>
+          <Text fontSize="xs" fontWeight="medium" color="fg.muted" mb="2">
+            {t.personalInfo.imageSide}
+          </Text>
+          <SegmentGroup.Root
+            size="sm"
+            width="100%"
+            value={personalInfo.imageSide}
+            onValueChange={(details) =>
+              setImageSide(details.value === "right" ? "right" : "left")
+            }
+          >
+            <SegmentGroup.Indicator />
+            <SegmentGroup.Items
+              flex="1"
+              items={[
+                { value: "left", label: t.personalInfo.imageLeft },
+                { value: "right", label: t.personalInfo.imageRight },
               ]}
             />
           </SegmentGroup.Root>

@@ -1,4 +1,5 @@
 import { Box } from "@chakra-ui/react";
+import { AchievementItemBlock } from "@/components/resume/editor/AchievementItemBlock";
 import { CertificationItemBlock } from "@/components/resume/editor/CertificationItemBlock";
 import { EducationItemBlock } from "@/components/resume/editor/EducationItemBlock";
 import { ExperienceItemBlock } from "@/components/resume/editor/ExperienceItemBlock";
@@ -8,7 +9,12 @@ import { ProjectItemBlock } from "@/components/resume/editor/ProjectItemBlock";
 import { SectionTitleBlock } from "@/components/resume/editor/SectionTitleBlock";
 import { SkillGroupBlock } from "@/components/resume/editor/SkillGroupBlock";
 import { SummaryBlock } from "@/components/resume/editor/SummaryBlock";
-import { LANGUAGE_GRID_COLUMNS, type PageBlock } from "@/lib/pagination";
+import {
+  ACHIEVEMENT_CELL_MIN_MM,
+  ACHIEVEMENT_GRID_GAP_MM,
+  LANGUAGE_GRID_COLUMNS,
+  type PageBlock,
+} from "@/lib/pagination";
 import type { ResumeData } from "@/types";
 
 interface BlockRendererProps {
@@ -100,6 +106,30 @@ export function BlockRenderer({ block, resume, accent, marker }: BlockRendererPr
       const item = resume.certifications.find((candidate) => candidate.id === block.refId);
       return item ? (
         <CertificationItemBlock item={item} direction={direction} accentColor={accent} />
+      ) : null;
+    }
+    case "achievementRow": {
+      const wanted = new Set(block.refIds ?? []);
+      const items = resume.achievements.filter((candidate) => wanted.has(candidate.id));
+      return section && items.length > 0 ? (
+        <Box
+          dir={direction}
+          display="grid"
+          gridTemplateColumns={`repeat(auto-fill, minmax(min(${ACHIEVEMENT_CELL_MIN_MM}mm, 100%), 1fr))`}
+          columnGap={`${ACHIEVEMENT_GRID_GAP_MM}mm`}
+        >
+          {items.map((item) => (
+            <AchievementItemBlock
+              key={item.id}
+              item={item}
+              direction={direction}
+              accentColor={accent}
+              markerColor={marker}
+              showDescription={section.achievementShowDescription}
+              showIcon={section.achievementShowIcons}
+            />
+          ))}
+        </Box>
       ) : null;
     }
     default:

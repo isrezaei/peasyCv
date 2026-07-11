@@ -10,6 +10,7 @@ import { useSidebar } from "@/hooks/store/useSidebar";
 import { DOCK, DOCK_RADII, DOCK_SHADOWS } from "@/lib/design/tokens";
 import { t } from "@/lib/i18n";
 import type { ActivePanel } from "@/store/types";
+import { ColorModeButton } from "./ColorModeButton";
 import { DockToggleButton } from "./DockToggleButton";
 import {
   AssistantGlyph,
@@ -119,9 +120,10 @@ export function TopBar() {
         </HStack>
       </HStack>
 
-      {/* RTL end (far left): save status + avatar. */}
+      {/* RTL end (far left): save status + color mode + avatar. */}
       <HStack flex="none" gap="4px" p="6px" bg={DOCK.glassBg} style={glass(DOCK_RADII.save, DOCK_SHADOWS.side)}>
         <SaveStatusIndicator />
+        <ColorModeButton />
         <Box width="1px" height="22px" bg={DOCK.divider} />
         <Box
           width="38px"

@@ -30,6 +30,7 @@ export const resumeInclude = {
   projects: { orderBy: { position: 'asc' } },
   languages: { orderBy: { position: 'asc' } },
   certifications: { orderBy: { position: 'asc' } },
+  achievements: { orderBy: { position: 'asc' } },
 } satisfies Prisma.ResumeInclude;
 
 export type ResumeWithRelations = Prisma.ResumeGetPayload<{ include: typeof resumeInclude }>;
@@ -62,6 +63,8 @@ export function serializeResume(row: ResumeWithRelations): ResumeData {
       languageShowLevelText: s.languageShowLevelText,
       showMonth: s.showMonth,
       monthFormat: s.monthFormat as MonthFormat,
+      achievementShowDescription: s.achievementShowDescription,
+      achievementShowIcons: s.achievementShowIcons,
     })),
     personalInfo: serializePersonalInfo(row.personalInfo, row.links),
     summary: { html: row.summaryHtml },
@@ -113,6 +116,11 @@ export function serializeResume(row: ResumeWithRelations): ResumeData {
       issuer: c.issuer,
       date: c.date,
     })),
+    achievements: row.achievements.map((a) => ({
+      id: a.id,
+      title: a.title,
+      description: a.description,
+    })),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -131,6 +139,7 @@ function serializeTheme(theme: NonNullable<ResumeWithRelations['theme']>): Theme
     pageMargin: theme.pageMargin,
     sectionSpacing: theme.sectionSpacing,
     columnIntensity: theme.columnIntensity,
+    showSectionIcons: theme.showSectionIcons,
   };
 }
 
@@ -150,6 +159,7 @@ function serializePersonalInfo(
     profileImage: serializeProfileImage(pi),
     uppercaseName: pi.uppercaseName,
     photoStyle: pi.photoStyle as PersonalInfo['photoStyle'],
+    imageSide: pi.imageSide as PersonalInfo['imageSide'],
     fieldVisibility: {
       jobTitle: pi.fvJobTitle,
       phone: pi.fvPhone,
@@ -203,6 +213,7 @@ export function buildThemeData(theme: ThemeSettings) {
     pageMargin: theme.pageMargin,
     sectionSpacing: theme.sectionSpacing,
     columnIntensity: theme.columnIntensity,
+    showSectionIcons: theme.showSectionIcons,
   };
 }
 
@@ -217,6 +228,7 @@ export function buildPersonalInfoData(pi: PersonalInfo) {
     nationality: pi.nationality,
     uppercaseName: pi.uppercaseName,
     photoStyle: pi.photoStyle,
+    imageSide: pi.imageSide,
     fvJobTitle: pi.fieldVisibility.jobTitle,
     fvPhone: pi.fieldVisibility.phone,
     fvLinks: pi.fieldVisibility.links,
@@ -276,6 +288,8 @@ export function buildSectionRows(
     languageShowLevelText: s.languageShowLevelText,
     showMonth: s.showMonth,
     monthFormat: s.monthFormat,
+    achievementShowDescription: s.achievementShowDescription,
+    achievementShowIcons: s.achievementShowIcons,
   }));
 }
 
@@ -345,6 +359,19 @@ export function buildCertificationRows(
     name: c.name,
     issuer: c.issuer,
     date: c.date,
+    position,
+  }));
+}
+
+export function buildAchievementRows(
+  resumeId: string,
+  items: ResumeData['achievements'],
+): Prisma.AchievementCreateManyInput[] {
+  return items.map((a, position) => ({
+    id: a.id,
+    resumeId,
+    title: a.title,
+    description: a.description,
     position,
   }));
 }

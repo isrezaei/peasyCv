@@ -116,6 +116,48 @@ export function SectionCompactMenu({ section, tone = "onLight" }: SectionCompact
             </Box>
           </>
         )}
+        {section.type === "achievements" && (
+          <>
+            {/* Section-wide Achievements display settings — one value for every
+                item, persisted on the section itself. The item TITLE is always
+                rendered, so only description/icons are toggleable. */}
+            <Separator borderColor="border" my="1.5" />
+            <Box px="1">
+              <VStack align="stretch" gap="1">
+                <Checkbox.Root
+                  size="sm"
+                  checked={section.achievementShowDescription}
+                  onCheckedChange={(details) =>
+                    setSectionLanguageSettings(section.id, {
+                      achievementShowDescription: details.checked === true,
+                    })
+                  }
+                >
+                  <Checkbox.HiddenInput />
+                  <Checkbox.Control borderRadius="lg">
+                    <Checkbox.Indicator />
+                  </Checkbox.Control>
+                  <Checkbox.Label>{t.achievements.showDescription}</Checkbox.Label>
+                </Checkbox.Root>
+                <Checkbox.Root
+                  size="sm"
+                  checked={section.achievementShowIcons}
+                  onCheckedChange={(details) =>
+                    setSectionLanguageSettings(section.id, {
+                      achievementShowIcons: details.checked === true,
+                    })
+                  }
+                >
+                  <Checkbox.HiddenInput />
+                  <Checkbox.Control borderRadius="lg">
+                    <Checkbox.Indicator />
+                  </Checkbox.Control>
+                  <Checkbox.Label>{t.achievements.showIcons}</Checkbox.Label>
+                </Checkbox.Root>
+              </VStack>
+            </Box>
+          </>
+        )}
         {section.type === "languages" && (
           <>
             {/* Section-wide Languages display settings — one value for every

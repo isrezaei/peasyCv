@@ -1,6 +1,7 @@
 "use client";
 
 import { Box, VStack } from "@chakra-ui/react";
+import { AchievementItemBlock } from "@/components/resume/editor/AchievementItemBlock";
 import { CertificationItemBlock } from "@/components/resume/editor/CertificationItemBlock";
 import { EducationItemBlock } from "@/components/resume/editor/EducationItemBlock";
 import { ExperienceItemBlock } from "@/components/resume/editor/ExperienceItemBlock";
@@ -8,7 +9,12 @@ import { LanguageItemBlock } from "@/components/resume/editor/LanguageItemBlock"
 import { ProjectItemBlock } from "@/components/resume/editor/ProjectItemBlock";
 import { SkillGroupBlock } from "@/components/resume/editor/SkillGroupBlock";
 import { SummaryBlock } from "@/components/resume/editor/SummaryBlock";
-import { LANGUAGE_GRID_COLUMNS, WITHIN_SECTION_GAP_MM } from "@/lib/pagination";
+import {
+  ACHIEVEMENT_CELL_MIN_MM,
+  ACHIEVEMENT_GRID_GAP_MM,
+  LANGUAGE_GRID_COLUMNS,
+  WITHIN_SECTION_GAP_MM,
+} from "@/lib/pagination";
 import type { ResumeData, SectionMeta } from "@/types";
 
 interface SectionContentProps {
@@ -135,6 +141,33 @@ export function SectionContent({
             />
           ))}
         </VStack>
+      );
+    case "achievements":
+      // Width-adaptive grid: auto-fill against the SAME mm minimum the packer's
+      // `achievementGridColumns` mirrors, so a full-width flow paints 2-up and a
+      // narrow column stacks — and the packed rows re-form identically because a
+      // page's itemIds arrive in whole rows. Row spacing mirrors the canvas's
+      // within-section block gap (the languages-grid pattern).
+      return (
+        <Box
+          dir={direction}
+          display="grid"
+          gridTemplateColumns={`repeat(auto-fill, minmax(min(${ACHIEVEMENT_CELL_MIN_MM}mm, 100%), 1fr))`}
+          columnGap={`${ACHIEVEMENT_GRID_GAP_MM}mm`}
+          rowGap={`${WITHIN_SECTION_GAP_MM}mm`}
+        >
+          {slice(resume.achievements, itemIds).map((item) => (
+            <AchievementItemBlock
+              key={item.id}
+              item={item}
+              direction={direction}
+              accentColor={accent}
+              markerColor={marker}
+              showDescription={section.achievementShowDescription}
+              showIcon={section.achievementShowIcons}
+            />
+          ))}
+        </Box>
       );
     default:
       return null;

@@ -3,7 +3,7 @@
 import { chakra } from "@chakra-ui/react";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { useSidebar } from "@/hooks/store/useSidebar";
-import { COLORS, DOCK, DOCK_RADII, DOCK_SHADOWS } from "@/lib/design/tokens";
+import { DOCK, DOCK_RADII, DOCK_SHADOWS } from "@/lib/design/tokens";
 import { t } from "@/lib/i18n";
 import { PanelToggleGlyph } from "./dockIcons";
 
@@ -35,7 +35,7 @@ export function DockToggleButton() {
         color={DOCK.idleFg}
         bg={DOCK.glassBg}
         transition="background .15s, color .15s"
-        _hover={{ bg: COLORS.white, color: DOCK.hoverFg }}
+        _hover={{ bg: DOCK.glassSolid, color: DOCK.hoverFg }}
         style={{
           borderRadius: DOCK_RADII.toggle,
           border: `1px solid ${DOCK.borderStrong}`,

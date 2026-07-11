@@ -123,9 +123,9 @@ export function DateField({
             width="auto"
             borderRadius="2xl"
             borderWidth="1px"
-            borderColor="blackAlpha.100"
+            borderColor={{ base: "blackAlpha.100", _dark: "border" }}
             boxShadow="lg"
-            bg="white"
+            bg="bg.panel"
             overflow="hidden"
             className="no-print"
           >
@@ -152,7 +152,7 @@ export function DateField({
                         fontSize="2xs"
                         fontWeight="medium"
                         whiteSpace="nowrap"
-                        bg={active ? "white" : "transparent"}
+                        bg={active ? { base: "white", _dark: "bg.emphasized" } : "transparent"}
                         color={active ? "accent.fg" : "fg.muted"}
                         boxShadow={active ? "sm" : "none"}
                         transition="background 0.12s, color 0.12s"
@@ -223,7 +223,7 @@ export function DateField({
                     px="1.5"
                     py="1"
                     borderRadius="md"
-                    _hover={{ bg: "blackAlpha.50", color: "red.fg" }}
+                    _hover={{ bg: { base: "blackAlpha.50", _dark: "bg.muted" }, color: "red.fg" }}
                     onClick={() => handleSelect("")}
                   >
                     {t.calendars.clear}

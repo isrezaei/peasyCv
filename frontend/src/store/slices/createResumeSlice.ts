@@ -45,6 +45,15 @@ export const createResumeSlice: SliceCreator<ResumeSlice> = (set) => ({
       },
     })),
 
+  setImageSide: (side) =>
+    set((state) => ({
+      resume: {
+        ...state.resume,
+        personalInfo: { ...state.resume.personalInfo, imageSide: side },
+        updatedAt: touch(),
+      },
+    })),
+
   toggleField: (field) =>
     set((state) => ({
       resume: {
@@ -448,6 +457,35 @@ export const createResumeSlice: SliceCreator<ResumeSlice> = (set) => ({
       resume: {
         ...state.resume,
         certifications: state.resume.certifications.filter((item) => item.id !== id),
+        updatedAt: touch(),
+      },
+    })),
+
+  addAchievement: () =>
+    set((state) => ({
+      resume: {
+        ...state.resume,
+        achievements: [...state.resume.achievements, { id: createId(), title: "", description: "" }],
+        updatedAt: touch(),
+      },
+    })),
+
+  updateAchievement: (id, patch) =>
+    set((state) => ({
+      resume: {
+        ...state.resume,
+        achievements: state.resume.achievements.map((item) =>
+          item.id === id ? { ...item, ...patch } : item,
+        ),
+        updatedAt: touch(),
+      },
+    })),
+
+  removeAchievement: (id) =>
+    set((state) => ({
+      resume: {
+        ...state.resume,
+        achievements: state.resume.achievements.filter((item) => item.id !== id),
         updatedAt: touch(),
       },
     })),

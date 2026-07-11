@@ -1,5 +1,6 @@
 import { t } from "@/lib/i18n";
 import type {
+  AchievementItem,
   CertificationItem,
   EducationItem,
   ExperienceItem,
@@ -38,6 +39,7 @@ export interface SectionItemMap {
   projects: ProjectItem;
   languages: LanguageItem;
   certifications: CertificationItem;
+  achievements: AchievementItem;
 }
 
 export interface SectionOption<Item> {
@@ -89,4 +91,7 @@ export const SECTION_OPTIONS: {
   // menu (SectionCompactMenu), not the per-item gear.
   languages: [],
   certifications: [],
+  // Achievements display settings (description / icons) are SECTION-WIDE and
+  // live in SectionCompactMenu like the languages settings.
+  achievements: [],
 };

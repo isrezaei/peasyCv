@@ -1,4 +1,5 @@
 import type { ID, Timestamped } from "./common";
+import type { AchievementItem } from "./achievements";
 import type { CertificationItem } from "./certifications";
 import type { EducationItem } from "./education";
 import type { ExperienceItem } from "./experience";
@@ -26,4 +27,5 @@ export interface ResumeData extends Timestamped {
   projects: ProjectItem[];
   languages: LanguageItem[];
   certifications: CertificationItem[];
+  achievements: AchievementItem[];
 }

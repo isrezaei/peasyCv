@@ -8,7 +8,8 @@ export type RemovableSectionType =
   | "education"
   | "projects"
   | "languages"
-  | "certifications";
+  | "certifications"
+  | "achievements";
 
 export type SectionType = "personalInfo" | RemovableSectionType;
 
@@ -40,4 +41,9 @@ export interface SectionMeta {
    *  so Experience and Education are configured independently. */
   showMonth: boolean;
   monthFormat: MonthFormat;
+  /** Achievements-section display settings — section-wide, meaningful only for
+   *  type "achievements" but present (defaulted) on every section like the
+   *  languages settings. The item TITLE is always rendered (no toggle). */
+  achievementShowDescription: boolean;
+  achievementShowIcons: boolean;
 }

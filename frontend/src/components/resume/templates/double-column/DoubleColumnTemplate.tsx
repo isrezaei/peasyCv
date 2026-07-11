@@ -12,7 +12,9 @@ import { resolveTheme, resumeTextVars } from "@/lib/themes";
 import type { RemovableSectionType, TemplateProps } from "@/types";
 
 const LAYOUT: ColumnTemplateLayout = {
-  sideTypes: new Set<RemovableSectionType>(["projects", "languages", "certifications"]),
+  // The aside carries only the achievements section for now (personal-info lives in
+  // the full-width header above); every other section flows in the main column.
+  sideTypes: new Set<RemovableSectionType>(["achievements"]),
   flex: { main: 1.7, side: 1, gapMm: 6.35 },
   header: { kind: "full", estimate: { identity: true, contacts: true, photo: true } },
 };

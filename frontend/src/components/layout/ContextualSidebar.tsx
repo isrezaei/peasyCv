@@ -54,7 +54,7 @@ export function ContextualSidebar() {
         gap="0"
         height="100%"
         width="312px"
-        bg="white"
+        bg="bg.panel"
         overflow="hidden"
         style={{ borderRadius: RADII.panel, boxShadow: SHADOWS.panel }}
       >

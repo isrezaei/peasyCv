@@ -1,6 +1,6 @@
 import type { ID } from "./common";
 import type { ImageMeta } from "./image";
-import type { PhotoStyle } from "./theme";
+import type { ImageSide, PhotoStyle } from "./theme";
 
 export interface LinkItem {
   id: ID;
@@ -35,5 +35,7 @@ export interface PersonalInfo {
   profileImage: ImageMeta | null;
   uppercaseName: boolean;
   photoStyle: PhotoStyle;
+  /** Which physical side the inline header photo sits on (default "left"). */
+  imageSide: ImageSide;
   fieldVisibility: PersonalInfoFieldVisibility;
 }

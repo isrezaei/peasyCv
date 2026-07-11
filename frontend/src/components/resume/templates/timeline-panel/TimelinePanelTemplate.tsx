@@ -8,13 +8,24 @@ import { TemplateSection } from "@/components/resume/sections/TemplateSection";
 import { type ColumnTemplateLayout, useColumnLayout } from "@/hooks/resume/useColumnLayout";
 import { getFontStack } from "@/lib/fonts/registry";
 import { PAGE_MARGIN_MM, SIDE_COLUMN_PAD_FACTOR } from "@/lib/pagination";
-import { mixWithWhite, resolveTheme, resumeTextVars, tintColor } from "@/lib/themes";
+import {
+  ensureReadable,
+  isDarkSurface,
+  mixWithWhite,
+  ON_DARK_SURFACE_TEXT,
+  resolveTheme,
+  resumeTextVars,
+  tintColor,
+} from "@/lib/themes";
 import type { RemovableSectionType, TemplateProps } from "@/types";
 import { PlainHeader } from "../_shared/PlainHeader";
 
 /** The tinted side panel holds the supporting sections (قالب ۳). */
 const LAYOUT: ColumnTemplateLayout = {
-  sideTypes: new Set<RemovableSectionType>(["skills", "languages", "certifications"]),
+  // The tinted side panel carries only the achievements section for now (personal-
+  // info sits in the full-width header strip); everything else flows in the main
+  // column.
+  sideTypes: new Set<RemovableSectionType>(["achievements"]),
   sideWidthMm: 66,
   // Full-width header strip (padding + bottom rule) reserved on page 1.
   header: {
@@ -34,6 +45,20 @@ export function TimelinePanelTemplate({ resume, theme }: TemplateProps) {
   const padX = `${theme.pageMargin}mm`;
   const sidePadX = `${(theme.pageMargin * SIDE_COLUMN_PAD_FACTOR).toFixed(1)}mm`;
   const panelBg = tintColor(colors.base, 0.55, theme.columnIntensity);
+  // F: the tinted side panel keeps its accent-family text on a light tint, but flips
+  // the whole tier (heading/body/subtitle/chip/placeholder) to the white family when
+  // the tint lands dark, so the panel content is always readable.
+  const panelOnDark = isDarkSurface(panelBg);
+  const panelHeading = panelOnDark ? ON_DARK_SURFACE_TEXT.heading : ensureReadable(colors.accent, panelBg);
+  const panelSecondary = panelOnDark
+    ? ON_DARK_SURFACE_TEXT.heading
+    : ensureReadable(colors.secondary, panelBg);
+  const panelBody = panelOnDark ? ON_DARK_SURFACE_TEXT.body : ensureReadable(colors.bodyText, panelBg);
+  const panelSubtitle = panelOnDark
+    ? ON_DARK_SURFACE_TEXT.subtitle
+    : ensureReadable(colors.subtitle, panelBg);
+  const panelChip = panelOnDark ? ON_DARK_SURFACE_TEXT.chip : mixWithWhite(colors.accent, 0.84);
+  const panelPlaceholder = panelOnDark ? ON_DARK_SURFACE_TEXT.placeholder : undefined;
   const pages = useColumnLayout(resume, LAYOUT);
 
   const renderMain = ({ section, itemIds, showTitle }: ColumnSectionRun) => (
@@ -53,9 +78,9 @@ export function TimelinePanelTemplate({ resume, theme }: TemplateProps) {
     <TemplateSection
       section={section}
       resume={resume}
-      accent={colors.accent}
-      soft={mixWithWhite(colors.accent, 0.84)}
-      titleColor={colors.accent}
+      accent={panelHeading}
+      soft={panelChip}
+      titleColor={panelHeading}
       variant="plain"
       markerColor={colors.marker}
       compact
@@ -93,12 +118,12 @@ export function TimelinePanelTemplate({ resume, theme }: TemplateProps) {
                 width="66mm"
                 flexShrink={0}
                 bg={panelBg}
-                color={colors.bodyText}
+                color={panelBody}
                 paddingBlock={padY}
                 paddingInline={sidePadX}
                 gap="0"
                 dir="rtl"
-                style={resumeTextVars(colors.secondary, colors.bodyText, colors.subtitle)}
+                style={resumeTextVars(panelSecondary, panelBody, panelSubtitle, panelPlaceholder)}
               >
                 <ColumnBody blocks={pages.side[page] ?? []} sections={resume.sections} renderSection={renderSide} />
               </VStack>

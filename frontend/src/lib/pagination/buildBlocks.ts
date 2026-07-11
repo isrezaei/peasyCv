@@ -1,5 +1,6 @@
 import type { ResumeData, SectionMeta } from "@/types";
 import {
+  estimateAchievementItemHeight,
   estimateCertificationItemHeight,
   estimateEducationItemHeight,
   estimateExperienceItemHeight,
@@ -10,7 +11,7 @@ import {
   estimateSkillGroupHeight,
   estimateSummaryHeight,
 } from "./estimateHeight";
-import { LANGUAGE_GRID_COLUMNS } from "./constants";
+import { achievementGridColumns, LANGUAGE_GRID_COLUMNS } from "./constants";
 import type { LayoutMetrics } from "./metrics";
 import type { BlockKind, PageBlock } from "./types";
 
@@ -147,6 +148,35 @@ export function buildSectionBlocks(
           sectionId: section.id,
           refId: item.id,
           heightMm: estimateCertificationItemHeight(m),
+          keepWithNext: false,
+          gapBeforeMm: m.withinGapMm,
+        })),
+      ];
+    }
+    case "achievements": {
+      const hasContent = resume.achievements.length > 0;
+      // Like the languages grid, the pagination unit is one ROW — the packer
+      // can only break between rows, exactly where the painted grid breaks.
+      // The column count is width-derived (2-up at full width, stacked in a
+      // narrow column) from the SAME helper the CSS auto-fill grid mirrors.
+      const cols = achievementGridColumns(m.contentWidthMm);
+      const rows: (typeof resume.achievements)[] = [];
+      for (let i = 0; i < resume.achievements.length; i += cols) {
+        rows.push(resume.achievements.slice(i, i + cols));
+      }
+      return [
+        buildSectionTitleBlock(section, hasContent, m),
+        ...rows.map((row) => ({
+          id: `achievement-row-${row[0].id}`,
+          kind: "achievementRow" as BlockKind,
+          sectionId: section.id,
+          refId: null,
+          refIds: row.map((item) => item.id),
+          // Descriptions differ per item, so a row reserves its TALLEST member
+          // (unlike the uniform languages row).
+          heightMm: Math.max(
+            ...row.map((item) => estimateAchievementItemHeight(item, section, m, cols)),
+          ),
           keepWithNext: false,
           gapBeforeMm: m.withinGapMm,
         })),

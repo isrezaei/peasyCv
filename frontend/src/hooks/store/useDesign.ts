@@ -13,6 +13,7 @@ export function useDesign() {
       setPageBackground: state.setPageBackground,
       setBackgroundIntensity: state.setBackgroundIntensity,
       setColumnIntensity: state.setColumnIntensity,
+      setShowSectionIcons: state.setShowSectionIcons,
     })),
   );
 }

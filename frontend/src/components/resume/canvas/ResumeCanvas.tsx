@@ -14,7 +14,7 @@ export function ResumeCanvas() {
 
   if (!isHydrated) {
     return (
-      <Center height="100%" bg="white">
+      <Center height="100%" bg="bg">
         <Spinner size="lg" color="accent.solid" />
       </Center>
     );
@@ -24,10 +24,10 @@ export function ResumeCanvas() {
   const Template = template.component;
 
   return (
-    // FIXED page-holder: a static white frame that never scrolls itself
-    // (`overflow:hidden`), so no stray scrollbar leaks onto the workspace. The
-    // RightRail and sidebar overlay anchor to it.
-    <Box position="relative" height="100%" overflow="hidden" bg="white">
+    // FIXED page-holder: a static workspace frame (app surface colour) that
+    // never scrolls itself (`overflow:hidden`), so no stray scrollbar leaks onto
+    // the workspace. The RightRail and sidebar overlay anchor to it.
+    <Box position="relative" height="100%" overflow="hidden" bg="bg">
       <RightRail />
       {/* Inner scroller: the ONE element that scrolls the pages, vertically only.
           `paddingInlineStart` is responsive to the side panel — when the panel is

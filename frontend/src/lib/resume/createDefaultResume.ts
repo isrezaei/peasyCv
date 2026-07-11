@@ -1,6 +1,7 @@
 import { t } from "@/lib/i18n";
 import { createId } from "@/lib/utils/id";
 import type {
+  AchievementItem,
   CertificationItem,
   EducationItem,
   ExperienceItem,
@@ -23,6 +24,7 @@ const DEFAULT_SECTION_ORDER: RemovableSectionType[] = [
   "projects",
   "languages",
   "certifications",
+  "achievements",
 ];
 
 const sectionTitles: Record<RemovableSectionType, string> = {
@@ -33,6 +35,7 @@ const sectionTitles: Record<RemovableSectionType, string> = {
   projects: t.sections.projects,
   languages: t.sections.languages,
   certifications: t.sections.certifications,
+  achievements: t.sections.achievements,
 };
 
 export function createDefaultSections(): SectionMeta[] {
@@ -48,6 +51,8 @@ export function createDefaultSections(): SectionMeta[] {
     languageShowLevelText: true,
     showMonth: true,
     monthFormat: "name" as const,
+    achievementShowDescription: true,
+    achievementShowIcons: true,
   }));
 }
 
@@ -67,6 +72,8 @@ export function createDefaultTheme(): ThemeSettings {
     sectionSpacing: 6,
     // 1 = each coloured-column template keeps its original tint (the current look).
     columnIntensity: 1,
+    // Off by default so existing résumés look unchanged until the user opts in.
+    showSectionIcons: false,
   };
 }
 
@@ -83,6 +90,7 @@ export function createDefaultPersonalInfo(): PersonalInfo {
     profileImage: null,
     uppercaseName: false,
     photoStyle: "round",
+    imageSide: "left",
     fieldVisibility: {
       jobTitle: true,
       phone: true,
@@ -194,6 +202,17 @@ export function createDefaultCertifications(): CertificationItem[] {
   ];
 }
 
+export function createDefaultAchievements(): AchievementItem[] {
+  const seed = t.defaults.achievement;
+  return [
+    {
+      id: createId(),
+      title: seed.title,
+      description: seed.description,
+    },
+  ];
+}
+
 export function createDefaultResume(): ResumeData {
   const now = new Date().toISOString();
 
@@ -212,6 +231,7 @@ export function createDefaultResume(): ResumeData {
     projects: createDefaultProjects(),
     languages: createDefaultLanguages(),
     certifications: createDefaultCertifications(),
+    achievements: createDefaultAchievements(),
     createdAt: now,
     updatedAt: now,
   };

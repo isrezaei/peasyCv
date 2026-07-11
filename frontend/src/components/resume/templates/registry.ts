@@ -64,17 +64,20 @@ export const templateRegistry: Record<TemplateId, TemplateDefinition> = {
   },
 };
 
+/**
+ * Templates OFFERED in the picker, in display order. Five imported skins
+ * (aside-dark, aside-photo, compact-duo, ruled-single, classic-centered) are
+ * intentionally omitted here so they are no longer selectable — but they stay in
+ * {@link templateRegistry} (and in the TemplateId union / backend allowlist), so a
+ * résumé already saved on one still loads and renders unchanged. Removal is
+ * display-list only, mirroring how vivid palettes were pulled from the swatch grid.
+ */
 export const templateOrder: TemplateId[] = [
   "professional-single-column",
   "double-column",
   "sidebar-column",
-  "aside-dark",
-  "aside-photo",
   "timeline-panel",
   "header-band",
-  "compact-duo",
-  "ruled-single",
-  "classic-centered",
 ];
 
 export function getTemplate(templateId: TemplateId): TemplateDefinition {

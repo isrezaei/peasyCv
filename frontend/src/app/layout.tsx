@@ -15,7 +15,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fa" dir="rtl" className={fontVariables}>
+    // suppressHydrationWarning: next-themes (mounted by the editor app only)
+    // sets the color-mode class on <html> before hydration, which React would
+    // otherwise report as a server/client attribute mismatch.
+    <html lang="fa" dir="rtl" className={fontVariables} suppressHydrationWarning>
       <body>
         <Providers>{children}</Providers>
       </body>

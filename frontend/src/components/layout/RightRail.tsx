@@ -18,11 +18,11 @@ const railButton = {
   height: "40px",
   borderRadius: "full",
   variant: "solid",
-  bg: "white",
+  bg: "bg.panel",
   fontSize: "18px",
   boxShadow: "rail",
   style: { color: COLORS.ink600 },
-  _hover: { bg: "white", color: "accent.solid", boxShadow: "railHover" },
+  _hover: { bg: "bg.panel", color: "accent.solid", boxShadow: "railHover" },
 } as const;
 
 export function RightRail() {

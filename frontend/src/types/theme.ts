@@ -47,6 +47,9 @@ export type FontFamilyId =
 
 export type PhotoStyle = "round" | "square";
 
+/** Which physical side the personal-info photo sits on in the inline header. */
+export type ImageSide = "left" | "right";
+
 /**
  * Which calendar system every resume date is *rendered* in. Dates are always
  * stored canonically as ISO (Gregorian) in the content data; this is a pure
@@ -85,6 +88,12 @@ export interface ThemeSettings {
   pageMargin: number;
   /** Vertical gap between sections in millimetres. 2 – 12. */
   sectionSpacing: number;
+  /**
+   * Resume-wide toggle: when on, every section heading shows its section icon in
+   * a rounded, lightly-tinted marker chip. Off by default so existing résumés look
+   * unchanged unless the user enables it from the design panel. Pure presentation.
+   */
+  showSectionIcons: boolean;
   /**
    * Intensity multiplier for the COLOURED column of the multi-column templates
    * (the tinted sidebar / dark aside / photo aside / timeline panel). 1 keeps each

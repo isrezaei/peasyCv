@@ -32,7 +32,7 @@ export function SidebarModal() {
       <Portal>
         <Dialog.Backdrop className="no-print" bg="blackAlpha.500" />
         <Dialog.Positioner className="no-print" padding="4">
-          <Dialog.Content bg="white" width="full" maxW="sm" borderRadius="2xl" overflow="hidden">
+          <Dialog.Content bg="bg.panel" width="full" maxW="sm" borderRadius="2xl" overflow="hidden">
             <VisuallyHidden>
               <Dialog.Title>{t.sidebar.expand}</Dialog.Title>
             </VisuallyHidden>

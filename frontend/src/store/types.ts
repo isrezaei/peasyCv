@@ -1,5 +1,6 @@
 import type { StateCreator } from "zustand";
 import type {
+  AchievementItem,
   BackgroundPatternId,
   CalendarSystem,
   CertificationItem,
@@ -9,6 +10,7 @@ import type {
   FontFamilyId,
   ID,
   ImageMeta,
+  ImageSide,
   LanguageItem,
   LanguageLevel,
   LanguageMeterVariant,
@@ -32,6 +34,7 @@ export interface ResumeSlice {
   setProfileImage: (image: ImageMeta) => void;
   removeProfileImage: () => void;
   setPhotoStyle: (style: PhotoStyle) => void;
+  setImageSide: (side: ImageSide) => void;
   toggleField: (field: keyof PersonalInfoFieldVisibility) => void;
   setUppercaseName: (enabled: boolean) => void;
   addLink: () => void;
@@ -76,6 +79,10 @@ export interface ResumeSlice {
   addCertification: () => void;
   updateCertification: (id: ID, patch: Partial<Omit<CertificationItem, "id">>) => void;
   removeCertification: (id: ID) => void;
+
+  addAchievement: () => void;
+  updateAchievement: (id: ID, patch: Partial<Omit<AchievementItem, "id">>) => void;
+  removeAchievement: (id: ID) => void;
 }
 
 export interface SectionsSlice {
@@ -83,8 +90,8 @@ export interface SectionsSlice {
   toggleSectionVisibility: (id: ID) => void;
   setSectionDirection: (id: ID, direction: Direction) => void;
   // The generic section-wide display-settings patch (implementation just spreads
-  // it onto the section row); carries the languages settings and the
-  // experience/education period-date settings.
+  // it onto the section row); carries the languages settings, the
+  // experience/education period-date settings and the achievements settings.
   setSectionLanguageSettings: (
     id: ID,
     patch: Partial<{
@@ -93,6 +100,8 @@ export interface SectionsSlice {
       languageShowLevelText: boolean;
       showMonth: boolean;
       monthFormat: MonthFormat;
+      achievementShowDescription: boolean;
+      achievementShowIcons: boolean;
     }>,
   ) => void;
 }
@@ -109,6 +118,7 @@ export interface ThemeSlice {
   setPageMargin: (margin: number) => void;
   setSectionSpacing: (spacing: number) => void;
   setColumnIntensity: (intensity: number) => void;
+  setShowSectionIcons: (show: boolean) => void;
   setTemplate: (templateId: TemplateId) => void;
 }
 

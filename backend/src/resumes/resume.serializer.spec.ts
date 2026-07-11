@@ -16,6 +16,7 @@ describe('resume write builders', () => {
       pageMargin: 18,
       sectionSpacing: 8,
       columnIntensity: 1.2,
+      showSectionIcons: true,
     };
     expect(buildThemeData(theme)).toEqual(theme);
   });
@@ -33,6 +34,7 @@ describe('resume write builders', () => {
       profileImage: null,
       uppercaseName: true,
       photoStyle: 'square',
+      imageSide: 'right',
       fieldVisibility: {
         jobTitle: true,
         phone: false,
@@ -94,7 +96,7 @@ describe('resume write builders', () => {
 describe('createDefaultResumeData', () => {
   it('produces a complete, schema-valid resume', () => {
     const resume = createDefaultResumeData();
-    expect(resume.sections).toHaveLength(7);
+    expect(resume.sections).toHaveLength(8);
     expect(resume.sections.map((s) => s.type)).toEqual([
       'summary',
       'experience',
@@ -103,12 +105,14 @@ describe('createDefaultResumeData', () => {
       'projects',
       'languages',
       'certifications',
+      'achievements',
     ]);
     expect(resume.languages).toHaveLength(2);
+    expect(resume.achievements).toHaveLength(1);
     expect(resume.theme.themeId).toBe('indigo');
     expect(resume.personalInfo.profileImage).toBeNull();
     // Every section carries a sequential order starting at 0.
-    expect(resume.sections.map((s) => s.order)).toEqual([0, 1, 2, 3, 4, 5, 6]);
+    expect(resume.sections.map((s) => s.order)).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
   });
 
   it('applies overrides', () => {

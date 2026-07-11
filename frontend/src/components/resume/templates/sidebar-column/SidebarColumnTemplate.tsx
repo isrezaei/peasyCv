@@ -13,11 +13,23 @@ import { type ColumnTemplateLayout, useColumnLayout } from "@/hooks/resume/useCo
 import { getFontStack } from "@/lib/fonts/registry";
 import { t } from "@/lib/i18n";
 import { PAGE_MARGIN_MM, SIDE_COLUMN_PAD_FACTOR } from "@/lib/pagination";
-import { darken, mixWithWhite, resolveTheme, resumeTextVars, tintColor } from "@/lib/themes";
+import {
+  darken,
+  ensureReadable,
+  isDarkSurface,
+  mixWithWhite,
+  ON_DARK_SURFACE_TEXT,
+  resolveTheme,
+  resumeTextVars,
+  tintColor,
+} from "@/lib/themes";
 import type { RemovableSectionType, TemplateProps } from "@/types";
 
 const LAYOUT: ColumnTemplateLayout = {
-  sideTypes: new Set<RemovableSectionType>(["projects", "languages", "certifications"]),
+  // The tinted sidebar carries the personal-info (photo + contacts, via the split
+  // header below) plus the achievements section for now; everything else flows in
+  // the main column.
+  sideTypes: new Set<RemovableSectionType>(["achievements"]),
   sideWidthMm: 64,
   header: {
     kind: "split",
@@ -43,9 +55,21 @@ export function SidebarColumnTemplate({ resume, theme }: TemplateProps) {
   // In vivid, `marker` equals `base`, so the fill keeps sourcing the palette's
   // secondary exactly as before; classic (marker unset) is byte-identical.
   const sidebarBg = tintColor(colors.marker ?? colors.base, 0.45, theme.columnIntensity);
-  const sidebarHeading = colors.accent;
-  const sidebarText = darken(colors.accent, 0.3);
-  const sidebarChip = colors.marker ?? mixWithWhite(colors.accent, 0.84);
+  // F: keep the accent-family text on a light tint (its proven look), but flip the
+  // whole tier — heading, body, chip AND placeholder — to the white family when a
+  // saturated palette or a high column-intensity pushes the tint dark, so the
+  // sidebar never renders unreadable dark-on-dark text.
+  const sidebarOnDark = isDarkSurface(sidebarBg);
+  const sidebarHeading = sidebarOnDark
+    ? ON_DARK_SURFACE_TEXT.heading
+    : ensureReadable(colors.accent, sidebarBg);
+  const sidebarText = sidebarOnDark
+    ? ON_DARK_SURFACE_TEXT.body
+    : ensureReadable(darken(colors.accent, 0.3), sidebarBg);
+  const sidebarChip = sidebarOnDark
+    ? ON_DARK_SURFACE_TEXT.chip
+    : colors.marker ?? mixWithWhite(colors.accent, 0.84);
+  const sidebarPlaceholder = sidebarOnDark ? ON_DARK_SURFACE_TEXT.placeholder : undefined;
 
   const renderSide = ({ section, itemIds, showTitle }: ColumnSectionRun) => (
     <SectionColumnItem
@@ -98,7 +122,7 @@ export function SidebarColumnTemplate({ resume, theme }: TemplateProps) {
               paddingInline={sidePadX}
               gap="0"
               dir="rtl"
-              style={resumeTextVars(sidebarHeading, sidebarText, sidebarHeading)}
+              style={resumeTextVars(sidebarHeading, sidebarText, sidebarHeading, sidebarPlaceholder)}
             >
               {page === 0 ? (
                 <VStack align="stretch" gap={gap} mb={gap}>

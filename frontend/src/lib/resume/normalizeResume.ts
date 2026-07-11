@@ -39,6 +39,7 @@ const sectionTitles: Record<RemovableSectionType, string> = {
   projects: t.sections.projects,
   languages: t.sections.languages,
   certifications: t.sections.certifications,
+  achievements: t.sections.achievements,
 };
 
 // Section titles that previous app versions persisted and that have since been
@@ -64,6 +65,7 @@ const ALL_SECTION_TYPES: RemovableSectionType[] = [
   "projects",
   "languages",
   "certifications",
+  "achievements",
 ];
 
 const VALID_BACKGROUND_PATTERNS: BackgroundPatternId[] = [
@@ -144,6 +146,13 @@ function normalizeTheme(theme: Partial<ThemeSettings> | undefined): ThemeSetting
     pageMargin: theme.pageMargin ?? defaults.pageMargin,
     sectionSpacing: theme.sectionSpacing ?? defaults.sectionSpacing,
     columnIntensity: normalizeColumnIntensity(theme.columnIntensity, defaults.columnIntensity),
+    // The resume-wide section-icon toggle arrived after resumes were first
+    // persisted — backfill it (default OFF) so an old payload hydrates complete
+    // and the strict ThemeSettingsDto can't 400 on the next save.
+    showSectionIcons:
+      typeof theme.showSectionIcons === "boolean"
+        ? theme.showSectionIcons
+        : defaults.showSectionIcons,
   };
 }
 
@@ -162,6 +171,10 @@ function normalizePersonalInfo(info: Partial<PersonalInfo> | undefined): Persona
     profileImage: info.profileImage ?? null,
     uppercaseName: info.uppercaseName ?? false,
     photoStyle: info.photoStyle ?? "round",
+    // The photo left/right option arrived after resumes were first persisted —
+    // backfill it (default "left") so an old payload stays valid and the strict
+    // PersonalInfoDto can't 400 on the next save.
+    imageSide: info.imageSide === "right" ? "right" : "left",
     fieldVisibility: { ...defaults.fieldVisibility, ...(info.fieldVisibility ?? {}) },
   };
 }
@@ -177,7 +190,13 @@ function normalizeSections(sections: SectionMeta[] | undefined): SectionMeta[] {
         id: createId(),
         type,
         title: sectionTitles[type],
-        visible: type === "projects" || type === "languages" || type === "certifications" ? false : true,
+        visible:
+          type === "projects" ||
+          type === "languages" ||
+          type === "certifications" ||
+          type === "achievements"
+            ? false
+            : true,
         direction: "rtl",
         order: existing.length,
         languageMeterVariant: "bars",
@@ -185,6 +204,8 @@ function normalizeSections(sections: SectionMeta[] | undefined): SectionMeta[] {
         languageShowLevelText: true,
         showMonth: true,
         monthFormat: "name",
+        achievementShowDescription: true,
+        achievementShowIcons: true,
       });
     }
   });
@@ -208,6 +229,14 @@ function normalizeSections(sections: SectionMeta[] | undefined): SectionMeta[] {
       // backfill so the strict SectionMetaDto can't 400 an old payload.
       showMonth: typeof section.showMonth === "boolean" ? section.showMonth : true,
       monthFormat: MONTH_FORMATS.includes(section.monthFormat) ? section.monthFormat : "name",
+      // Achievements display settings arrived after the period-date ones — same
+      // backfill (both default ON) so the strict SectionMetaDto can't 400.
+      achievementShowDescription:
+        typeof section.achievementShowDescription === "boolean"
+          ? section.achievementShowDescription
+          : true,
+      achievementShowIcons:
+        typeof section.achievementShowIcons === "boolean" ? section.achievementShowIcons : true,
     }))
     .sort((a, b) => a.order - b.order)
     .map((section, index) => ({ ...section, order: index }));
@@ -269,6 +298,10 @@ export function normalizeResume(raw: Partial<ResumeData> | null | undefined): Re
       showLevelText: typeof language.showLevelText === "boolean" ? language.showLevelText : true,
     })),
     certifications: raw.certifications ?? [],
+    // Payloads persisted before the Key-Achievements section existed lack the
+    // collection entirely — backfill it empty so hydration stays valid and the
+    // next save can't 400 on a missing array.
+    achievements: raw.achievements ?? [],
     createdAt: raw.createdAt ?? defaults.createdAt,
     updatedAt: raw.updatedAt ?? defaults.updatedAt,
   };

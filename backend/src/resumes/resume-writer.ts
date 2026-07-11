@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client';
 import type { ResumeData } from '@resume/types';
 import {
+  buildAchievementRows,
   buildCertificationRows,
   buildEducationRows,
   buildExperienceCreateInput,
@@ -72,6 +73,7 @@ export async function writeResumeData(
       tx.project.deleteMany({ where: { resumeId: id } }),
       tx.language.deleteMany({ where: { resumeId: id } }),
       tx.certification.deleteMany({ where: { resumeId: id } }),
+      tx.achievement.deleteMany({ where: { resumeId: id } }),
     ]);
   }
 
@@ -82,6 +84,7 @@ export async function writeResumeData(
     tx.project.createMany({ data: buildProjectRows(id, payload.projects) }),
     tx.language.createMany({ data: buildLanguageRows(id, payload.languages) }),
     tx.certification.createMany({ data: buildCertificationRows(id, payload.certifications) }),
+    tx.achievement.createMany({ data: buildAchievementRows(id, payload.achievements) }),
   ]);
 
   for (let i = 0; i < payload.experience.length; i += 1) {

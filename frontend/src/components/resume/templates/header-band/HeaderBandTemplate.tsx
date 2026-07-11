@@ -8,13 +8,23 @@ import { TemplateSection } from "@/components/resume/sections/TemplateSection";
 import { type ColumnTemplateLayout, useColumnLayout } from "@/hooks/resume/useColumnLayout";
 import { getFontStack } from "@/lib/fonts/registry";
 import { PAGE_MARGIN_MM } from "@/lib/pagination";
-import { darken, resolveTheme, resumeTextVars } from "@/lib/themes";
+import {
+  darken,
+  ensureReadable,
+  isDarkSurface,
+  ON_DARK_SURFACE_TEXT,
+  resolveTheme,
+  resumeTextVars,
+  tintColor,
+} from "@/lib/themes";
 import type { RemovableSectionType, TemplateProps } from "@/types";
 import { HeaderBand } from "../_shared/HeaderBand";
 
-/** The narrower column carries the summary + supporting sections (قالب ۴). */
+/** The narrower column carries only achievements for now (قالب ۴). */
 const LAYOUT: ColumnTemplateLayout = {
-  sideTypes: new Set<RemovableSectionType>(["summary", "languages", "certifications"]),
+  // Personal-info lives in the coloured header band above; the aside is limited to
+  // the achievements section, and every other section flows in the main column.
+  sideTypes: new Set<RemovableSectionType>(["achievements"]),
   flex: { main: 1.5, side: 1, gapMm: 8 },
   // The band's TOP padding is the page's top margin (already in usableHeight); the
   // extra chrome reserved on page 1 is the band's BOTTOM padding plus the padded
@@ -34,7 +44,20 @@ export function HeaderBandTemplate({ resume, theme }: TemplateProps) {
   // Fixed 16mm vertical margin (equal top/bottom); horizontal follows the slider.
   const padY = `${PAGE_MARGIN_MM}mm`;
   const padX = `${theme.pageMargin}mm`;
-  const bandColor = darken(colors.accent, 0.28);
+  // D: the header band is tinted the SAME way the coloured side columns are — a
+  // light white-mix of the marker/secondary via `tintColor` (0.45 baseline, tracked
+  // by the column-intensity slider) — so it reads as a soft band, not a bold fill,
+  // and matches the column colour exactly.
+  const bandColor = tintColor(colors.marker ?? colors.base, 0.45, theme.columnIntensity);
+  // F: choose readable text for whatever luminance that tint lands on — a dark band
+  // flips to the white family; a light band keeps the accent HUE but deepens it via
+  // ensureReadable so cross-hue palettes / high column-intensity still clear AA.
+  const bandOnDark = isDarkSurface(bandColor);
+  const bandHeading = bandOnDark ? ON_DARK_SURFACE_TEXT.heading : ensureReadable(colors.accent, bandColor);
+  const bandSubtitle = bandOnDark
+    ? ON_DARK_SURFACE_TEXT.subtitle
+    : ensureReadable(darken(colors.accent, 0.15), bandColor);
+  const bandPlaceholder = bandOnDark ? ON_DARK_SURFACE_TEXT.placeholder : "rgba(0,0,0,0.5)";
   const pages = useColumnLayout(resume, LAYOUT);
 
   const renderSection = ({ section, itemIds, showTitle }: ColumnSectionRun) => (
@@ -67,7 +90,14 @@ export function HeaderBandTemplate({ resume, theme }: TemplateProps) {
         >
           <VStack align="stretch" gap="0" minH="inherit">
             {page === 0 ? (
-              <HeaderBand bandColor={bandColor} contrastText={colors.contrastText} padMm={theme.pageMargin} />
+              <HeaderBand
+                bandColor={bandColor}
+                heading={bandHeading}
+                subtitle={bandSubtitle}
+                placeholder={bandPlaceholder}
+                tone={bandOnDark ? "onDark" : "onLight"}
+                padMm={theme.pageMargin}
+              />
             ) : null}
             <HStack align="flex-start" gap="8mm" paddingBlock={padY} paddingInline={padX} dir="rtl">
               <VStack align="stretch" flex="1.5" minW="0" gap="0">

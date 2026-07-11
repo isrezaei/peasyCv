@@ -20,6 +20,9 @@ export const fa = {
     menuResumes: "رزومه‌های من",
     menuSettings: "تنظیمات",
     menuLogout: "خروج",
+    colorModeLight: "حالت روشن",
+    colorModeDark: "حالت تاریک",
+    colorModeSystem: "حالت سیستم",
   },
   toolbar: {
     template: "قالب",
@@ -36,6 +39,7 @@ export const fa = {
     projects: "پروژه‌ها",
     languages: "زبان‌ها",
     certifications: "گواهینامه‌ها",
+    achievements: "دستاوردهای کلیدی",
   },
   sectionPanel: {
     title: "بخش‌ها",
@@ -72,6 +76,9 @@ export const fa = {
     photoStyle: "شکل تصویر",
     photoRound: "گرد",
     photoSquare: "مربع",
+    imageSide: "جهت تصویر",
+    imageLeft: "چپ",
+    imageRight: "راست",
     uppercaseName: "نام با حروف بزرگ",
     save: "ذخیره",
     cancel: "انصراف",
@@ -180,6 +187,15 @@ export const fa = {
     issuerPlaceholder: "نام مؤسسه مدیریت پروژه",
     datePlaceholder: "انتخاب تاریخ دریافت",
   },
+  achievements: {
+    addEntry: "افزودن دستاورد",
+    removeEntry: "حذف این دستاورد",
+    titlePlaceholder: "عنوان دستاورد",
+    descriptionPlaceholder: "توضیح کوتاهی درباره این دستاورد بنویسید...",
+    // Section-wide display toggles (the item title is always shown).
+    showDescription: "نمایش توضیحات",
+    showIcons: "نمایش آیکون‌ها",
+  },
   // Illustrative seed content used to populate a brand-new resume so no section
   // appears empty on first load. Phrased as visibly example/guidance text (prose
   // fields are prefixed with «نمونه») so it never reads like the user's real data.
@@ -224,6 +240,10 @@ export const fa = {
       issuer: "مؤسسهٔ صادرکننده",
       date: "2022-05-01",
     },
+    achievement: {
+      title: "نمونه: عنوان یک دستاورد کلیدی",
+      description: "نمونه: نتیجه و اثر این دستاورد را در یک یا دو جمله توضیح دهید.",
+    },
   },
   design: {
     title: "طراحی و فونت",
@@ -243,6 +263,8 @@ export const fa = {
     backgroundIntensity: "شدت پس‌زمینه",
     columnIntensity: "شدت رنگ ستون",
     columnIntensityHint: "شدت رنگ ستون کناری در قالب‌های ستونی را کم یا زیاد کنید.",
+    sectionIcons: "آیکون بخش‌ها",
+    sectionIconsHint: "نمایش آیکون هر بخش کنار عنوان آن در همهٔ قالب‌ها.",
     lighter: "کم‌رنگ",
     stronger: "پررنگ",
     pageBackground: "پس‌زمینهٔ صفحه",

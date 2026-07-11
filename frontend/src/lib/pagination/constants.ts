@@ -117,6 +117,65 @@ export const LANGUAGE_LINE_TRACK_PX = 6;
 /** Fixed gap (px) between the text line and the stacked "line" track (mt=1). */
 export const LANGUAGE_LINE_GAP_PX = 4;
 
+/**
+ * Minimum width (mm) of one Key-Achievements grid cell. The grid is 2-up only
+ * where two cells of at least this width fit (the full single-column content
+ * width); anywhere narrower — a column template's main or side column — the
+ * items stack one per row. Single source of truth consumed by BOTH the CSS
+ * grid (`repeat(auto-fill, minmax(min(80mm, 100%), 1fr))`) and
+ * {@link achievementGridColumns}, so the painted and the packed column count
+ * derive from the same mm threshold.
+ */
+export const ACHIEVEMENT_CELL_MIN_MM = 80;
+
+/** Fixed column gap (mm) between two Key-Achievements grid cells. */
+export const ACHIEVEMENT_GRID_GAP_MM = 6;
+
+/**
+ * Fixed box size (px) of the item's diamond icon. Structural chrome (does not
+ * scale with the font sliders) like {@link LANGUAGE_METER_BOX_PX} — shared by
+ * the icon renderer and the item-height estimator so paint and reserve can
+ * never diverge. Verified against the live DOM with the row-height probe.
+ */
+export const ACHIEVEMENT_ICON_BOX_PX = 18;
+
+/**
+ * Fixed inline space (px) the icon column takes from the cell's text width:
+ * the icon box plus the HStack gap="2" (8px) beside it. Read by the estimator
+ * to turn the cell width into the text stack's real wrap width.
+ */
+export const ACHIEVEMENT_ICON_COL_PX = ACHIEVEMENT_ICON_BOX_PX + 8;
+
+/**
+ * Fixed vertical cell chrome (px) of one Key-Achievements item: the measured
+ * title→description VStack gap (2px) + the cell's pb=1.5 (6px) — 8px exactly
+ * against the live DOM (cellH − Σ editor heights = 8.00 on the row-max cells) —
+ * plus the same 4px safety sliver the languages cell chrome carries, so the
+ * estimate is biased slightly high, never under.
+ */
+export const ACHIEVEMENT_CELL_PAD_PX = 12;
+
+/**
+ * Column count of the Key-Achievements grid at a given content width — the mm
+ * mirror of the CSS `repeat(auto-fill, minmax(min(CELL_MIN, 100%), 1fr))` the
+ * renderers paint with (Chrome fits `floor((W + gap) / (min + gap))` tracks,
+ * capped at 2 on A4 by the 80mm minimum). The 1mm epsilon biases the estimate
+ * toward FEWER columns at the exact boundary, so a rounding disagreement can
+ * only over-reserve (break a touch early), never overflow.
+ */
+export function achievementGridColumns(contentWidthMm: number): number {
+  return Math.max(
+    1,
+    Math.min(
+      2,
+      Math.floor(
+        (contentWidthMm - 1 + ACHIEVEMENT_GRID_GAP_MM) /
+          (ACHIEVEMENT_CELL_MIN_MM + ACHIEVEMENT_GRID_GAP_MM),
+      ),
+    ),
+  );
+}
+
 /** Height in px of the small (2xs) inline control buttons that show on screen. */
 export const CONTROL_BUTTON_PX = 22;
 

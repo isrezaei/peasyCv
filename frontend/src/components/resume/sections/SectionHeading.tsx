@@ -4,6 +4,7 @@ import { memo } from "react";
 import { Box, Heading, HStack, VStack } from "@chakra-ui/react";
 import type { SectionMeta } from "@/types";
 import { getSectionIcon } from "./sectionIcon";
+import { SectionTitleIcon } from "./SectionTitleIcon";
 
 /** Heading treatments ported from the imported templates. */
 export type SectionHeadingVariant =
@@ -63,13 +64,26 @@ export const SectionHeading = memo(function SectionHeading({
     </Heading>
   );
 
+  // Heading with the optional resume-wide section-icon chip prefixed. Used by every
+  // treatment except `chip` (which renders its own always-on icon). The chip is null
+  // when the toggle is off, so this is identical to the bare heading in that case.
+  const titleNode = (
+    <HStack gap="1.5" align="center" flexShrink={0} minW="0">
+      <SectionTitleIcon type={section.type} />
+      {heading}
+    </HStack>
+  );
+
   if (variant === "centered") {
     // Centered heading over a FULL-WIDTH rule (full length, edge to edge), with a
     // LIGHTER rule and a TIGHTER heading→rule gap. The overlaid controls never
     // shorten it — see SectionFrame.
     return (
       <VStack dir={section.direction} gap="0.5" align="stretch" width="full">
-        <Box textAlign="center">{heading}</Box>
+        <HStack justify="center" gap="1.5" align="center">
+          <SectionTitleIcon type={section.type} />
+          {heading}
+        </HStack>
         <Box width="full" height="1px" borderRadius="full" bg={marker} opacity="0.16" />
       </VStack>
     );
@@ -83,7 +97,7 @@ export const SectionHeading = memo(function SectionHeading({
         borderBottomWidth={variant === "solidUnderline" ? "2px" : "1px"}
         borderColor={variant === "solidUnderline" ? marker : ruleColor}
       >
-        {heading}
+        {titleNode}
       </Box>
     );
   }
@@ -92,7 +106,7 @@ export const SectionHeading = memo(function SectionHeading({
     return (
       <HStack dir={section.direction} gap="2" align="center">
         <Box width="4px" height="0.95em" borderRadius="full" bg={marker} flexShrink={0} />
-        {heading}
+        {titleNode}
       </HStack>
     );
   }
@@ -122,14 +136,14 @@ export const SectionHeading = memo(function SectionHeading({
   }
 
   if (variant === "plain") {
-    return <Box dir={section.direction}>{heading}</Box>;
+    return <Box dir={section.direction}>{titleNode}</Box>;
   }
 
   // "rule" — heading with a soft gradient line filling the remaining width.
   return (
     <Box dir={section.direction}>
       <HStack justify="space-between" align="center" gap="3">
-        {heading}
+        {titleNode}
         <Box
           flex="1"
           height="1px"

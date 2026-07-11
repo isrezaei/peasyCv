@@ -9,6 +9,7 @@ import type {
   FontFamilyId,
   LanguageLevel,
   LanguageMeterVariant,
+  ImageSide,
   MonthFormat,
   PageBackgroundMode,
   PhotoStyle,
@@ -40,6 +41,7 @@ export const SECTION_TYPES: RemovableSectionType[] = [
   'projects',
   'languages',
   'certifications',
+  'achievements',
 ];
 
 export const DIRECTIONS = ['rtl', 'ltr'] as const;
@@ -95,6 +97,8 @@ export const FONT_FAMILIES: FontFamilyId[] = [
 ];
 
 export const PHOTO_STYLES: PhotoStyle[] = ['round', 'square'];
+
+export const IMAGE_SIDES: ImageSide[] = ['left', 'right'];
 
 export const CALENDAR_SYSTEMS: CalendarSystem[] = ['jalali', 'hijri', 'gregorian'];
 

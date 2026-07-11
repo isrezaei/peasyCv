@@ -51,6 +51,7 @@ export {
   TbFolder as ProjectsIcon,
   TbLanguage as LanguagesIcon,
   TbCertificate as CertificationsIcon,
+  TbDiamond as AchievementsIcon,
   // Design / layout controls.
   TbColorPicker as ColorPickerIcon,
   TbColorSwatch as ColorSwatchIcon,
@@ -59,3 +60,8 @@ export {
   TbTextDirectionRtl as DirectionRtlIcon,
   TbTextDirectionLtr as DirectionLtrIcon,
 } from "react-icons/tb";
+
+// The Key-Achievements ITEM diamond — deliberately the Ionicons outline glyph
+// (the reference design's shape), while the section-heading chip stays in the
+// Tabler family above ({@link AchievementsIcon}).
+export { TbDiamond   as AchievementDiamondIcon } from "react-icons/tb";

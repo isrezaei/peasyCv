@@ -23,6 +23,7 @@ const DEFAULT_SECTION_ORDER: RemovableSectionType[] = [
   'projects',
   'languages',
   'certifications',
+  'achievements',
 ];
 
 const SECTION_TITLES: Record<RemovableSectionType, string> = {
@@ -33,6 +34,7 @@ const SECTION_TITLES: Record<RemovableSectionType, string> = {
   projects: 'پروژه‌ها',
   languages: 'زبان‌ها',
   certifications: 'گواهینامه‌ها',
+  achievements: 'دستاوردهای کلیدی',
 };
 
 function createDefaultSections(): SectionMeta[] {
@@ -48,6 +50,8 @@ function createDefaultSections(): SectionMeta[] {
     languageShowLevelText: true,
     showMonth: true,
     monthFormat: 'name' as const,
+    achievementShowDescription: true,
+    achievementShowIcons: true,
   }));
 }
 
@@ -64,6 +68,7 @@ function createDefaultTheme(): ThemeSettings {
     pageMargin: 16,
     sectionSpacing: 6,
     columnIntensity: 1,
+    showSectionIcons: false,
   };
 }
 
@@ -80,6 +85,7 @@ function createDefaultPersonalInfo(): PersonalInfo {
     profileImage: null,
     uppercaseName: false,
     photoStyle: 'round',
+    imageSide: 'left',
     fieldVisibility: {
       jobTitle: true,
       phone: true,
@@ -175,6 +181,13 @@ export function createDefaultResumeData(overrides: DefaultResumeOverrides = {}):
         name: 'نمونه: نام گواهینامه',
         issuer: 'مؤسسهٔ صادرکننده',
         date: '2022-05-01',
+      },
+    ],
+    achievements: [
+      {
+        id: randomUUID(),
+        title: 'نمونه: عنوان یک دستاورد کلیدی',
+        description: 'نمونه: نتیجه و اثر این دستاورد را در یک یا دو جمله توضیح دهید.',
       },
     ],
     createdAt: now,

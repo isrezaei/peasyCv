@@ -58,7 +58,9 @@ const baseFieldProps = {
   resize: "none",
   fontFamily: "inherit",
   lineHeight: "inherit",
-  _placeholder: { color: "fg.subtle", fontWeight: "normal" },
+  // Placeholder colour follows the surface: a tinted/dark column sets --rz-placeholder
+  // to a readable value; everywhere else it falls back to the default subtle grey.
+  _placeholder: { color: "var(--rz-placeholder, var(--chakra-colors-fg-subtle))", fontWeight: "normal" },
   _hover: { bg: "transparent" },
   _focus: { bg: "transparent" },
 } as const;

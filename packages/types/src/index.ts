@@ -66,6 +66,7 @@ export interface PersonalInfo {
   profileImage: ImageMeta | null;
   uppercaseName: boolean;
   photoStyle: PhotoStyle;
+  imageSide: ImageSide;
   fieldVisibility: PersonalInfoFieldVisibility;
 }
 
@@ -167,6 +168,13 @@ export interface CertificationItem {
   date: string;
 }
 
+// --- achievements ----------------------------------------------------------
+export interface AchievementItem {
+  id: ID;
+  title: string;
+  description: string;
+}
+
 // --- sections --------------------------------------------------------------
 export type RemovableSectionType =
   | "summary"
@@ -175,7 +183,8 @@ export type RemovableSectionType =
   | "education"
   | "projects"
   | "languages"
-  | "certifications";
+  | "certifications"
+  | "achievements";
 
 export type SectionType = "personalInfo" | RemovableSectionType;
 
@@ -204,6 +213,11 @@ export interface SectionMeta {
    *  so Experience and Education are configured independently. */
   showMonth: boolean;
   monthFormat: MonthFormat;
+  /** Achievements-section display settings — section-wide, meaningful only for
+   *  type "achievements" but present (defaulted) on every section like the
+   *  languages settings. The item TITLE is always rendered (no toggle). */
+  achievementShowDescription: boolean;
+  achievementShowIcons: boolean;
 }
 
 // --- theme -----------------------------------------------------------------
@@ -256,6 +270,9 @@ export type FontFamilyId =
 
 export type PhotoStyle = "round" | "square";
 
+/** Which physical side the personal-info photo sits on in the inline header. */
+export type ImageSide = "left" | "right";
+
 export type CalendarSystem = "jalali" | "hijri" | "gregorian";
 
 export interface ThemeSettings {
@@ -270,6 +287,8 @@ export interface ThemeSettings {
   pageMargin: number;
   sectionSpacing: number;
   columnIntensity: number;
+  /** Resume-wide toggle: show the section's icon beside each section heading. */
+  showSectionIcons: boolean;
 }
 
 // --- template --------------------------------------------------------------
@@ -301,6 +320,7 @@ export interface ResumeData extends Timestamped {
   projects: ProjectItem[];
   languages: LanguageItem[];
   certifications: CertificationItem[];
+  achievements: AchievementItem[];
 }
 
 // --- API auxiliary contracts ----------------------------------------------

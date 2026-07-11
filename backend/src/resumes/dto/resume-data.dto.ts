@@ -14,6 +14,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import type {
+  AchievementItem,
   BackgroundPatternId,
   CalendarSystem,
   CertificationItem,
@@ -24,6 +25,7 @@ import type {
   FontFamilyId,
   ImageCrop,
   ImageMeta,
+  ImageSide,
   LanguageItem,
   LanguageLevel,
   LanguageMeterVariant,
@@ -50,6 +52,7 @@ import {
   CALENDAR_SYSTEMS,
   DIRECTIONS,
   FONT_FAMILIES,
+  IMAGE_SIDES,
   LANGUAGE_LEVELS,
   LANGUAGE_METER_VARIANTS,
   LOCALES,
@@ -126,6 +129,9 @@ export class PersonalInfoDto implements PersonalInfo {
 
   @IsIn(PHOTO_STYLES)
   photoStyle!: PhotoStyle;
+
+  @IsIn(IMAGE_SIDES)
+  imageSide!: ImageSide;
 
   @ValidateNested()
   @Type(() => PersonalInfoFieldVisibilityDto)
@@ -253,6 +259,14 @@ export class CertificationItemDto implements CertificationItem {
   @IsString() date!: string;
 }
 
+// --- achievements ------------------------------------------------------------
+
+export class AchievementItemDto implements AchievementItem {
+  @IsString() id!: string;
+  @IsString() title!: string;
+  @IsString() description!: string;
+}
+
 // --- sections --------------------------------------------------------------
 
 export class SectionMetaDto implements SectionMeta {
@@ -279,6 +293,9 @@ export class SectionMetaDto implements SectionMeta {
 
   @IsIn(MONTH_FORMATS)
   monthFormat!: MonthFormat;
+
+  @IsBoolean() achievementShowDescription!: boolean;
+  @IsBoolean() achievementShowIcons!: boolean;
 }
 
 // --- theme -----------------------------------------------------------------
@@ -328,6 +345,8 @@ export class ThemeSettingsDto implements ThemeSettings {
   @Min(0.1)
   @Max(3)
   columnIntensity!: number;
+
+  @IsBoolean() showSectionIcons!: boolean;
 }
 
 // --- resume (root) ---------------------------------------------------------
@@ -388,6 +407,11 @@ export class ResumeDataDto implements ResumeData {
   @ValidateNested({ each: true })
   @Type(() => CertificationItemDto)
   certifications!: CertificationItemDto[];
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AchievementItemDto)
+  achievements!: AchievementItemDto[];
 
   // Server-authoritative; accepted in the payload but overwritten on write.
   @IsOptional()
