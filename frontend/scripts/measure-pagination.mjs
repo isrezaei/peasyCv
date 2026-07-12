@@ -77,6 +77,8 @@ function buildWorstCase({
   withAchievements = false,
   achievementShowDescription = true,
   achievementShowIcons = true,
+  sectionIcons = false,
+  columnStyle = "classic",
   templateId = "professional-single-column",
 } = {}) {
   const sectionTypes = [
@@ -198,6 +200,8 @@ function buildWorstCase({
       pageMargin: 16,
       sectionSpacing: 6,
       columnIntensity: 1,
+      showSectionIcons: sectionIcons,
+      columnStyle,
     },
     sections,
     personalInfo: {
@@ -388,6 +392,35 @@ const scenarios = [
     label: "ACHIEVEMENTS — icons HIDDEN",
     fixture: buildWorstCase({ withAchievements: true, achievementShowIcons: false }),
     shot: "measure-ach-no-icons.png",
+  },
+  // Section-title icons ON: the icon chip (1.6em) is taller than the heading's
+  // text line-box, so this proves the heading block's over-reserve still
+  // absorbs the icon-governed row on every page.
+  {
+    label: "SECTION ICONS ON (worst case, full width)",
+    fixture: buildWorstCase({ withAchievements: true, sectionIcons: true }),
+    shot: "measure-section-icons.png",
+  },
+  // Modern column style: the coloured column is rounded + inset, so its content
+  // width narrows by the shared inset — proven on BOTH style-aware templates.
+  // (The classic style is the byte-identical default every other scenario runs.)
+  {
+    label: "COLUMN STYLE modern (sidebar-column)",
+    fixture: buildWorstCase({
+      withAchievements: true,
+      templateId: "sidebar-column",
+      columnStyle: "modern",
+    }),
+    shot: "measure-modern-sidebar.png",
+  },
+  {
+    label: "COLUMN STYLE modern (timeline-panel)",
+    fixture: buildWorstCase({
+      withAchievements: true,
+      templateId: "timeline-panel",
+      columnStyle: "modern",
+    }),
+    shot: "measure-modern-timeline.png",
   },
 ];
 

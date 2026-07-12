@@ -17,6 +17,7 @@ describe('resume write builders', () => {
       sectionSpacing: 8,
       columnIntensity: 1.2,
       showSectionIcons: true,
+      columnStyle: 'modern',
     };
     expect(buildThemeData(theme)).toEqual(theme);
   });

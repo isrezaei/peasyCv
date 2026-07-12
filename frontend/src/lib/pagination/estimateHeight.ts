@@ -271,9 +271,14 @@ export function estimateProjectItemHeight(item: ProjectItem, m: LayoutMetrics): 
 }
 
 /**
- * One row of the Languages grid (up to LANGUAGE_GRID_COLUMNS cells). Every cell
- * obeys the SECTION-WIDE display settings, so the row height is uniform and
- * exact — no term is guessed:
+ * One row of the Languages grid (up to {@link languageGridColumns} cells — the
+ * chunking in `buildBlocks` is width-derived exactly like the achievements
+ * grid, so a narrow column packs 2-up / stacked rows). Unlike the achievements
+ * cell, the height needs NO cols(W) term: every cell is single-line
+ * non-wrapping text (the name is a native input, the level word a nowrap
+ * single-liner) beside fixed-px meter boxes, so a cell is the same height at
+ * every column width. Every cell obeys the SECTION-WIDE display settings, so
+ * the row height is uniform and exact — no term is guessed:
  *
  * - "line" variant: the level word sits INLINE with the name (one text line)
  *   and the full-width track stacks below it — name line, plus the fixed
@@ -334,15 +339,19 @@ export function estimateAchievementItemHeight(
   const iconColMm = section.achievementShowIcons ? pxToMm(ACHIEVEMENT_ICON_COL_PX) : 0;
   const widthRatio = Math.max(0.1, (cellWidthMm - iconColMm) / m.contentWidthMm);
 
+  // Wrap capacities round DOWN: a rounded-up capacity under-counts lines (the
+  // one direction the estimates must never err — proven at the 51.2mm side
+  // column, where round() gave 22 chars/line vs Chrome's real ~21 and priced a
+  // 4-line title at 3), while flooring can only over-reserve a touch.
   const titleChars = Math.max(
     12,
-    Math.round(m.bodyCharsPerLine * widthRatio * (EM_BODY / EM_ITEM_TITLE)),
+    Math.floor(m.bodyCharsPerLine * widthRatio * (EM_BODY / EM_ITEM_TITLE)),
   );
   const titleMm =
     Math.max(MULTILINE_ROWS, estimateHtmlLines(item.title, titleChars)) * m.lineMm(EM_ITEM_TITLE);
 
   const descMm = section.achievementShowDescription
-    ? multilineMm(m, EM_BODY, item.description, Math.max(12, Math.round(m.bodyCharsPerLine * widthRatio)))
+    ? multilineMm(m, EM_BODY, item.description, Math.max(12, Math.floor(m.bodyCharsPerLine * widthRatio)))
     : 0;
 
   const iconMm = section.achievementShowIcons ? pxToMm(ACHIEVEMENT_ICON_BOX_PX) : 0;

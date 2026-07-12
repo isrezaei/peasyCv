@@ -22,8 +22,9 @@ interface SectionTitleIconProps {
  * decoration: in vivid that is the raw secondary, in classic the accent (classic's
  * icon source). The chip fill is a soft white-mix of that same colour (0.82), so
  * the background is clearly lighter than the icon yet still shows the hue. Sized in
- * `em` at ~1.45× so it tracks the font-size slider and stays within the heading's
- * over-reserved title-row height (no pagination-estimator change needed).
+ * `em` at ~1.6× so it tracks the font-size slider and stays within the heading's
+ * over-reserved title-row height (no pagination-estimator change needed — proven
+ * by the icons-ON scenario of scripts/measure-pagination.mjs).
  */
 export function SectionTitleIcon({ type }: SectionTitleIconProps) {
   const theme = useResumeStore((state) => state.resume.theme);
@@ -43,12 +44,12 @@ export function SectionTitleIcon({ type }: SectionTitleIconProps) {
       display="inline-flex"
       alignItems="center"
       justifyContent="center"
-      boxSize="1.45em"
-      borderRadius="xl"
+      boxSize="1.6em"
+      borderRadius="lg"
       color={iconColor}
       bg={mixWithWhite(iconColor, 0.82)}
     >
-      <Box as="span" fontSize="0.9em" display="inline-flex">
+      <Box as="span" fontSize="1em" display="inline-flex">
         {createElement(iconType)}
       </Box>
     </Box>

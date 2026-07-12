@@ -58,6 +58,15 @@ export type ImageSide = "left" | "right";
  */
 export type CalendarSystem = "jalali" | "hijri" | "gregorian";
 
+/**
+ * How the coloured column of a column template is drawn: flush to the A4 edges
+ * ("classic", the historical look) or with rounded corners and a small inset
+ * from the edges ("modern"). Pure presentation with a width consequence: the
+ * modern inset narrows the column's usable content width, which the pagination
+ * metrics mirror (see `useColumnLayout`).
+ */
+export type ColumnStyle = "classic" | "modern";
+
 export interface ThemeSettings {
   themeId: ThemeId;
   /**
@@ -101,6 +110,12 @@ export interface ThemeSettings {
    * presentation, so it lives here and round-trips into the PDF render. 0.5 – 1.5.
    */
   columnIntensity: number;
+  /**
+   * Coloured-column treatment of the column templates. Default "classic" so
+   * existing résumés keep today's flush, full-bleed column byte-identical;
+   * "modern" rounds the column's corners and insets it from the A4 edges.
+   */
+  columnStyle: ColumnStyle;
 }
 
 export interface ThemePreset {

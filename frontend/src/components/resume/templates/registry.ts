@@ -80,6 +80,17 @@ export const templateOrder: TemplateId[] = [
   "header-band",
 ];
 
+/**
+ * Templates whose coloured column paints the theme's column STYLE (classic
+ * flush vs modern rounded/inset) — the ones that set `supportsColumnStyle` on
+ * their layout descriptor. The design panel shows the column-style control
+ * only while one of these is selected.
+ */
+export const COLUMN_STYLE_TEMPLATE_IDS: ReadonlySet<TemplateId> = new Set<TemplateId>([
+  "sidebar-column",
+  "timeline-panel",
+]);
+
 export function getTemplate(templateId: TemplateId): TemplateDefinition {
   return templateRegistry[templateId];
 }

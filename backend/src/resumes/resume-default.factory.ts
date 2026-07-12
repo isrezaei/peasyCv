@@ -69,6 +69,7 @@ function createDefaultTheme(): ThemeSettings {
     sectionSpacing: 6,
     columnIntensity: 1,
     showSectionIcons: false,
+    columnStyle: 'classic',
   };
 }
 

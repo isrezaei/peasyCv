@@ -4,6 +4,7 @@ import type {
   BackgroundPatternId,
   CalendarSystem,
   CertificationItem,
+  ColumnStyle,
   Direction,
   EducationItem,
   ExperienceItem,
@@ -119,6 +120,7 @@ export interface ThemeSlice {
   setSectionSpacing: (spacing: number) => void;
   setColumnIntensity: (intensity: number) => void;
   setShowSectionIcons: (show: boolean) => void;
+  setColumnStyle: (style: ColumnStyle) => void;
   setTemplate: (templateId: TemplateId) => void;
 }
 

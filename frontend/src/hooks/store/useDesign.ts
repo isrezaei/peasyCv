@@ -14,6 +14,8 @@ export function useDesign() {
       setBackgroundIntensity: state.setBackgroundIntensity,
       setColumnIntensity: state.setColumnIntensity,
       setShowSectionIcons: state.setShowSectionIcons,
+      setColumnStyle: state.setColumnStyle,
+      templateId: state.resume.templateId,
     })),
   );
 }

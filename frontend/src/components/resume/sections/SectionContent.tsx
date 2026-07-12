@@ -12,7 +12,8 @@ import { SummaryBlock } from "@/components/resume/editor/SummaryBlock";
 import {
   ACHIEVEMENT_CELL_MIN_MM,
   ACHIEVEMENT_GRID_GAP_MM,
-  LANGUAGE_GRID_COLUMNS,
+  LANGUAGE_CELL_MIN_MM,
+  LANGUAGE_GRID_GAP_MM,
   WITHIN_SECTION_GAP_MM,
 } from "@/lib/pagination";
 import type { ResumeData, SectionMeta } from "@/types";
@@ -104,16 +105,17 @@ export function SectionContent({
         </VStack>
       );
     case "languages":
-      // Same fixed-column grid the paginated canvas paints, re-chunked by the
-      // SAME column constant — a page's itemIds arrive in whole rows, so the
-      // rows re-form identically here. Row spacing mirrors the canvas's
-      // within-section block gap.
+      // Width-adaptive grid: auto-fill against the SAME mm minimum the packer's
+      // `languageGridColumns` mirrors (3-up at full width, 2-up / stacked in a
+      // narrow column, so cells can never spill out of the section box) — and
+      // the packed rows re-form identically because a page's itemIds arrive in
+      // whole rows. Row spacing mirrors the canvas's within-section block gap.
       return (
         <Box
           dir={direction}
           display="grid"
-          gridTemplateColumns={`repeat(${LANGUAGE_GRID_COLUMNS}, 1fr)`}
-          columnGap="7"
+          gridTemplateColumns={`repeat(auto-fill, minmax(min(${LANGUAGE_CELL_MIN_MM}mm, 100%), 1fr))`}
+          columnGap={`${LANGUAGE_GRID_GAP_MM}mm`}
           rowGap={`${WITHIN_SECTION_GAP_MM}mm`}
         >
           {slice(resume.languages, itemIds).map((item) => (

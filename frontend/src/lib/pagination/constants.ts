@@ -20,13 +20,27 @@ export const PAGE_MARGIN_MM = 16;
 /**
  * Inner inline (horizontal) padding of a coloured/narrow side column, expressed as
  * a fraction of the horizontal page margin. Kept tight so the aside panels are not
- * wastefully padded. Shared by the column templates AND the column-width model in
- * `useColumnLayout` so the rendered inset and the paginated width stay in lockstep.
+ * wastefully padded (0.4 → 6.4mm at the default 16mm margin; was 0.5/8mm). Shared
+ * by the column templates AND the column-width model in `useColumnLayout` so the
+ * rendered inset and the paginated width stay in lockstep.
  */
-export const SIDE_COLUMN_PAD_FACTOR = 0.5;
+export const SIDE_COLUMN_PAD_FACTOR = 0.4;
 
 /** CSS pixels per millimetre at 96dpi (the reference used for screen + print). */
 export const PX_PER_MM = 96 / 25.4;
+
+/**
+ * Inset (mm) of the "modern" column style's coloured column from the A4 edges —
+ * the Chakra space token "6" (24px ≈ 6.35mm), the SAME spacing step
+ * double-column's inter-column gap already uses. The column keeps its inner
+ * boundary (the main column is untouched) and pulls its outer edge and its
+ * top/bottom in by this amount, so the modern column's usable content width
+ * shrinks by exactly this value. Shared by the column templates (the rendered
+ * box) AND `useColumnLayout`'s width model, so paint and reserve can never
+ * diverge. Vertically it is margin traded for padding (the content still
+ * starts at the fixed 16mm page margin), so the usable height is unchanged.
+ */
+export const MODERN_COLUMN_INSET_MM = 24 / PX_PER_MM;
 
 /** Body font size in px at font scale 1.0; mirrors BASE_FONT_PX in A4Page. */
 export const BASE_FONT_PX = 15;
@@ -80,13 +94,29 @@ export const MULTILINE_ROWS = 1;
 export const WITHIN_SECTION_GAP_MM = 2;
 
 /**
- * Fixed column count of the Languages grid. The print surface is a fixed A4
- * width, so the count is a constant (NEVER derived from the editor viewport —
- * a responsive count would make row heights unestimable). Single source of
- * truth consumed by BOTH the pagination chunking (`buildBlocks`) and the grid
- * renderers, so the packed rows and the painted rows can never diverge.
+ * Maximum column count of the Languages grid — the count the full single-column
+ * content width paints (the section's historical fixed-3 look). The grid is
+ * width-adaptive now (see {@link languageGridColumns}): a column template's
+ * narrower flow drops to 2-up or stacked so cells can never spill out of the
+ * section box, exactly like the Key-Achievements grid.
  */
 export const LANGUAGE_GRID_COLUMNS = 3;
+
+/**
+ * Minimum width (mm) of one Languages grid cell. Chosen so the full-width flow
+ * keeps its 3-up look across the whole page-margin slider (content 162–194mm →
+ * always 3 tracks) while a column template's narrow flow drops to 2-up
+ * (≥ ~99mm) or stacked. Single source of truth consumed by BOTH the CSS
+ * auto-fill grid and {@link languageGridColumns}, the achievements pattern.
+ */
+export const LANGUAGE_CELL_MIN_MM = 46;
+
+/**
+ * Fixed column gap (mm) between two Languages grid cells — the exact mm value
+ * of the Chakra `columnGap="7"` (28px) the grid has always painted with, so
+ * the adaptive grid keeps the identical gap.
+ */
+export const LANGUAGE_GRID_GAP_MM = 28 / PX_PER_MM;
 
 /**
  * Fixed height (px) of one bar of the "bars" meter variant — deliberately
@@ -156,23 +186,42 @@ export const ACHIEVEMENT_ICON_COL_PX = ACHIEVEMENT_ICON_BOX_PX + 8;
 export const ACHIEVEMENT_CELL_PAD_PX = 12;
 
 /**
- * Column count of the Key-Achievements grid at a given content width — the mm
- * mirror of the CSS `repeat(auto-fill, minmax(min(CELL_MIN, 100%), 1fr))` the
- * renderers paint with (Chrome fits `floor((W + gap) / (min + gap))` tracks,
- * capped at 2 on A4 by the 80mm minimum). The 1mm epsilon biases the estimate
- * toward FEWER columns at the exact boundary, so a rounding disagreement can
- * only over-reserve (break a touch early), never overflow.
+ * Column count of a `repeat(auto-fill, minmax(min(CELL_MIN, 100%), 1fr))` grid
+ * at a given content width — the mm mirror of what Chrome paints (it fits
+ * `floor((W + gap) / (min + gap))` tracks, capped by the grid's full-width
+ * count). The 1mm epsilon biases the estimate toward FEWER columns at the
+ * exact boundary, so a rounding disagreement can only over-reserve (break a
+ * touch early), never overflow. Shared by every width-adaptive section grid.
  */
-export function achievementGridColumns(contentWidthMm: number): number {
+function autoFillGridColumns(
+  contentWidthMm: number,
+  cellMinMm: number,
+  gapMm: number,
+  maxColumns: number,
+): number {
   return Math.max(
     1,
-    Math.min(
-      2,
-      Math.floor(
-        (contentWidthMm - 1 + ACHIEVEMENT_GRID_GAP_MM) /
-          (ACHIEVEMENT_CELL_MIN_MM + ACHIEVEMENT_GRID_GAP_MM),
-      ),
-    ),
+    Math.min(maxColumns, Math.floor((contentWidthMm - 1 + gapMm) / (cellMinMm + gapMm))),
+  );
+}
+
+/** Key-Achievements column count at a content width (2-up at full width). */
+export function achievementGridColumns(contentWidthMm: number): number {
+  return autoFillGridColumns(
+    contentWidthMm,
+    ACHIEVEMENT_CELL_MIN_MM,
+    ACHIEVEMENT_GRID_GAP_MM,
+    2,
+  );
+}
+
+/** Languages column count at a content width (3-up at full width). */
+export function languageGridColumns(contentWidthMm: number): number {
+  return autoFillGridColumns(
+    contentWidthMm,
+    LANGUAGE_CELL_MIN_MM,
+    LANGUAGE_GRID_GAP_MM,
+    LANGUAGE_GRID_COLUMNS,
   );
 }
 

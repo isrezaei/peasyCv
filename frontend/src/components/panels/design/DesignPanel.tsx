@@ -7,6 +7,7 @@ import { LabeledSlider } from "@/components/ui/LabeledSlider";
 import { PanelGroup } from "@/components/ui/PanelGroup";
 import { SwitchField } from "@/components/ui/SwitchField";
 import { useDesign } from "@/hooks/store/useDesign";
+import { COLUMN_STYLE_TEMPLATE_IDS } from "@/components/resume/templates/registry";
 import { COLORS, RADII, SHADOWS } from "@/lib/design/tokens";
 import { t } from "@/lib/i18n";
 import { isVividThemeId } from "@/lib/themes";
@@ -33,6 +34,8 @@ export function DesignPanel() {
     setBackgroundIntensity,
     setColumnIntensity,
     setShowSectionIcons,
+    setColumnStyle,
+    templateId,
   } = useDesign();
 
   // Which palette family the picker is browsing. Local state only — the ACTIVE
@@ -129,6 +132,36 @@ export function DesignPanel() {
               valueText={`${Math.round(theme.columnIntensity * 100)}%`}
               onChange={setColumnIntensity}
             />
+            {/* Coloured-column STYLE (classic flush vs modern rounded/inset) — shown
+                only while a template that paints it is selected. */}
+            {COLUMN_STYLE_TEMPLATE_IDS.has(templateId) ? (
+              <Box style={{ borderRadius: RADII.card, boxShadow: SHADOWS.cardSoft, background: "var(--chakra-colors-bg-panel)", padding: "13px 14px" }}>
+                <Text fontSize="12px" fontWeight="600">
+                  {t.design.columnStyle}
+                </Text>
+                <SegmentGroup.Root
+                  size="sm"
+                  width="100%"
+                  mt="8px"
+                  value={theme.columnStyle}
+                  onValueChange={(details) =>
+                    setColumnStyle(details.value === "modern" ? "modern" : "classic")
+                  }
+                >
+                  <SegmentGroup.Indicator />
+                  <SegmentGroup.Items
+                    flex="1"
+                    items={[
+                      { value: "classic", label: t.design.columnStyleClassic },
+                      { value: "modern", label: t.design.columnStyleModern },
+                    ]}
+                  />
+                </SegmentGroup.Root>
+                <Text fontSize="11px" lineHeight="1.6" mt="6px" style={{ color: COLORS.muted }}>
+                  {t.design.columnStyleHint}
+                </Text>
+              </Box>
+            ) : null}
           </VStack>
         </PanelGroup>
         <AdvertisingUi AdvertisingId={BLOCK_AD_IDS[1]} isShow={true} />

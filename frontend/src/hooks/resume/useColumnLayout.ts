@@ -6,12 +6,13 @@ import {
   composeColumnPages,
   createColumnMetrics,
   estimatePersonalBlockHeight,
+  MODERN_COLUMN_INSET_MM,
   PAGE_MARGIN_MM,
   PAGE_SAFETY_MM,
   type PersonalBlockEstimate,
   SIDE_COLUMN_PAD_FACTOR,
 } from "@/lib/pagination";
-import type { RemovableSectionType, ResumeData } from "@/types";
+import type { ColumnStyle, RemovableSectionType, ResumeData } from "@/types";
 
 /**
  * Margin-dependent header chrome (band/strip padding) in mm. Defined at module
@@ -44,6 +45,14 @@ export interface ColumnTemplateLayout {
   sidePadFactor?: number;
   /** For a flex split: the main/side flex weights and the inter-column gap in mm. */
   flex?: { main: number; side: number; gapMm: number };
+  /**
+   * The template PAINTS the theme's "modern" column style (rounded corners +
+   * {@link MODERN_COLUMN_INSET_MM} inset on its fixed coloured sidebar). Only
+   * when this is set does the width model apply the modern inset — so the
+   * estimator can never assume a narrower column that a template (e.g. the
+   * retired aside skins) doesn't actually draw.
+   */
+  supportsColumnStyle?: boolean;
   header: ColumnHeaderSpec;
 }
 
@@ -59,7 +68,10 @@ export function useColumnLayout(
   return useMemo(() => {
     const { theme, personalInfo } = resume;
     const margin = theme.pageMargin;
-    const { mainWidthMm, sideWidthMm } = deriveColumnWidths(layout, margin);
+    // Only style-aware templates narrow the column for "modern" — the SAME
+    // condition their renderer paints the inset box under.
+    const columnStyle: ColumnStyle = layout.supportsColumnStyle ? theme.columnStyle : "classic";
+    const { mainWidthMm, sideWidthMm } = deriveColumnWidths(layout, margin, columnStyle);
 
     const mainMetrics = createColumnMetrics(theme, mainWidthMm);
     const sideMetrics = createColumnMetrics(theme, sideWidthMm);
@@ -97,6 +109,7 @@ export function useColumnLayout(
 function deriveColumnWidths(
   layout: ColumnTemplateLayout,
   margin: number,
+  columnStyle: ColumnStyle,
 ): { mainWidthMm: number; sideWidthMm: number } {
   const fullContent = A4_WIDTH_MM - 2 * margin;
 
@@ -116,10 +129,15 @@ function deriveColumnWidths(
   }
 
   // Fixed coloured sidebar (bleed page); the main column carries the page margin.
+  // The "modern" style keeps the sidebar's INNER boundary (so the main column is
+  // untouched) and pulls the outer edge in by the inset, narrowing only the
+  // sidebar's own box — and therefore its usable content width — by exactly
+  // MODERN_COLUMN_INSET_MM. Same box width the style-aware templates paint.
   const sideOuter = layout.sideWidthMm ?? 0;
+  const sideBox = columnStyle === "modern" ? sideOuter - MODERN_COLUMN_INSET_MM : sideOuter;
   const sidePad = margin * (layout.sidePadFactor ?? SIDE_COLUMN_PAD_FACTOR);
   return {
     mainWidthMm: A4_WIDTH_MM - sideOuter - 2 * margin,
-    sideWidthMm: Math.max(20, sideOuter - 2 * sidePad),
+    sideWidthMm: Math.max(20, sideBox - 2 * sidePad),
   };
 }

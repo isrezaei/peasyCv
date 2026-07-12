@@ -74,6 +74,9 @@ export function createDefaultTheme(): ThemeSettings {
     columnIntensity: 1,
     // Off by default so existing résumés look unchanged until the user opts in.
     showSectionIcons: false,
+    // Classic (flush, full-bleed column) by default so existing résumés are
+    // byte-identical until the user picks the modern rounded/inset column.
+    columnStyle: "classic",
   };
 }
 

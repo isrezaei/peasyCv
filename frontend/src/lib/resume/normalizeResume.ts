@@ -153,6 +153,10 @@ function normalizeTheme(theme: Partial<ThemeSettings> | undefined): ThemeSetting
       typeof theme.showSectionIcons === "boolean"
         ? theme.showSectionIcons
         : defaults.showSectionIcons,
+    // The column-style option arrived after resumes were first persisted —
+    // backfill it (default "classic", today's flush column) so an old payload
+    // hydrates complete, looks identical, and the strict DTO can't 400.
+    columnStyle: theme.columnStyle === "modern" ? "modern" : defaults.columnStyle,
   };
 }
 

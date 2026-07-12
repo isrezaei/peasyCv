@@ -7,7 +7,7 @@ import { ResumeBackground } from "@/components/resume/canvas/ResumeBackground";
 import { TemplateSection } from "@/components/resume/sections/TemplateSection";
 import { type ColumnTemplateLayout, useColumnLayout } from "@/hooks/resume/useColumnLayout";
 import { getFontStack } from "@/lib/fonts/registry";
-import { PAGE_MARGIN_MM, SIDE_COLUMN_PAD_FACTOR } from "@/lib/pagination";
+import { MODERN_COLUMN_INSET_MM, PAGE_MARGIN_MM, SIDE_COLUMN_PAD_FACTOR } from "@/lib/pagination";
 import {
   ensureReadable,
   isDarkSurface,
@@ -20,13 +20,20 @@ import {
 import type { RemovableSectionType, TemplateProps } from "@/types";
 import { PlainHeader } from "../_shared/PlainHeader";
 
+/** Outer width (mm) of the tinted side panel — the ONE source the rendered
+ *  column and the pagination width model both read. */
+const SIDE_WIDTH_MM = 66;
+
 /** The tinted side panel holds the supporting sections (قالب ۳). */
 const LAYOUT: ColumnTemplateLayout = {
   // The tinted side panel carries only the achievements section for now (personal-
   // info sits in the full-width header strip); everything else flows in the main
   // column.
   sideTypes: new Set<RemovableSectionType>(["achievements"]),
-  sideWidthMm: 66,
+  sideWidthMm: SIDE_WIDTH_MM,
+  // This template paints the theme's modern column style, so the width model
+  // may apply the modern inset (see useColumnLayout).
+  supportsColumnStyle: true,
   // Full-width header strip (padding + bottom rule) reserved on page 1.
   header: {
     kind: "full",
@@ -44,6 +51,17 @@ export function TimelinePanelTemplate({ resume, theme }: TemplateProps) {
   const padY = `${PAGE_MARGIN_MM}mm`;
   const padX = `${theme.pageMargin}mm`;
   const sidePadX = `${(theme.pageMargin * SIDE_COLUMN_PAD_FACTOR).toFixed(1)}mm`;
+  // "modern" column style: the panel becomes a rounded box inset from the A4
+  // edges, keeping its INNER boundary (the main column is untouched) and the
+  // content's fixed 16mm vertical start (margin traded for padding) — the
+  // sidebar-column mechanism, on the inline-END side this panel sits on. The
+  // SAME inset useColumnLayout narrows the panel's content width by.
+  const modern = theme.columnStyle === "modern";
+  const insetMm = `${MODERN_COLUMN_INSET_MM.toFixed(2)}mm`;
+  const sideBoxW = modern
+    ? `${(SIDE_WIDTH_MM - MODERN_COLUMN_INSET_MM).toFixed(2)}mm`
+    : `${SIDE_WIDTH_MM}mm`;
+  const sidePadY = modern ? `${(PAGE_MARGIN_MM - MODERN_COLUMN_INSET_MM).toFixed(2)}mm` : padY;
   const panelBg = tintColor(colors.base, 0.55, theme.columnIntensity);
   // F: the tinted side panel keeps its accent-family text on a light tint, but flips
   // the whole tier (heading/body/subtitle/chip/placeholder) to the white family when
@@ -115,12 +133,17 @@ export function TimelinePanelTemplate({ resume, theme }: TemplateProps) {
               </VStack>
               <VStack
                 align="stretch"
-                width="66mm"
+                width={sideBoxW}
                 flexShrink={0}
                 bg={panelBg}
                 color={panelBody}
-                paddingBlock={padY}
+                paddingBlock={sidePadY}
                 paddingInline={sidePadX}
+                // The panel is the last (inline-end) child, so the modern inset
+                // margins push it off the end edge and the top/bottom.
+                marginInlineEnd={modern ? insetMm : "0"}
+                marginBlock={modern ? insetMm : "0"}
+                borderRadius={modern ? "2xl" : "0"}
                 gap="0"
                 dir="rtl"
                 style={resumeTextVars(panelSecondary, panelBody, panelSubtitle, panelPlaceholder)}

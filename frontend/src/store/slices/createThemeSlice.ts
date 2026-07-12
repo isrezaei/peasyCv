@@ -33,6 +33,7 @@ export const createThemeSlice: SliceCreator<ThemeSlice> = (set) => ({
   setColumnIntensity: (intensity) =>
     patchTheme(set, () => ({ columnIntensity: clamp(intensity, 0.5, 1.5) })),
   setShowSectionIcons: (show) => patchTheme(set, () => ({ showSectionIcons: show })),
+  setColumnStyle: (style) => patchTheme(set, () => ({ columnStyle: style })),
   setTemplate: (templateId) =>
     set((state) => ({
       resume: { ...state.resume, templateId, updatedAt: touch() },

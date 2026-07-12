@@ -6,6 +6,7 @@
 import type {
   BackgroundPatternId,
   CalendarSystem,
+  ColumnStyle,
   FontFamilyId,
   LanguageLevel,
   LanguageMeterVariant,
@@ -107,3 +108,5 @@ export const LANGUAGE_LEVELS: LanguageLevel[] = [1, 2, 3, 4, 5];
 export const LANGUAGE_METER_VARIANTS: LanguageMeterVariant[] = ['bars', 'dots', 'pill', 'line'];
 
 export const MONTH_FORMATS: MonthFormat[] = ['name', 'number'];
+
+export const COLUMN_STYLES: ColumnStyle[] = ['classic', 'modern'];

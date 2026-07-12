@@ -140,6 +140,7 @@ function serializeTheme(theme: NonNullable<ResumeWithRelations['theme']>): Theme
     sectionSpacing: theme.sectionSpacing,
     columnIntensity: theme.columnIntensity,
     showSectionIcons: theme.showSectionIcons,
+    columnStyle: theme.columnStyle as ThemeSettings['columnStyle'],
   };
 }
 
@@ -214,6 +215,7 @@ export function buildThemeData(theme: ThemeSettings) {
     sectionSpacing: theme.sectionSpacing,
     columnIntensity: theme.columnIntensity,
     showSectionIcons: theme.showSectionIcons,
+    columnStyle: theme.columnStyle,
   };
 }
 

@@ -275,6 +275,11 @@ export type ImageSide = "left" | "right";
 
 export type CalendarSystem = "jalali" | "hijri" | "gregorian";
 
+/** How the coloured column of a column template is drawn: flush to the A4
+ *  edges ("classic", the historical look) or rounded and inset a little from
+ *  them ("modern"). */
+export type ColumnStyle = "classic" | "modern";
+
 export interface ThemeSettings {
   themeId: ThemeId;
   pageBackground: PageBackgroundMode;
@@ -289,6 +294,8 @@ export interface ThemeSettings {
   columnIntensity: number;
   /** Resume-wide toggle: show the section's icon beside each section heading. */
   showSectionIcons: boolean;
+  /** Coloured-column treatment of the column templates (classic = flush, modern = rounded + inset). */
+  columnStyle: ColumnStyle;
 }
 
 // --- template --------------------------------------------------------------

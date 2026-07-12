@@ -18,6 +18,7 @@ import type {
   BackgroundPatternId,
   CalendarSystem,
   CertificationItem,
+  ColumnStyle,
   Direction,
   EducationItem,
   EmploymentPeriod,
@@ -50,6 +51,7 @@ import type {
 import {
   BACKGROUND_PATTERNS,
   CALENDAR_SYSTEMS,
+  COLUMN_STYLES,
   DIRECTIONS,
   FONT_FAMILIES,
   IMAGE_SIDES,
@@ -347,6 +349,9 @@ export class ThemeSettingsDto implements ThemeSettings {
   columnIntensity!: number;
 
   @IsBoolean() showSectionIcons!: boolean;
+
+  @IsIn(COLUMN_STYLES)
+  columnStyle!: ColumnStyle;
 }
 
 // --- resume (root) ---------------------------------------------------------

@@ -12,7 +12,8 @@ import { SummaryBlock } from "@/components/resume/editor/SummaryBlock";
 import {
   ACHIEVEMENT_CELL_MIN_MM,
   ACHIEVEMENT_GRID_GAP_MM,
-  LANGUAGE_GRID_COLUMNS,
+  LANGUAGE_CELL_MIN_MM,
+  LANGUAGE_GRID_GAP_MM,
   type PageBlock,
 } from "@/lib/pagination";
 import type { ResumeData } from "@/types";
@@ -85,8 +86,12 @@ export function BlockRenderer({ block, resume, accent, marker }: BlockRendererPr
         <Box
           dir={direction}
           display="grid"
-          gridTemplateColumns={`repeat(${LANGUAGE_GRID_COLUMNS}, 1fr)`}
-          columnGap="7"
+          // Width-adaptive: auto-fill against the SAME mm minimum the packer's
+          // `languageGridColumns` mirrors (3-up at full width, 2-up / stacked
+          // in a narrow column), so cells can never spill out of the section
+          // box — the achievements-grid pattern.
+          gridTemplateColumns={`repeat(auto-fill, minmax(min(${LANGUAGE_CELL_MIN_MM}mm, 100%), 1fr))`}
+          columnGap={`${LANGUAGE_GRID_GAP_MM}mm`}
         >
           {items.map((item) => (
             <LanguageItemBlock

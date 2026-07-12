@@ -12,7 +12,7 @@ import { useResumeDocument } from "@/hooks/store/useResumeDocument";
 import { type ColumnTemplateLayout, useColumnLayout } from "@/hooks/resume/useColumnLayout";
 import { getFontStack } from "@/lib/fonts/registry";
 import { t } from "@/lib/i18n";
-import { PAGE_MARGIN_MM, SIDE_COLUMN_PAD_FACTOR } from "@/lib/pagination";
+import { MODERN_COLUMN_INSET_MM, PAGE_MARGIN_MM, SIDE_COLUMN_PAD_FACTOR } from "@/lib/pagination";
 import {
   darken,
   ensureReadable,
@@ -25,12 +25,19 @@ import {
 } from "@/lib/themes";
 import type { RemovableSectionType, TemplateProps } from "@/types";
 
+/** Outer width (mm) of the tinted sidebar — the ONE source the rendered column
+ *  and the pagination width model both read. */
+const SIDE_WIDTH_MM = 64;
+
 const LAYOUT: ColumnTemplateLayout = {
   // The tinted sidebar carries the personal-info (photo + contacts, via the split
   // header below) plus the achievements section for now; everything else flows in
   // the main column.
   sideTypes: new Set<RemovableSectionType>(["achievements"]),
-  sideWidthMm: 64,
+  sideWidthMm: SIDE_WIDTH_MM,
+  // This template paints the theme's modern column style, so the width model
+  // may apply the modern inset (see useColumnLayout).
+  supportsColumnStyle: true,
   header: {
     kind: "split",
     main: { identity: true },
@@ -50,6 +57,18 @@ export function SidebarColumnTemplate({ resume, theme }: TemplateProps) {
   const padX = `${theme.pageMargin}mm`;
   const sidePadX = `${(theme.pageMargin * SIDE_COLUMN_PAD_FACTOR).toFixed(1)}mm`;
   const nameGap = `${(theme.sectionSpacing * 0.5).toFixed(1)}mm`;
+  // "modern" column style: the sidebar becomes a rounded box inset from the A4
+  // edges. It keeps its INNER boundary (the main column is untouched) — the
+  // outer edge and top/bottom pull in by the shared inset, and the vertical
+  // inset is margin traded for padding so the content still starts at the
+  // fixed 16mm page margin. The SAME inset useColumnLayout narrows the
+  // sidebar's content width by, so paint and reserve agree.
+  const modern = theme.columnStyle === "modern";
+  const insetMm = `${MODERN_COLUMN_INSET_MM.toFixed(2)}mm`;
+  const sideBoxW = modern
+    ? `${(SIDE_WIDTH_MM - MODERN_COLUMN_INSET_MM).toFixed(2)}mm`
+    : `${SIDE_WIDTH_MM}mm`;
+  const sidePadY = modern ? `${(PAGE_MARGIN_MM - MODERN_COLUMN_INSET_MM).toFixed(2)}mm` : padY;
   const pages = useColumnLayout(resume, LAYOUT);
 
   // In vivid, `marker` equals `base`, so the fill keeps sourcing the palette's
@@ -114,12 +133,17 @@ export function SidebarColumnTemplate({ resume, theme }: TemplateProps) {
           <HStack align="stretch" gap="0" minH="inherit">
             <VStack
               align="stretch"
-              width="64mm"
+              width={sideBoxW}
               flexShrink={0}
               bg={sidebarBg}
               color={sidebarText}
-              paddingBlock={padY}
+              paddingBlock={sidePadY}
               paddingInline={sidePadX}
+              // The sidebar is the first (inline-start) child, so the modern
+              // inset margins push it off the start edge and the top/bottom.
+              marginInlineStart={modern ? insetMm : "0"}
+              marginBlock={modern ? insetMm : "0"}
+              borderRadius={modern ? "2xl" : "0"}
               gap="0"
               dir="rtl"
               style={resumeTextVars(sidebarHeading, sidebarText, sidebarHeading, sidebarPlaceholder)}

@@ -11,7 +11,7 @@ import {
   estimateSkillGroupHeight,
   estimateSummaryHeight,
 } from "./estimateHeight";
-import { achievementGridColumns, LANGUAGE_GRID_COLUMNS } from "./constants";
+import { achievementGridColumns, languageGridColumns } from "./constants";
 import type { LayoutMetrics } from "./metrics";
 import type { BlockKind, PageBlock } from "./types";
 
@@ -115,12 +115,16 @@ export function buildSectionBlocks(
     }
     case "languages": {
       const hasContent = resume.languages.length > 0;
-      // Languages render as a fixed-column grid, so the pagination unit is one
-      // ROW of the grid, not one language — the packer can only break between
-      // rows, exactly where the painted grid breaks.
+      // Languages render as a width-adaptive grid, so the pagination unit is
+      // one ROW of the grid, not one language — the packer can only break
+      // between rows, exactly where the painted grid breaks. The column count
+      // is width-derived (3-up at full width, 2-up / stacked in a narrow
+      // column) from the SAME helper the CSS auto-fill grid mirrors — the
+      // achievements mechanism.
+      const cols = languageGridColumns(m.contentWidthMm);
       const rows: (typeof resume.languages)[] = [];
-      for (let i = 0; i < resume.languages.length; i += LANGUAGE_GRID_COLUMNS) {
-        rows.push(resume.languages.slice(i, i + LANGUAGE_GRID_COLUMNS));
+      for (let i = 0; i < resume.languages.length; i += cols) {
+        rows.push(resume.languages.slice(i, i + cols));
       }
       // Display settings are section-wide, so every row shares one height.
       const rowHeightMm = estimateLanguageRowHeight(section, m);
