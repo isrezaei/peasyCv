@@ -78,8 +78,16 @@ function buildWorstCase({
   achievementShowDescription = true,
   achievementShowIcons = true,
   sectionIcons = false,
-  columnStyle = "classic",
+  sectionSeparators = false,
+  atsMode = false,
+  skillDisplayMode = "row",
+  skillShowLevel = false,
+  skillMeterVariant = "line",
   templateId = "professional-single-column",
+  fontScale = 1,
+  // When set, the experience section is ONE item with this many responsibilities
+  // (the M1 long-list shape) instead of the 6×4 worst-case matrix.
+  responsibilityCount = null,
 } = {}) {
   const sectionTypes = [
     "summary",
@@ -105,9 +113,14 @@ function buildWorstCase({
     monthFormat,
     achievementShowDescription,
     achievementShowIcons,
+    skillDisplayMode,
+    skillShowLevel,
+    skillMeterVariant,
   }));
 
-  const experience = Array.from({ length: 6 }, (_, i) => ({
+  const experienceCount = responsibilityCount ? 1 : 6;
+  const responsibilitiesPerItem = responsibilityCount ?? 4;
+  const experience = Array.from({ length: experienceCount }, (_, i) => ({
     id: id("exp"),
     jobTitle: `مهندس نرم‌افزار ارشد ${i + 1}`,
     companyName: "شرکت فناوری نمونه با نام طولانی",
@@ -118,7 +131,7 @@ function buildWorstCase({
       "توضیح نسبتاً بلندی دربارهٔ نقش و دستاوردها که احتمالاً به دو خط کشیده می‌شود و فضای بیشتری می‌گیرد.",
     link: "https://github.com/example/project",
     linkVisible,
-    responsibilities: Array.from({ length: 4 }, () => ({
+    responsibilities: Array.from({ length: responsibilitiesPerItem }, () => ({
       id: id("resp"),
       text: "یک مسئولیت یا دستاورد کلیدی همراه با عدد و نتیجهٔ مشخص که ممکن است طولانی باشد.",
     })),
@@ -195,13 +208,14 @@ function buildWorstCase({
       backgroundIntensity: 0.7,
       dateCalendar: "jalali",
       fontFamily: "vazirmatn",
-      fontScale: 1,
+      fontScale,
       lineHeight: 1.5,
       pageMargin: 16,
       sectionSpacing: 6,
       columnIntensity: 1,
       showSectionIcons: sectionIcons,
-      columnStyle,
+      showSectionSeparators: sectionSeparators,
+      atsMode,
     },
     sections,
     personalInfo: {
@@ -393,6 +407,29 @@ const scenarios = [
     fixture: buildWorstCase({ withAchievements: true, achievementShowIcons: false }),
     shot: "measure-ach-no-icons.png",
   },
+  // Skills display-mode matrix: the LIST mode's per-line pricing (bars is the
+  // tallest beside-text meter) and the TAG row's level-widened slot (dots is
+  // the widest meter), both proven on the full width and on a narrow column.
+  {
+    label: "SKILLS — LIST mode + levels (bars, professional)",
+    fixture: buildWorstCase({ skillDisplayMode: "list", skillShowLevel: true, skillMeterVariant: "bars" }),
+    shot: "measure-skills-list-bars.png",
+  },
+  {
+    label: "SKILLS — LIST mode, no levels (sidebar-column, narrow)",
+    fixture: buildWorstCase({ skillDisplayMode: "list", templateId: "sidebar-column" }),
+    shot: "measure-skills-list-narrow.png",
+  },
+  {
+    label: "SKILLS — TAG row + levels (dots, professional)",
+    fixture: buildWorstCase({ skillShowLevel: true, skillMeterVariant: "dots" }),
+    shot: "measure-skills-row-dots.png",
+  },
+  {
+    label: "SKILLS — TAG row + levels (line, sidebar-column, narrow)",
+    fixture: buildWorstCase({ skillShowLevel: true, templateId: "sidebar-column" }),
+    shot: "measure-skills-row-line-narrow.png",
+  },
   // Section-title icons ON: the icon chip (1.6em) is taller than the heading's
   // text line-box, so this proves the heading block's over-reserve still
   // absorbs the icon-governed row on every page.
@@ -401,26 +438,98 @@ const scenarios = [
     fixture: buildWorstCase({ withAchievements: true, sectionIcons: true }),
     shot: "measure-section-icons.png",
   },
-  // Modern column style: the coloured column is rounded + inset, so its content
-  // width narrows by the shared inset — proven on BOTH style-aware templates.
-  // (The classic style is the byte-identical default every other scenario runs.)
+  // Section separators ON: the in-flow hairline adds LINE+GAP (3px) of real
+  // height under every title, which estimateSectionTitleHeight reserves under
+  // the same flag — proven at full width and in the narrow column flow.
   {
-    label: "COLUMN STYLE modern (sidebar-column)",
-    fixture: buildWorstCase({
-      withAchievements: true,
-      templateId: "sidebar-column",
-      columnStyle: "modern",
-    }),
-    shot: "measure-modern-sidebar.png",
+    label: "SECTION SEPARATORS ON (worst case, full width)",
+    fixture: buildWorstCase({ withAchievements: true, sectionSeparators: true }),
+    shot: "measure-section-separators.png",
   },
   {
-    label: "COLUMN STYLE modern (timeline-panel)",
+    label: "SECTION SEPARATORS ON (sidebar-column, narrow)",
+    fixture: buildWorstCase({ withAchievements: true, sectionSeparators: true, templateId: "sidebar-column" }),
+    shot: "measure-section-separators-sidebar.png",
+  },
+  // Double-column WITHOUT the inter-column separator (removed): the two columns now
+  // share the single gap the flex width model assumes, so the estimate can only
+  // over-reserve — this proves it still never overflows.
+  {
+    label: "DOUBLE COLUMN — no inter-column separator",
+    fixture: buildWorstCase({ withAchievements: true, templateId: "double-column" }),
+    shot: "measure-double-column.png",
+  },
+  // ATS Friendly mode forces the single-column, decoration-free layout regardless
+  // of the saved templateId, so a column template's résumé re-flows into one
+  // column. It reuses the professional single-column estimator, and every stripped
+  // graphic (meter, icons, rails, chips, photo) only REMOVES height — so the
+  // estimate can never under-reserve. Proven on a column template + full width.
+  {
+    label: "ATS MODE ON (was sidebar-column → single column)",
+    fixture: buildWorstCase({ withAchievements: true, templateId: "sidebar-column", atsMode: true }),
+    shot: "measure-ats-sidebar.png",
+  },
+  {
+    label: "ATS MODE ON (professional, full width)",
+    fixture: buildWorstCase({ withAchievements: true, atsMode: true }),
+    shot: "measure-ats-professional.png",
+  },
+  // M1 — long responsibility lists in the NARROW main column: the wrap capacity
+  // must be priced at the entry's real column width (68.97mm of bullet text in
+  // the 114mm sidebar main, not the flow-proportional assumption), and a single
+  // entry taller than a whole page must BREAK between bullets instead of
+  // painting past the frame. 20 bullets ≈ one full page; 30 can never fit one
+  // page, so it proves the packer split. The professional runs prove the same
+  // content still paginates correctly at full width.
+  {
+    label: "M1 — 20 responsibilities, one entry (sidebar-column)",
+    fixture: buildWorstCase({ templateId: "sidebar-column", responsibilityCount: 20 }),
+    shot: "measure-m1-20-sidebar.png",
+  },
+  {
+    label: "M1 — 30 responsibilities, one entry (sidebar-column, must split)",
+    fixture: buildWorstCase({ templateId: "sidebar-column", responsibilityCount: 30 }),
+    shot: "measure-m1-30-sidebar.png",
+  },
+  {
+    label: "M1 — 30 responsibilities, one entry (professional, must split)",
+    fixture: buildWorstCase({ responsibilityCount: 30 }),
+    shot: "measure-m1-30-professional.png",
+  },
+  // M2 — the estimator matrix across the FONT-SCALE slider range (0.85–1.3),
+  // with section icons + separators on: every height term (line heights, wrap
+  // capacities, the icon-governed title row) must track the active scale, on
+  // the narrow column and at full width alike.
+  {
+    label: "M2 — fontScale 0.85 + icons + separators (sidebar-column)",
     fixture: buildWorstCase({
-      withAchievements: true,
-      templateId: "timeline-panel",
-      columnStyle: "modern",
+      templateId: "sidebar-column", fontScale: 0.85,
+      withAchievements: true, sectionIcons: true, sectionSeparators: true,
     }),
-    shot: "measure-modern-timeline.png",
+    shot: "measure-m2-085-sidebar.png",
+  },
+  {
+    label: "M2 — fontScale 1.15 + icons + separators (sidebar-column)",
+    fixture: buildWorstCase({
+      templateId: "sidebar-column", fontScale: 1.15,
+      withAchievements: true, sectionIcons: true, sectionSeparators: true,
+    }),
+    shot: "measure-m2-115-sidebar.png",
+  },
+  {
+    label: "M2 — fontScale 1.3 + icons + separators (sidebar-column)",
+    fixture: buildWorstCase({
+      templateId: "sidebar-column", fontScale: 1.3,
+      withAchievements: true, sectionIcons: true, sectionSeparators: true,
+    }),
+    shot: "measure-m2-130-sidebar.png",
+  },
+  {
+    label: "M2 — fontScale 1.3 + icons + separators (professional)",
+    fixture: buildWorstCase({
+      fontScale: 1.3, withAchievements: true, sectionIcons: true, sectionSeparators: true,
+    }),
+    shot: "measure-m2-130-professional.png",
   },
 ];
 

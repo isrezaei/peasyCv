@@ -3,15 +3,19 @@
 import { useEffect, type ReactNode } from "react";
 import { Center, Spinner } from "@chakra-ui/react";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { mergeGuestResume } from "@/lib/resume/guestMerge";
+import { firePendingDownload } from "@/lib/resume/pendingDownload";
 import { hydrateResumeStore, startAutosave } from "@/store/useResumeStore";
-import { AuthScreen } from "./AuthScreen";
 
 /**
- * Gates the editor behind authentication. While the session is being restored a
- * spinner shows; an unauthenticated visitor sees the login/register screen; an
- * authenticated user gets the editor, with resume hydration + autosave wired to
- * the API only once they are signed in (so the headless /print render and the
- * login screen never hit the authenticated endpoints).
+ * Wires resume hydration + autosave around the auth state. The editor is fully
+ * usable WITHOUT an account: a guest gets the seeded default resume persisted
+ * to localStorage; only the PDF download asks for a login (the top bar's
+ * download button routes to the /login modal). While the session restores,
+ * a spinner shows; after that the editor always renders — `key={status}` remounts the session whenever
+ * auth flips so the store re-hydrates from the right backing store (guest
+ * localStorage vs the API) and a login first merges the guest resume into the
+ * account as a new resume.
  */
 export function AuthGate({ children }: { children: ReactNode }) {
   const { status } = useAuth();
@@ -24,19 +28,64 @@ export function AuthGate({ children }: { children: ReactNode }) {
     );
   }
 
-  if (status === "unauthenticated") {
-    return <AuthScreen />;
-  }
-
-  return <AuthenticatedApp>{children}</AuthenticatedApp>;
+  return (
+    <ResumeSession key={status} authenticated={status === "authenticated"}>
+      {children}
+    </ResumeSession>
+  );
 }
 
-function AuthenticatedApp({ children }: { children: ReactNode }) {
+function ResumeSession({
+  authenticated,
+  children,
+}: {
+  authenticated: boolean;
+  children: ReactNode;
+}) {
   useEffect(() => {
-    void hydrateResumeStore();
-    const stopAutosave = startAutosave();
-    return stopAutosave;
-  }, []);
+    let stop: (() => void) | null = null;
+    let cancelled = false;
+
+    void (async () => {
+      // Merge BEFORE hydrating: the merged resume becomes the account's most
+      // recently updated document, so hydration lands on it and the user keeps
+      // editing exactly what they built as a guest.
+      let mergedId: string | null = null;
+      if (authenticated) {
+        try {
+          mergedId = (await mergeGuestResume())?.id ?? null;
+        } catch (error) {
+          // A failed merge must not block the editor. The guest key is only
+          // cleared on success, so the merge simply re-runs on the next login.
+          // Surface it though: a silent failure here is exactly what makes the
+          // editor land on a fallback resume instead of the guest's work, so it
+          // must be diagnosable rather than invisible.
+          console.error("Guest resume merge failed; keeping guest key for retry.", error);
+        }
+      }
+      // The dashboard opens a specific resume via /?resume=<id>. Read from
+      // location (not useSearchParams) — this all runs client-side and the
+      // page must not need a Suspense boundary for it.
+      const fromUrl = authenticated
+        ? new URLSearchParams(window.location.search).get("resume")
+        : null;
+      await hydrateResumeStore(fromUrl ?? mergedId);
+      // Autosave subscribes only after hydration, so the initial setResume is
+      // never echoed back into storage — a mere visit must not create the
+      // guest key (that key existing is what "there is guest work" means).
+      if (!cancelled) {
+        stop = startAutosave();
+        // A download interrupted by the login gate continues here — after the
+        // merge and hydration, so it renders exactly what the guest built.
+        if (authenticated) firePendingDownload();
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      stop?.();
+    };
+  }, [authenticated]);
 
   return <>{children}</>;
 }

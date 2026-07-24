@@ -21,6 +21,7 @@ export interface PersonalInfoFieldVisibility {
   photo: boolean;
   dateOfBirth: boolean;
   nationality: boolean;
+  militaryService: boolean;
 }
 
 export interface PersonalInfo {
@@ -31,6 +32,7 @@ export interface PersonalInfo {
   email: string;
   dateOfBirth: string;
   nationality: string;
+  militaryService: string;
   links: LinkItem[];
   profileImage: ImageMeta | null;
   uppercaseName: boolean;

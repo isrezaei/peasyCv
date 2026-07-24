@@ -36,7 +36,7 @@ export function SwitchField({
       alignItems="center"
       gap="3"
     >
-      <Switch.Label fontSize="13px" color={COLORS.ink700} fontWeight="600" lineClamp={1}>
+      <Switch.Label fontSize="13px" color={COLORS.ink700} fontWeight="600" >
         {label}
       </Switch.Label>
       <Switch.HiddenInput />

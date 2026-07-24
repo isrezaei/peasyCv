@@ -20,12 +20,13 @@ const LAYOUT: ColumnTemplateLayout = {
 
 export function CompactDuoTemplate({ resume, theme }: TemplateProps) {
   const colors = resolveTheme(theme);
-  const backgroundColor = theme.pageBackground === "white" ? "#FFFFFF" : colors.soft;
+  // Page is ALWAYS white (pageBackground is a dead field — see ThemeSettings).
+  const backgroundColor = "#FFFFFF";
   const fontStack = getFontStack(theme.fontFamily);
   const gap = `${theme.sectionSpacing}mm`;
   const pages = useColumnLayout(resume, LAYOUT);
 
-  const renderSection = ({ section, itemIds, showTitle }: ColumnSectionRun) => (
+  const renderSection = ({ section, itemIds, showTitle, itemSlices }: ColumnSectionRun) => (
     <TemplateSection
       section={section}
       resume={resume}
@@ -35,6 +36,7 @@ export function CompactDuoTemplate({ resume, theme }: TemplateProps) {
       markerColor={colors.marker}
       compact
       itemIds={itemIds}
+      itemSlices={itemSlices}
       showTitle={showTitle}
     />
   );
@@ -59,11 +61,13 @@ export function CompactDuoTemplate({ resume, theme }: TemplateProps) {
                 <PlainHeader accentColor={colors.accent} divider markerColor={colors.marker} />
               </Box>
             ) : null}
+            {/* Inter-column separator removed at the user's request — a vertical
+                1px rule that only took horizontal space in the HStack's `gap="6"`,
+                so no section's vertical height changed. */}
             <HStack align="flex-start" gap="6" dir="rtl">
               <VStack align="stretch" flex="1.5" minW="0" gap="0">
                 <ColumnBody blocks={pages.main[page] ?? []} sections={resume.sections} renderSection={renderSection} />
               </VStack>
-              <Box width="1px" alignSelf="stretch" bg="border" />
               <VStack align="stretch" flex="1" minW="0" gap="0">
                 <ColumnBody blocks={pages.side[page] ?? []} sections={resume.sections} renderSection={renderSection} />
               </VStack>

@@ -236,6 +236,21 @@ const config = defineConfig({
           focusRing: accentStep(500, 500),
           border: accentStep(500, 600),
         },
+        // Error/danger palette — a 1:1 mirror of Chakra's built-in `red` ramp so
+        // `colorPalette="error"` renders a solid red fill (error.solid = red.600
+        // in BOTH modes) with a white contrast label. White on #dc2626 clears AA
+        // (~4.8:1), so the Download button's blocked-attempt state stays legible
+        // in light and dark alike. Named `error` (not `red`) to read as intent.
+        error: {
+          solid: { value: { _light: "{colors.red.600}", _dark: "{colors.red.600}" } },
+          contrast: { value: { _light: "white", _dark: "white" } },
+          fg: { value: { _light: "{colors.red.700}", _dark: "{colors.red.300}" } },
+          muted: { value: { _light: "{colors.red.200}", _dark: "{colors.red.800}" } },
+          subtle: { value: { _light: "{colors.red.100}", _dark: "{colors.red.900}" } },
+          emphasized: { value: { _light: "{colors.red.300}", _dark: "{colors.red.700}" } },
+          focusRing: { value: { _light: "{colors.red.500}", _dark: "{colors.red.500}" } },
+          border: { value: { _light: "{colors.red.500}", _dark: "{colors.red.400}" } },
+        },
         // Mode-aware twins of the raw chrome values in `lib/design/tokens.ts`;
         // that module now points at these vars so every inline style follows
         // the color mode without per-component changes.

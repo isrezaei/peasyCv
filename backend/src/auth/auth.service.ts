@@ -36,6 +36,7 @@ export class AuthService {
       email: dto.email,
       passwordHash,
       name: dto.name ?? null,
+      occupation: dto.occupation ?? null,
     });
 
     return this.buildSession(user);

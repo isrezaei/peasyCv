@@ -81,13 +81,21 @@ export const templateOrder: TemplateId[] = [
 ];
 
 /**
- * Templates whose coloured column paints the theme's column STYLE (classic
- * flush vs modern rounded/inset) — the ones that set `supportsColumnStyle` on
- * their layout descriptor. The design panel shows the column-style control
- * only while one of these is selected.
+ * Templates whose coloured side column honours the theme's "Column Layout"
+ * width preset (they mark their layout `sideWidthAdjustable`). The design panel
+ * shows the width picker only while one of these is selected.
  */
-export const COLUMN_STYLE_TEMPLATE_IDS: ReadonlySet<TemplateId> = new Set<TemplateId>([
+export const COLUMN_WIDTH_TEMPLATE_IDS: ReadonlySet<TemplateId> = new Set([
   "sidebar-column",
+  "timeline-panel",
+]);
+
+/**
+ * Templates that paint a decorative pattern INSIDE their side column (the
+ * geometric COLUMN_* datasets) rather than as a full-page A4 background. The
+ * pattern picker previews and names the column variant for these.
+ */
+export const COLUMN_PATTERN_TEMPLATE_IDS: ReadonlySet<TemplateId> = new Set([
   "timeline-panel",
 ]);
 

@@ -9,6 +9,13 @@ import { RichTextField } from "./RichTextField";
 
 interface SummaryBlockProps {
   direction: Direction;
+  /** Prose size (default the shared 0.92em); a template pins a design's exact
+   *  scale — the timeline-panel reference's 12px about text. Must mirror the
+   *  flow's `LayoutMetrics.summaryEm`. */
+  fontSize?: string;
+  /** Prose line-height, when a design pins it away from the theme's slider (the
+   *  timeline-panel reference's 1.85). Must mirror `LayoutMetrics.proseLineHeights.summary`. */
+  lineHeight?: string;
 }
 
 /**
@@ -19,11 +26,15 @@ interface SummaryBlockProps {
  * clean block — and that sits alongside the inline bold/italic marks, which keep
  * working within the justified text. Content persists as HTML on `summary.html`.
  */
-export const SummaryBlock = memo(function SummaryBlock({ direction }: SummaryBlockProps) {
+export const SummaryBlock = memo(function SummaryBlock({
+  direction,
+  fontSize = "0.92em",
+  lineHeight,
+}: SummaryBlockProps) {
   const { html, updateSummary } = useSummary();
 
   return (
-    <Box dir={direction} fontSize="0.92em">
+    <Box dir={direction} fontSize={fontSize} lineHeight={lineHeight}>
       <RichTextField
         value={html}
         onChange={updateSummary}
@@ -31,6 +42,8 @@ export const SummaryBlock = memo(function SummaryBlock({ direction }: SummaryBlo
         dir={direction}
         textAlign="justify"
         color="var(--rz-body, #3f3f46)"
+        // Rendered only when the summary section is visible, so it's enabled here.
+        validate
       />
     </Box>
   );

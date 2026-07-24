@@ -1,5 +1,6 @@
 import type { BackgroundPatternId } from "@/types";
 import { mixWithWhite } from "@/lib/themes";
+import { COLUMN_BLOBS, COLUMN_VIEW } from "@/lib/backgrounds/patternGeometry";
 import { FamilyArtwork } from "./FamilyArtwork";
 
 interface BackgroundLayerProps {
@@ -30,6 +31,14 @@ interface BackgroundLayerProps {
    * by the thumbnails, which always show the motif at full strength for clarity).
    */
   intensity?: number;
+  /**
+   * COLUMN mode: render the tall-narrow, densely-tiled variant of the motif for
+   * the timeline-panel side column instead of the corner-anchored A4 artwork.
+   * When set, the layer authors itself in {@link COLUMN_VIEW} (so the caller's
+   * `viewBox` is ignored) and every pattern — including "blobs" — draws its
+   * column dataset. Unset renders the full-page artwork.
+   */
+  column?: boolean;
 }
 
 /**
@@ -47,16 +56,20 @@ export function BackgroundLayer({
   preserveAspectRatio = "xMidYMid slice",
   viewBox = "0 0 210 297",
   intensity = 1,
+  column = false,
 }: BackgroundLayerProps) {
   if (pattern === "none") return null;
 
   const light = mixWithWhite(base, 0.4);
+  const toneFill = { base, soft, light } as const;
+  // The column variants are authored in their own tall-narrow user space.
+  const resolvedViewBox = column ? `0 0 ${COLUMN_VIEW.w} ${COLUMN_VIEW.h}` : viewBox;
 
   return (
     <svg
       width="100%"
       height="100%"
-      viewBox={viewBox}
+      viewBox={resolvedViewBox}
       preserveAspectRatio={preserveAspectRatio}
       aria-hidden="true"
       style={{ display: "block" }}
@@ -65,14 +78,22 @@ export function BackgroundLayer({
           while keeping every element's relative opacity intact. */}
       <g opacity={intensity}>
         {pattern === "blobs" ? (
-          <g>
-            <circle cx="205" cy="-6" r="60" fill={base} opacity="0.32" />
-            <circle cx="186" cy="26" r="30" fill={soft} opacity="0.8" />
-            <circle cx="6" cy="300" r="58" fill={base} opacity="0.22" />
-            <circle cx="30" cy="285" r="26" fill={light} opacity="0.6" />
-          </g>
+          column ? (
+            <g>
+              {COLUMN_BLOBS.map((b, i) => (
+                <circle key={i} cx={b.cx} cy={b.cy} r={b.r} fill={toneFill[b.tone]} opacity={b.o} />
+              ))}
+            </g>
+          ) : (
+            <g>
+              <circle cx="205" cy="-6" r="60" fill={base} opacity="0.32" />
+              <circle cx="186" cy="26" r="30" fill={soft} opacity="0.8" />
+              <circle cx="6" cy="300" r="58" fill={base} opacity="0.22" />
+              <circle cx="30" cy="285" r="26" fill={light} opacity="0.6" />
+            </g>
+          )
         ) : (
-          <FamilyArtwork pattern={pattern} accent={accent} />
+          <FamilyArtwork pattern={pattern} accent={accent} column={column} />
         )}
       </g>
     </svg>

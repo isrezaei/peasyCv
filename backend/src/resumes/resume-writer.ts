@@ -37,6 +37,7 @@ export async function writeResumeData(
         title: payload.title,
         locale: payload.locale,
         templateId: payload.templateId,
+        occupationCategory: payload.occupationCategory ?? null,
         summaryHtml: payload.summary.html,
         theme: { create: buildThemeData(payload.theme) },
         personalInfo: { create: buildPersonalInfoData(payload.personalInfo) },
@@ -49,6 +50,7 @@ export async function writeResumeData(
         title: payload.title,
         locale: payload.locale,
         templateId: payload.templateId,
+        occupationCategory: payload.occupationCategory ?? null,
         summaryHtml: payload.summary.html,
       },
     });

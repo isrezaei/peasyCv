@@ -14,6 +14,11 @@ export {
   TbDownload as DownloadIcon,
   TbShare3 as ShareIcon,
   TbLogout as LogOutIcon,
+  TbLogin as LogInIcon,
+  TbFiles as FilesIcon,
+  TbCopy as DuplicateIcon,
+  TbUsers as UsersIcon,
+  TbChartBar as ChartBarIcon,
   TbBold as BoldIcon,
   TbItalic as ItalicIcon,
   TbUnderline as UnderlineIcon,
@@ -42,6 +47,7 @@ export {
   TbMapPin as MapPinIcon,
   TbCalendar as CalendarIcon,
   TbWorld as GlobeIcon,
+  TbShieldCheck as MilitaryServiceIcon,
   // Section glyphs — used by the icon-chip heading variant in the imported
   // templates. One per resume section type (see sectionIcon).
   TbFileText as SummaryIcon,
@@ -59,6 +65,27 @@ export {
   TbLayoutSidebarRightExpand as SidebarExpandIcon,
   TbTextDirectionRtl as DirectionRtlIcon,
   TbTextDirectionLtr as DirectionLtrIcon,
+  // Validation / warning.
+  TbAlertCircle as AlertIcon,
+  // Dashboard chrome (color-mode toggle + inline rename affordance).
+  TbSun as SunIcon,
+  TbMoon as MoonIcon,
+  TbPencil as PencilIcon,
+  // Occupation-category glyphs — one per id in lib/occupationCategories.ts,
+  // consumed by the dashboard's occupation modal. Some deliberately share a
+  // glyph with a resume-section export above (e.g. TbSchool); the semantic
+  // alias keeps the call sites independent.
+  TbDeviceLaptop as OccupationSoftwareItIcon,
+  TbSpeakerphone as OccupationSalesMarketingIcon,
+  TbCalculator as OccupationFinanceAccountingIcon,
+  TbUsers as OccupationAdminHrIcon,
+  TbBrush as OccupationDesignCreativeIcon,
+  TbVideo as OccupationContentMediaIcon,
+  TbTool as OccupationEngineeringTechnicalIcon,
+  TbStethoscope as OccupationHealthMedicalIcon,
+  TbSchool as OccupationEducationTrainingIcon,
+  TbHeadset as OccupationCustomerSupportIcon,
+  TbBriefcase as OccupationAzadIcon,
 } from "react-icons/tb";
 
 // The Key-Achievements ITEM diamond — deliberately the Ionicons outline glyph

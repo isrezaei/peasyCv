@@ -10,6 +10,8 @@ import { ResumesModule } from './resumes/resumes.module';
 import { ShareModule } from './share/share.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { PdfModule } from './pdf/pdf.module';
+import { MetricsModule } from './metrics/metrics.module';
+import { AdminModule } from './admin/admin.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 
 @Module({
@@ -30,6 +32,8 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
     ShareModule,
     UploadsModule,
     PdfModule,
+    MetricsModule,
+    AdminModule,
   ],
   providers: [
     // Authenticate every route by default; routes opt out with @Public().

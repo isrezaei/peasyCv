@@ -5,6 +5,7 @@
 // editing, theme-colour application, and the Puppeteer PDF path (multi-page).
 //   node scripts/verify-new-templates.mjs
 import { chromium } from "playwright-core";
+import { createPdfClient } from "./backend-api.mjs";
 
 const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const BASE = process.env.SMOKE_URL ?? "http://localhost:3000";
@@ -28,6 +29,16 @@ const id = (p) => `${p}-${Math.random().toString(36).slice(2, 9)}`;
 const LONG =
   "یک شرح طولانی برای آزمودن رشد خودکار ارتفاع و صفحه‌بندی چندصفحه‌ای که عمداً بسیار بلند نوشته شده تا چند خط کامل را پر کند و از مرز یک صفحه فراتر برود و رفتار سرریز و شکستن صفحه را به‌روشنی نشان دهد.";
 
+// The backend /pdf endpoint validates the full ResumeData DTO strictly (no
+// normalize step), so every section/item field must be present — the section
+// helper carries the section-wide display settings the DTO requires.
+const section = (type, title, order) => ({
+  id: id("s"), type, title, visible: true, direction: "rtl", order,
+  languageMeterVariant: "bars", languageShowMeter: true, languageShowLevelText: true,
+  showMonth: true, monthFormat: "name",
+  achievementShowDescription: true, achievementShowIcons: true,
+});
+
 function fullResume(templateId) {
   return {
     id: id("resume"),
@@ -45,15 +56,18 @@ function fullResume(templateId) {
       lineHeight: 1.5,
       pageMargin: 16,
       sectionSpacing: 6,
+      columnIntensity: 1,
+      showSectionIcons: false,
+      atsMode: false,
     },
     sections: [
-      { id: id("s"), type: "summary", title: "درباره من", visible: true, direction: "rtl", order: 0 },
-      { id: id("s"), type: "experience", title: "تجربه کاری", visible: true, direction: "rtl", order: 1 },
-      { id: id("s"), type: "skills", title: "مهارت‌ها", visible: true, direction: "rtl", order: 2 },
-      { id: id("s"), type: "education", title: "تحصیلات", visible: true, direction: "rtl", order: 3 },
-      { id: id("s"), type: "projects", title: "پروژه‌ها", visible: true, direction: "rtl", order: 4 },
-      { id: id("s"), type: "languages", title: "زبان‌ها", visible: true, direction: "rtl", order: 5 },
-      { id: id("s"), type: "certifications", title: "گواهینامه‌ها", visible: true, direction: "rtl", order: 6 },
+      section("summary", "درباره من", 0),
+      section("experience", "تجربه کاری", 1),
+      section("skills", "مهارت‌ها", 2),
+      section("education", "تحصیلات", 3),
+      section("projects", "پروژه‌ها", 4),
+      section("languages", "زبان‌ها", 5),
+      section("certifications", "گواهینامه‌ها", 6),
     ],
     personalInfo: {
       fullName: "سارا احمدی",
@@ -67,13 +81,14 @@ function fullResume(templateId) {
       profileImage: null,
       uppercaseName: false,
       photoStyle: "round",
+      imageSide: "left",
       fieldVisibility: { jobTitle: true, phone: true, links: true, email: true, location: true, photo: true, dateOfBirth: false, nationality: false },
     },
     summary: { html: `<p>${LONG}</p>` },
     experience: [0, 1, 2].map((i) => ({
       id: id("exp"), jobTitle: `عنوان شغلی ${i + 1}`, companyName: `شرکت نمونه ${i + 1}`,
       period: { start: "۱۳۹۷", end: i === 0 ? "" : "۱۴۰۰", current: i === 0 }, city: "تهران",
-      projectLink: "", projectDescription: LONG,
+      projectLink: "", projectDescription: LONG, link: "", linkVisible: true,
       responsibilities: [{ id: id("r"), text: LONG }, { id: id("r"), text: "مسئولیت کوتاه دوم." }],
     })),
     skills: [
@@ -84,12 +99,13 @@ function fullResume(templateId) {
       id: id("edu"), degree: `مدرک ${i + 1}`, university: `دانشگاه نمونه ${i + 1}`,
       startDate: "۱۳۹۰", endDate: "۱۳۹۴", gpa: "۱۸", achievements: LONG, city: "تهران",
     })),
-    projects: [{ id: id("p"), name: "پروژه نمونه", role: "راهبر", link: "", description: LONG }],
+    projects: [{ id: id("p"), name: "پروژه نمونه", role: "راهبر", link: "", linkVisible: true, description: LONG }],
     languages: [
-      { id: id("lang"), name: "فارسی", level: 5 },
-      { id: id("lang"), name: "انگلیسی", level: 4 },
+      { id: id("lang"), name: "فارسی", level: 5, showBars: true, showLevelText: true },
+      { id: id("lang"), name: "انگلیسی", level: 4, showBars: true, showLevelText: true },
     ],
     certifications: [{ id: id("c"), name: "گواهینامه مدیریت", issuer: "موسسه نمونه", date: "۱۳۹۹" }],
+    achievements: [],
     createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
   };
 }
@@ -109,7 +125,13 @@ function record(name, ok, extra = "") {
 // Seed once with the first template, then switch through the UI (no re-seed) so
 // data-preservation across template switches is genuinely exercised.
 await page.goto(BASE, { waitUntil: "load" });
-await page.evaluate((data) => localStorage.setItem("ai-res:resume", JSON.stringify(data)), fullResume("professional-single-column"));
+await page.evaluate((data) => {
+  // Seed the guest occupation-category choice too: without it the OccupationGate
+  // modal opens on load and intercepts every panel click (this script predates
+  // that feature).
+  localStorage.setItem("ai-res:occupation-category", JSON.stringify({ id: "software-it", explicit: true }));
+  localStorage.setItem("ai-res:resume", JSON.stringify(data));
+}, fullResume("professional-single-column"));
 await page.reload({ waitUntil: "networkidle" });
 await page.waitForSelector(".a4-page");
 
@@ -208,15 +230,17 @@ try {
 }
 
 // --- PDF path (multi-page) for two new templates ----------------------------
+// Rendered through the authenticated backend /pdf endpoint (the unauthenticated
+// Next /api/pdf route was removed).
+const pdfClient = await createPdfClient();
 for (const tid of ["ruled-single", "timeline-panel", "aside-dark"]) {
   try {
-    const res = await page.request.post(`${BASE}/api/pdf`, { data: { resume: fullResume(tid) }, timeout: 60000 });
-    const buf = await res.body();
+    const buf = await pdfClient.renderPdf(fullResume(tid));
     const head = buf.slice(0, 5).toString("latin1");
     const text = buf.toString("latin1");
     const pageCount = (text.match(/\/Type\s*\/Page[^s]/g) || []).length;
-    const ok = res.ok() && head === "%PDF-" && buf.length > 5000 && pageCount >= 1;
-    record(`PDF ${tid}`, ok, `status=${res.status()} bytes=${buf.length} pages=${pageCount}`);
+    const ok = head === "%PDF-" && buf.length > 5000 && pageCount >= 1;
+    record(`PDF ${tid}`, ok, `bytes=${buf.length} pages=${pageCount}`);
   } catch (e) {
     record(`PDF ${tid}`, false, e.message.split("\n")[0]);
   }

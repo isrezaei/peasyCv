@@ -1,0 +1,32 @@
+{
+  "name": "@resume/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PeasyCV marketing site (peasycv.ir) — Persian/RTL, HeroUI, SEO-first. Independent from the editor app.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@heroui/react": "^3.2.2",
+    "next": "16.2.9",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.9",
+    "tailwindcss": "^4.1.0",
+    "typescript": "^5"
+  },
+  "optionalDependencies": {
+    "lightningcss-win32-x64-msvc": "^1.32.0"
+  }
+}

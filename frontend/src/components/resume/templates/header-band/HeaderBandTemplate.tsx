@@ -1,13 +1,12 @@
 "use client";
 
-import { HStack, VStack } from "@chakra-ui/react";
+import { Box, VStack } from "@chakra-ui/react";
 import { A4Page } from "@/components/resume/canvas/A4Page";
 import { ColumnBody, type ColumnSectionRun } from "@/components/resume/canvas/ColumnBody";
 import { ResumeBackground } from "@/components/resume/canvas/ResumeBackground";
 import { TemplateSection } from "@/components/resume/sections/TemplateSection";
 import { type ColumnTemplateLayout, useColumnLayout } from "@/hooks/resume/useColumnLayout";
 import { getFontStack } from "@/lib/fonts/registry";
-import { PAGE_MARGIN_MM } from "@/lib/pagination";
 import {
   darken,
   ensureReadable,
@@ -20,56 +19,98 @@ import {
 import type { RemovableSectionType, TemplateProps } from "@/types";
 import { HeaderBand } from "../_shared/HeaderBand";
 
-/** The narrower column carries only achievements for now (قالب ۴). */
+/** Reference px → mm (an A4 surface is ~794px wide at 96dpi in both the reference
+ *  and this app, so its px map 1:1). Kept local so the geometry reads as the
+ *  reference's own numbers. */
+const pxToMm = (px: number) => (px * 25.4) / 96;
+
+/** Body-grid gutter — the reference's 26px, shared by the paint and the pagination
+ *  width model so the two never diverge. */
+const GRID_GAP_MM = pxToMm(26);
+/** The card's own vertical padding (18px top + 18px bottom) — the extra page-1
+ *  reserve beyond the identity/contacts/photo block the estimator prices. */
+const CARD_CHROME_MM = pxToMm(36);
+/** Section-icon chip: the reference's 28px square, 8px radius (28 ÷ the 15px page
+ *  base so it tracks the font slider like the heading text beside it). */
+const CHIP_SIZE = `${(28 / 15).toFixed(3)}em`;
+const CHIP_RADIUS = "8px";
+
+/**
+ * قالب ۴ — "header-band". The identity/contacts/photo live in a full-width,
+ * page-margin-inset rounded CARD across the top (see {@link HeaderBand}); below
+ * it a 1.9fr / 1fr grid carries the résumé — About + Experience + Education in the
+ * wider (right, in RTL) main column, and Key-achievements + Skills + Projects +
+ * Languages + Certificates in the narrower left column. Every heading is the
+ * reference's icon-chip. Nothing bleeds: the card and both columns respect the
+ * page margins on all sides.
+ */
 const LAYOUT: ColumnTemplateLayout = {
-  // Personal-info lives in the coloured header band above; the aside is limited to
-  // the achievements section, and every other section flows in the main column.
-  sideTypes: new Set<RemovableSectionType>(["achievements"]),
-  flex: { main: 1.5, side: 1, gapMm: 8 },
-  // The band's TOP padding is the page's top margin (already in usableHeight); the
-  // extra chrome reserved on page 1 is the band's BOTTOM padding plus the padded
-  // HStack's top padding below it — i.e. margin × 2, not × 3 (which double-counted
-  // the top padding and left a whole entry's worth of empty space on page 1).
+  // Supporting sections flow in the narrow left column; the rest stay in the main
+  // column. Matches the reference's split exactly.
+  sideTypes: new Set<RemovableSectionType>([
+    "achievements",
+    "skills",
+    "projects",
+    "languages",
+    "certifications",
+  ]),
+  flex: { main: 1.9, side: 1, gapMm: GRID_GAP_MM },
   header: {
     kind: "full",
-    estimate: { identity: true, contacts: true, photo: true, photoSizePx: 92 },
-    chromeMm: (margin) => margin * 2,
+    estimate: { identity: true, contacts: true, photo: true, photoSizePx: 86 },
+    // The card's block padding is the only reserve beyond the estimated block +
+    // the section gap the engine already adds; it is fixed px, not margin-scaled.
+    chromeMm: () => CARD_CHROME_MM,
   },
 };
 
 export function HeaderBandTemplate({ resume, theme }: TemplateProps) {
   const colors = resolveTheme(theme);
-  const backgroundColor = theme.pageBackground === "white" ? "#FFFFFF" : colors.soft;
+  // Page is ALWAYS white (pageBackground is a dead field — see ThemeSettings).
+  const backgroundColor = "#FFFFFF";
   const fontStack = getFontStack(theme.fontFamily);
-  // Fixed 16mm vertical margin (equal top/bottom); horizontal follows the slider.
-  const padY = `${PAGE_MARGIN_MM}mm`;
-  const padX = `${theme.pageMargin}mm`;
-  // D: the header band is tinted the SAME way the coloured side columns are — a
-  // light white-mix of the marker/secondary via `tintColor` (0.45 baseline, tracked
-  // by the column-intensity slider) — so it reads as a soft band, not a bold fill,
-  // and matches the column colour exactly.
-  const bandColor = tintColor(colors.marker ?? colors.base, 0.45, theme.columnIntensity);
-  // F: choose readable text for whatever luminance that tint lands on — a dark band
-  // flips to the white family; a light band keeps the accent HUE but deepens it via
-  // ensureReadable so cross-hue palettes / high column-intensity still clear AA.
-  const bandOnDark = isDarkSurface(bandColor);
-  const bandHeading = bandOnDark ? ON_DARK_SURFACE_TEXT.heading : ensureReadable(colors.accent, bandColor);
-  const bandSubtitle = bandOnDark
-    ? ON_DARK_SURFACE_TEXT.subtitle
-    : ensureReadable(darken(colors.accent, 0.15), bandColor);
-  const bandPlaceholder = bandOnDark ? ON_DARK_SURFACE_TEXT.placeholder : "rgba(0,0,0,0.5)";
+  // The card, the section-icon chips AND the skill pills share ONE light wash of
+  // the accent (the reference's #EAEFE0), so every tinted surface recolours together
+  // with the résumé palette and harmonises with the header. `tintColor` (not
+  // `columnTint`) guarantees the wash stays LIGHT for every theme AND every
+  // column-intensity — it never hard-switches to a dark fill — so no theme can put
+  // a dark surface behind body content. At intensity 1 it equals the old wash.
+  const cardBg = tintColor(colors.marker ?? colors.accent, 0.86, theme.columnIntensity);
+  // The wash is always light, so onDark is effectively false; the on-dark tiers are
+  // kept only as a defensive fallback and never trigger in practice.
+  const onDark = isDarkSurface(cardBg);
+  // Name → accent; job title → subtitle; contacts text → a touch deeper than the
+  // title (AA on the wash); contact icons → the brighter subtitle tint (the
+  // reference's icon glyphs read lighter than the text — a decorative ~3:1 tint).
+  const heading = onDark ? ON_DARK_SURFACE_TEXT.heading : ensureReadable(colors.accent, cardBg);
+  const titleColor = onDark ? ON_DARK_SURFACE_TEXT.subtitle : ensureReadable(colors.subtitle, cardBg);
+  const contactColor = onDark
+    ? ON_DARK_SURFACE_TEXT.body
+    : ensureReadable(darken(colors.subtitle, 0.15), cardBg);
+  const iconColor = onDark ? ON_DARK_SURFACE_TEXT.subtitle : ensureReadable(colors.subtitle, cardBg, 3);
+  const placeholder = onDark ? ON_DARK_SURFACE_TEXT.placeholder : "rgba(0,0,0,0.5)";
+  // Painted card→grid gap = the engine's reserved section gap, so paint and
+  // pagination agree (the reference's 20px is ~one section-spacing step).
+  const gridTopGap = `${theme.sectionSpacing}mm`;
   const pages = useColumnLayout(resume, LAYOUT);
 
-  const renderSection = ({ section, itemIds, showTitle }: ColumnSectionRun) => (
+  // Both columns render identically — icon-chip headings, accent text, on white.
+  const renderSection = ({ section, itemIds, showTitle, itemSlices }: ColumnSectionRun) => (
     <TemplateSection
       section={section}
       resume={resume}
       accent={colors.accent}
       soft={colors.soft}
-      variant="solidUnderline"
+      variant="chip"
+      chipColor={cardBg}
+      chipBg={cardBg}
+      chipSize={CHIP_SIZE}
+      chipRadius={CHIP_RADIUS}
       markerColor={colors.marker}
+      skillChipFill={cardBg}
       compact
       itemIds={itemIds}
+      itemSlices={itemSlices}
       showTitle={showTitle}
     />
   );
@@ -80,7 +121,7 @@ export function HeaderBandTemplate({ resume, theme }: TemplateProps) {
         <A4Page
           key={page}
           pageIndex={page}
-          bleed
+          paddingMm={theme.pageMargin}
           backgroundColor={backgroundColor}
           fontStack={fontStack}
           fontScale={theme.fontScale}
@@ -91,22 +132,29 @@ export function HeaderBandTemplate({ resume, theme }: TemplateProps) {
           <VStack align="stretch" gap="0" minH="inherit">
             {page === 0 ? (
               <HeaderBand
-                bandColor={bandColor}
-                heading={bandHeading}
-                subtitle={bandSubtitle}
-                placeholder={bandPlaceholder}
-                tone={bandOnDark ? "onDark" : "onLight"}
-                padMm={theme.pageMargin}
+                cardBg={cardBg}
+                heading={heading}
+                titleColor={titleColor}
+                contactColor={contactColor}
+                iconColor={iconColor}
+                placeholder={placeholder}
+                tone={onDark ? "onDark" : "onLight"}
               />
             ) : null}
-            <HStack align="flex-start" gap="8mm" paddingBlock={padY} paddingInline={padX} dir="rtl">
-              <VStack align="stretch" flex="1.5" minW="0" gap="0">
+            <Box
+              mt={page === 0 ? gridTopGap : "0"}
+              display="grid"
+              gridTemplateColumns="1.9fr 1fr"
+              gap={`${GRID_GAP_MM}mm`}
+              dir="rtl"
+            >
+              <Box minW="0">
                 <ColumnBody blocks={pages.main[page] ?? []} sections={resume.sections} renderSection={renderSection} />
-              </VStack>
-              <VStack align="stretch" flex="1" minW="0" gap="0">
+              </Box>
+              <Box minW="0">
                 <ColumnBody blocks={pages.side[page] ?? []} sections={resume.sections} renderSection={renderSection} />
-              </VStack>
-            </HStack>
+              </Box>
+            </Box>
           </VStack>
         </A4Page>
       ))}

@@ -8,8 +8,8 @@ import type { SectionMeta } from "@/types";
 interface SectionTitleBlockProps {
   section: SectionMeta;
   accentColor: string;
-  showRule?: boolean;
-  /** Decorative colour for the rule; unset falls back to the accent (classic). */
+  /** Accepted for call-site compatibility; the decorative rule it coloured was
+   *  removed with the rest of the section separators. */
   markerColor?: string;
 }
 
@@ -17,13 +17,13 @@ interface SectionTitleBlockProps {
  * The section heading (e.g. «تجربه کاری»). Pure presentation: it always paints
  * in the strong resume accent (`accentColor`) — the most prominent text tier.
  * The hover controls (add / delete / settings) live on {@link SectionHoverFrame},
- * which wraps the whole section, so the heading itself carries no chrome.
+ * which wraps the whole section, so the heading itself carries no chrome. The
+ * gradient rule that used to fill the remaining row width was removed at the
+ * user's request — sections are separated by spacing and typography only.
  */
 export const SectionTitleBlock = memo(function SectionTitleBlock({
   section,
   accentColor,
-  showRule = false,
-  markerColor,
 }: SectionTitleBlockProps) {
   return (
     <Box dir={section.direction}>
@@ -39,20 +39,17 @@ export const SectionTitleBlock = memo(function SectionTitleBlock({
             // glyph sits close to the content beneath it — the airy 1.5 line-height
             // was what pushed titles visually far from their sections.
             lineHeight="1.15"
+            // NO block margin: as a flex item, any vertical margin here enters
+            // the icon+title row's centring and shifts the glyphs off the icon's
+            // centre line. The row's vertical rhythm is SectionFrame's title pad
+            // (SECTION_TITLE_PAD_EM), outside the flex row.
+            marginBlock="0"
             color={accentColor}
             flexShrink={0}
           >
             {section.title}
           </Heading>
         </HStack>
-        {showRule ? (
-          <Box
-            flex="1"
-            height="1px"
-            opacity="0.18"
-            style={{ background: `linear-gradient(90deg, ${markerColor ?? accentColor}, transparent)` }}
-          />
-        ) : null}
       </HStack>
     </Box>
   );

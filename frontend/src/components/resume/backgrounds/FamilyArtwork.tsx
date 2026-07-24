@@ -7,6 +7,13 @@ import {
   BRACKETS_OPACITY,
   BRACKETS_RINGS,
   CHEVRON_FIELD,
+  COLUMN_CHEVRON,
+  COLUMN_CUBES,
+  COLUMN_HEX_RING_DOTS,
+  COLUMN_HEX_RINGS,
+  COLUMN_HEXDASH,
+  COLUMN_TRIANGLES,
+  COLUMN_TRISTAR,
   CONCENTRIC_ARCS,
   DOT_GRID,
   TOPO_LINES,
@@ -16,6 +23,12 @@ interface FamilyArtworkProps {
   pattern: BackgroundPatternId;
   /** Single theme hue every motif recolours with. */
   accent: string;
+  /**
+   * COLUMN variant: the tall-narrow, densely-tiled version of each motif, for
+   * the timeline-panel side column (see the column datasets in patternGeometry).
+   * Unset renders the corner-anchored A4 artwork the full-page backgrounds use.
+   */
+  column?: boolean;
 }
 
 /**
@@ -24,7 +37,8 @@ interface FamilyArtworkProps {
  * opacities, so they recolour with the user's accent. Pure SVG (no filters/defs)
  * keeps the browser preview and the Puppeteer PDF identical.
  */
-export function FamilyArtwork({ pattern, accent }: FamilyArtworkProps) {
+export function FamilyArtwork({ pattern, accent, column }: FamilyArtworkProps) {
+  if (column) return <ColumnArtwork pattern={pattern} accent={accent} />;
   switch (pattern) {
     case "botanical":
       return (
@@ -86,6 +100,84 @@ export function FamilyArtwork({ pattern, accent }: FamilyArtworkProps) {
         <g style={{ color: accent }} fill="none" stroke="currentColor" strokeWidth={0.7}>
           {TOPO_LINES.map((t, i) => (
             <path key={i} d={t.d} strokeOpacity={t.o} />
+          ))}
+        </g>
+      );
+    default:
+      return null;
+  }
+}
+
+/**
+ * The COLUMN patterns: modern geometric tiles authored across the whole
+ * tall-narrow COLUMN_VIEW so they cover the entire timeline-panel column (see
+ * the column datasets in patternGeometry). Each is a flat array of path strings
+ * stroked in the single `currentColor` hue at one uniform opacity — same
+ * pure-SVG (no defs/filters) policy as the page artwork above. The A4 pattern id
+ * chosen in the picker maps onto the matching geometric texture here.
+ */
+const COLUMN_STROKE_OPACITY = 0.85;
+
+function ColumnArtwork({ pattern, accent }: { pattern: BackgroundPatternId; accent: string }) {
+  switch (pattern) {
+    // Chevron — continuous zigzag stripes.
+    case "chevronField":
+      return (
+        <g style={{ color: accent }} fill="none" stroke="currentColor" strokeOpacity={COLUMN_STROKE_OPACITY} strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round">
+          {COLUMN_CHEVRON.map((d, i) => (
+            <path key={i} d={d} />
+          ))}
+        </g>
+      );
+    // Hexagon + dash mosaic.
+    case "dotGrid":
+      return (
+        <g style={{ color: accent }} fill="none" stroke="currentColor" strokeOpacity={COLUMN_STROKE_OPACITY} strokeWidth={1} strokeLinejoin="round" strokeLinecap="round">
+          {COLUMN_HEXDASH.map((d, i) => (
+            <path key={i} d={d} />
+          ))}
+        </g>
+      );
+    // Nested hexagons — concentric hex rings around a solid centre.
+    case "concentricArcs":
+      return (
+        <g style={{ color: accent }}>
+          <g fill="none" stroke="currentColor" strokeOpacity={COLUMN_STROKE_OPACITY} strokeWidth={0.9} strokeLinejoin="round">
+            {COLUMN_HEX_RINGS.map((d, i) => (
+              <path key={i} d={d} />
+            ))}
+          </g>
+          <g fill="currentColor" fillOpacity={COLUMN_STROKE_OPACITY}>
+            {COLUMN_HEX_RING_DOTS.map((d, i) => (
+              <circle key={i} cx={d.x} cy={d.y} r={d.r} />
+            ))}
+          </g>
+        </g>
+      );
+    // Nested isometric cubes.
+    case "bracketsRings":
+      return (
+        <g style={{ color: accent }} fill="none" stroke="currentColor" strokeOpacity={COLUMN_STROKE_OPACITY} strokeWidth={0.9} strokeLinejoin="round">
+          {COLUMN_CUBES.map((d, i) => (
+            <path key={i} d={d} />
+          ))}
+        </g>
+      );
+    // Triangle grid with trisected inner triangles.
+    case "topoLines":
+      return (
+        <g style={{ color: accent }} fill="none" stroke="currentColor" strokeOpacity={COLUMN_STROKE_OPACITY} strokeWidth={0.9} strokeLinejoin="round">
+          {COLUMN_TRIANGLES.map((d, i) => (
+            <path key={i} d={d} />
+          ))}
+        </g>
+      );
+    // Tri-star — three-pronged "Y" field.
+    case "botanical":
+      return (
+        <g style={{ color: accent }} fill="none" stroke="currentColor" strokeOpacity={COLUMN_STROKE_OPACITY} strokeWidth={1.1} strokeLinecap="round">
+          {COLUMN_TRISTAR.map((d, i) => (
+            <path key={i} d={d} />
           ))}
         </g>
       );

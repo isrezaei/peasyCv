@@ -3,6 +3,7 @@
 // formatting survives into the print surface and a real PDF.
 // Run: SMOKE_URL=http://localhost:3100 node scripts/verify-print-s3.mjs
 import { chromium } from "playwright-core";
+import { createPdfClient } from "./backend-api.mjs";
 
 const BASE_URL = process.env.SMOKE_URL ?? "http://localhost:3000";
 const STORAGE_KEY = "ai-res:resume";
@@ -65,11 +66,13 @@ await check("/print renders formatted prose and signals ready", async () => {
   assert(body.includes("آزمایشی"), "summary prose missing from print surface");
 });
 
-// 3) Generate a real PDF end-to-end.
-await check("/api/pdf returns a non-trivial PDF", async () => {
-  const res = await page.request.post(`${BASE_URL}/api/pdf`, { data: { resume } });
-  assert(res.ok(), `pdf route status ${res.status()}`);
-  const buf = await res.body();
+// 3) Generate a real PDF end-to-end via the authenticated backend /pdf
+// endpoint (the unauthenticated Next /api/pdf route was removed). The resume
+// read from the guest localStorage key is full store-shaped ResumeData — the
+// same payload the authenticated autosave PUTs — so it satisfies the DTO.
+await check("backend /pdf returns a non-trivial PDF", async () => {
+  const pdfClient = await createPdfClient();
+  const buf = await pdfClient.renderPdf(resume);
   assert(buf.length > 5000, `pdf too small (${buf.length} bytes)`);
   assert(buf.slice(0, 5).toString() === "%PDF-", "response is not a PDF");
 });

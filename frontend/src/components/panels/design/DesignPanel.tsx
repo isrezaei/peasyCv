@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Box, SegmentGroup, Separator, Text, VStack } from "@chakra-ui/react";
+import { Box, chakra, Grid, SegmentGroup, Separator, Stack, Text, VStack } from "@chakra-ui/react";
 import AdvertisingUi from "@/components/ads/advertising.ui";
+import { COLUMN_WIDTH_TEMPLATE_IDS } from "@/components/resume/templates/registry";
 import { LabeledSlider } from "@/components/ui/LabeledSlider";
 import { PanelGroup } from "@/components/ui/PanelGroup";
 import { SwitchField } from "@/components/ui/SwitchField";
 import { useDesign } from "@/hooks/store/useDesign";
-import { COLUMN_STYLE_TEMPLATE_IDS } from "@/components/resume/templates/registry";
 import { COLORS, RADII, SHADOWS } from "@/lib/design/tokens";
 import { t } from "@/lib/i18n";
-import { isVividThemeId } from "@/lib/themes";
+import { A4_WIDTH_MM, resolveSideWidthMm } from "@/lib/pagination";
+import { isVividThemeId, resolveTheme } from "@/lib/themes";
+import type { ColumnWidthId } from "@/types";
 import { BackgroundGrid } from "./BackgroundGrid";
 import { ColorSwatchGrid } from "./ColorSwatchGrid";
 
@@ -23,6 +25,18 @@ const BLOCK_AD_IDS = [
   "pos-article-display-card-111952",
 ] as const;
 
+// The four "Column Layout" width presets, narrowest first. Thumbnail bars are
+// drawn at each preset's TRUE share of the A4 width (using the sidebar-column
+// template's 64mm base as the representative), so the picker previews real
+// proportions instead of a stylised sketch.
+const COLUMN_WIDTH_OPTIONS: ColumnWidthId[] = ["small", "medium", "large", "xlarge"];
+const COLUMN_WIDTH_PREVIEW_BASE_MM = 64;
+
+function columnPreviewPercent(width: ColumnWidthId): string {
+  const sideMm = resolveSideWidthMm(COLUMN_WIDTH_PREVIEW_BASE_MM, width);
+  return `${((sideMm / A4_WIDTH_MM) * 100).toFixed(1)}%`;
+}
+
 export function DesignPanel() {
   const {
     theme,
@@ -30,13 +44,15 @@ export function DesignPanel() {
     setSectionSpacing,
     setFontScale,
     setLineHeight,
-    setPageBackground,
     setBackgroundIntensity,
     setColumnIntensity,
+    setColumnWidth,
     setShowSectionIcons,
-    setColumnStyle,
+    setShowSectionSeparators,
+    setAtsMode,
     templateId,
   } = useDesign();
+  const previewColors = resolveTheme(theme);
 
   // Which palette family the picker is browsing. Local state only — the ACTIVE
   // mode is derived from the persisted themeId (vivid ids form their own set),
@@ -46,22 +62,24 @@ export function DesignPanel() {
   );
 
   return (
-    <VStack align="stretch" gap="0">
+    <VStack align="stretch" gap="5">
       {/* BLOCK 1 — COLORS (the primary colour picker). */}
       <VStack align="stretch" gap="26px">
         <PanelGroup label={t.design.colors} description={t.design.colorsDesc}>
           <VStack align="stretch" gap="14px">
             <SegmentGroup.Root
               size="sm"
+              rounded={"lg"}
               width="100%"
               value={paletteMode}
               onValueChange={(details) =>
                 setPaletteMode(details.value === "vivid" ? "vivid" : "classic")
               }
             >
-              <SegmentGroup.Indicator />
+              <SegmentGroup.Indicator       rounded={"lg"} />
               <SegmentGroup.Items
                 flex="1"
+                fontSize={"xs"}
                 items={[
                   { value: "classic", label: t.design.paletteModeClassic },
                   { value: "vivid", label: t.design.paletteModeVivid },
@@ -71,37 +89,55 @@ export function DesignPanel() {
             <ColorSwatchGrid variant={paletteMode} />
             {/* Resume-wide section-icon toggle — a marker chip beside each heading,
                 tinted from the same palette the swatches above choose. */}
-            <Box style={{ borderRadius: RADII.card, boxShadow: SHADOWS.cardSoft, background: "var(--chakra-colors-bg-panel)", padding: "13px 14px" }}>
+            <Stack style={{ borderRadius: RADII.card, boxShadow: SHADOWS.cardSoft, background: "var(--chakra-colors-bg-panel)"}} p={4}>
               <SwitchField
                 label={t.design.sectionIcons}
                 checked={theme.showSectionIcons}
                 onChange={setShowSectionIcons}
               />
-              <Text fontSize="11px" lineHeight="1.6" mt="3px" style={{ color: COLORS.muted }}>
+              <Text fontSize="xs"  mt="3px" textAlign={"justify"} style={{ color: COLORS.muted }}>
                 {t.design.sectionIconsHint}
               </Text>
-            </Box>
+            </Stack>
+            {/* Resume-wide section-separator toggle — a thin hairline under each
+                section title, tinted from the same palette (light on dark surfaces). */}
+            <Stack style={{ borderRadius: RADII.card, boxShadow: SHADOWS.cardSoft, background: "var(--chakra-colors-bg-panel)"}} p={4}>
+              <SwitchField
+                label={t.design.sectionSeparators}
+                checked={theme.showSectionSeparators}
+                onChange={setShowSectionSeparators}
+              />
+              <Text fontSize="xs" textAlign={"justify"} mt="3px" style={{ color: COLORS.muted }}>
+                {t.design.sectionSeparatorsHint}
+              </Text>
+            </Stack>
+            {/* ATS Friendly mode — a resume-wide structural toggle: forces a
+                single-column, decoration-free, plain-black-on-white document that
+                applicant-tracking systems can parse (and real text, not inputs,
+                in the exported PDF). */}
+            <Stack style={{ borderRadius: RADII.card, boxShadow: SHADOWS.cardSoft, background: "var(--chakra-colors-bg-panel)"}} p={4}>
+              <SwitchField
+                label={t.design.atsMode}
+                checked={theme.atsMode}
+                onChange={setAtsMode}
+              />
+              <Text fontSize="xs" textAlign={"justify"} mt="3px" style={{ color: COLORS.muted }}>
+                {t.design.atsModeHint}
+              </Text>
+            </Stack>
           </VStack>
         </PanelGroup>
         <AdvertisingUi AdvertisingId={BLOCK_AD_IDS[0]} isShow={true} />
       </VStack>
 
-      <Separator my="22px" size="xs" borderColor={{ base: "blackAlpha.200", _dark: "border" }} />
+
 
       {/* BLOCK 2 — BACKGROUNDS (page colour + decorative pattern). */}
       <VStack align="stretch" gap="26px">
         <PanelGroup label={t.design.backgrounds} description={t.design.backgroundsDesc}>
           <VStack align="stretch" gap="20px">
-            <Box style={{ borderRadius: RADII.card, boxShadow: SHADOWS.cardSoft, background: "var(--chakra-colors-bg-panel)", padding: "13px 14px" }}>
-              <SwitchField
-                label={t.design.coloredPage}
-                checked={theme.pageBackground === "theme"}
-                onChange={(checked) => setPageBackground(checked ? "theme" : "white")}
-              />
-              <Text fontSize="11px" lineHeight="1.6" mt="3px" style={{ color: COLORS.muted }}>
-                {t.design.coloredPageHint}
-              </Text>
-            </Box>
+            {/* The «صفحهٔ رنگی» (colored-page) toggle was removed — the A4 page is
+                always white now. Decorative patterns and their intensity stay. */}
             <BackgroundGrid />
             {/* Pattern intensity — scales the whole pattern lighter or stronger.
                 A vivid palette also drives its page tint from this value, so the
@@ -125,40 +161,58 @@ export function DesignPanel() {
               label={t.design.columnIntensity}
               value={theme.columnIntensity}
               min={0.5}
-              max={1.5}
+              max={2}
               step={0.05}
               minLabel={t.design.lighter}
               maxLabel={t.design.stronger}
               valueText={`${Math.round(theme.columnIntensity * 100)}%`}
               onChange={setColumnIntensity}
             />
-            {/* Coloured-column STYLE (classic flush vs modern rounded/inset) — shown
-                only while a template that paints it is selected. */}
-            {COLUMN_STYLE_TEMPLATE_IDS.has(templateId) ? (
+            {/* Column Layout — the coloured side column's width preset. Only the
+                templates that paint an adjustable column show the picker. */}
+            {COLUMN_WIDTH_TEMPLATE_IDS.has(templateId) ? (
               <Box style={{ borderRadius: RADII.card, boxShadow: SHADOWS.cardSoft, background: "var(--chakra-colors-bg-panel)", padding: "13px 14px" }}>
                 <Text fontSize="12px" fontWeight="600">
-                  {t.design.columnStyle}
+                  {t.design.columnLayout}
                 </Text>
-                <SegmentGroup.Root
-                  size="sm"
-                  width="100%"
-                  mt="8px"
-                  value={theme.columnStyle}
-                  onValueChange={(details) =>
-                    setColumnStyle(details.value === "modern" ? "modern" : "classic")
-                  }
-                >
-                  <SegmentGroup.Indicator />
-                  <SegmentGroup.Items
-                    flex="1"
-                    items={[
-                      { value: "classic", label: t.design.columnStyleClassic },
-                      { value: "modern", label: t.design.columnStyleModern },
-                    ]}
-                  />
-                </SegmentGroup.Root>
+                <Grid templateColumns="repeat(4, 1fr)" gap="8px" mt="10px">
+                  {COLUMN_WIDTH_OPTIONS.map((width) => {
+                    const isActive = theme.columnWidth === width;
+                    return (
+                      <VStack key={width} gap="5px">
+                        <chakra.button
+                          type="button"
+                          width="100%"
+                          height="52px"
+                          display="flex"
+                          alignItems="stretch"
+                          overflow="hidden"
+                          padding="5px"
+                          gap="4px"
+                          background="white"
+                          transition="box-shadow 0.12s"
+                          style={{ borderRadius: RADII.control, boxShadow: isActive ? SHADOWS.ring : SHADOWS.hairlineRing }}
+                          onClick={() => setColumnWidth(width)}
+                          aria-label={t.design.columnWidthNames[width]}
+                          aria-pressed={isActive}
+                        >
+                          <Box
+                            flexShrink={0}
+                            width={columnPreviewPercent(width)}
+                            borderRadius="2px"
+                            style={{ background: previewColors.base }}
+                          />
+                          <Box flex="1" borderRadius="2px" background="blackAlpha.100" />
+                        </chakra.button>
+                        <Text fontSize="10.5px" fontWeight="500" style={{ color: isActive ? COLORS.accent : COLORS.muted }}>
+                          {t.design.columnWidthNames[width]}
+                        </Text>
+                      </VStack>
+                    );
+                  })}
+                </Grid>
                 <Text fontSize="11px" lineHeight="1.6" mt="6px" style={{ color: COLORS.muted }}>
-                  {t.design.columnStyleHint}
+                  {t.design.columnLayoutHint}
                 </Text>
               </Box>
             ) : null}

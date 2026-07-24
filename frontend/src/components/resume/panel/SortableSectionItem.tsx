@@ -58,7 +58,10 @@ export function SortableSectionItem({
         fontSize="16px"
         flexShrink={0}
         display="inline-flex"
-        style={{ color: COLORS.faint }}
+        // `touch-action: none` is REQUIRED for dnd-kit's PointerSensor to win the
+        // gesture on touch devices — without it the browser pans/scrolls the drawer
+        // instead of starting the drag, so reordering silently fails on mobile.
+        style={{ color: COLORS.faint, touchAction: "none" }}
         _hover={{ color: COLORS.ink500 }}
         {...attributes}
         {...listeners}

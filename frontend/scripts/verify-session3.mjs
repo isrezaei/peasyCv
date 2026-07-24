@@ -4,7 +4,7 @@
 import { chromium } from "playwright-core";
 
 const BASE_URL = process.env.SMOKE_URL ?? "http://localhost:3000";
-const SUMMARY_GUIDANCE = "خلاصهٔ کوتاه"; // unique substring of the placeholder
+const SUMMARY_GUIDANCE = "مثال: مهندس نرم‌افزار"; // unique substring of the placeholder
 const STORAGE_KEY = "ai-res:resume";
 
 const browser = await chromium.launch({

@@ -24,7 +24,12 @@ interface SectionHoverFrameProps {
  */
 export function SectionHoverFrame({ section, title, children, tone = "onLight" }: SectionHoverFrameProps) {
   return (
-    <SectionFrame title={title} controls={<SectionCompactMenu section={section} tone={tone} />}>
+    <SectionFrame
+      title={title}
+      tone={tone}
+      dir={section.direction}
+      controls={<SectionCompactMenu section={section} tone={tone} />}
+    >
       {children}
     </SectionFrame>
   );

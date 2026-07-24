@@ -9,8 +9,26 @@ import { SectionHoverFrame } from "@/components/resume/editor/SectionHoverFrame"
 import { useResumeLayout } from "@/hooks/resume/useResumeLayout";
 import { getFontStack } from "@/lib/fonts/registry";
 import type { PageBlock } from "@/lib/pagination";
-import { resolveTheme, resumeTextVars } from "@/lib/themes";
+import { type ResolvedTheme, resolveTheme, resumeTextVars } from "@/lib/themes";
 import type { SectionMeta, TemplateProps } from "@/types";
+
+/**
+ * ATS Friendly palette: no theme hue anywhere — every text tier inherits the
+ * page's near-black body colour (`inherit`, so no new colour literal is
+ * introduced) and every decorative source is transparent/undefined. Combined with
+ * the leaf components that drop their graphics in ATS mode, the résumé renders as
+ * plain black-on-white text only. `marker` stays undefined so the classic
+ * per-element decoration sources (which are all suppressed anyway) never light up.
+ */
+const ATS_PLAIN_COLORS: ResolvedTheme = {
+  accent: "inherit",
+  secondary: "inherit",
+  subtitle: "inherit",
+  bodyText: "inherit",
+  soft: "transparent",
+  base: "transparent",
+  contrastText: "inherit",
+};
 
 /** A page's blocks grouped into section runs so each section can be framed/hovered as one unit. */
 interface BlockRun {
@@ -46,12 +64,18 @@ function groupIntoRuns(blocks: PageBlock[], sections: SectionMeta[]): BlockRun[]
 
 export function ProfessionalTemplate({ resume, theme }: TemplateProps) {
   const pages = useResumeLayout(resume);
+  const ats = theme.atsMode;
 
   // Derived presentation values change only with the theme, never on content
   // edits, so memoizing them keeps the strings fed to memoized blocks stable.
-  const colors = useMemo(() => resolveTheme(theme), [theme]);
+  // ATS Friendly mode swaps in the plain palette, a white page and no background
+  // decoration — the layout (and its pagination estimate) is unchanged, only the
+  // presentation.
+  const colors = useMemo(() => (ats ? ATS_PLAIN_COLORS : resolveTheme(theme)), [theme, ats]);
   const fontStack = useMemo(() => getFontStack(theme.fontFamily), [theme.fontFamily]);
-  const backgroundColor = theme.pageBackground === "white" ? "#FFFFFF" : colors.soft;
+  // The A4 page is ALWAYS white. `theme.pageBackground` is a retained-but-dead
+  // field (see ThemeSettings) kept only so old résumés still load/validate.
+  const backgroundColor = "#FFFFFF";
 
   return (
     <VStack gap="6" align="center" className="resume-pages">
@@ -65,7 +89,7 @@ export function ProfessionalTemplate({ resume, theme }: TemplateProps) {
           fontScale={theme.fontScale}
           lineHeight={theme.lineHeight}
           decorations={
-            <ResumeBackground theme={theme} colors={colors} idSuffix={`p${page.pageIndex}`} />
+            ats ? null : <ResumeBackground theme={theme} colors={colors} idSuffix={`p${page.pageIndex}`} />
           }
           contentVars={resumeTextVars(colors.secondary, colors.bodyText, colors.subtitle)}
         >
@@ -76,6 +100,7 @@ export function ProfessionalTemplate({ resume, theme }: TemplateProps) {
                   key={block.id}
                   data-block-id={block.id}
                   data-block-kind={block.kind}
+                  data-estimate-mm={block.heightMm.toFixed(2)}
                   mt={mt}
                 >
                   <BlockRenderer block={block} resume={resume} accent={colors.accent} soft={colors.soft} marker={colors.marker} />

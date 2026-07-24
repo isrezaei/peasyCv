@@ -52,6 +52,7 @@ export interface PersonalInfoFieldVisibility {
   photo: boolean;
   dateOfBirth: boolean;
   nationality: boolean;
+  militaryService: boolean;
 }
 
 export interface PersonalInfo {
@@ -62,6 +63,7 @@ export interface PersonalInfo {
   email: string;
   dateOfBirth: string;
   nationality: string;
+  militaryService: string;
   links: LinkItem[];
   profileImage: ImageMeta | null;
   uppercaseName: boolean;
@@ -107,13 +109,24 @@ export interface ExperienceItem {
 export interface SkillItem {
   id: ID;
   name: string;
+  /** Proficiency on the shared 1–5 scale; rendered only when the section-wide
+   *  `skillShowLevel` toggle is on, but always stored (like the language level). */
+  level: LanguageLevel;
 }
 
 export interface SkillGroup {
   id: ID;
   name: string;
+  /** Whether this group's title row renders — per group, not section-wide. */
+  showTitle: boolean;
   skills: SkillItem[];
 }
+
+/** How a skills group lays its items out: a wrapping tag row or a bullet list. */
+export type SkillDisplayMode = "row" | "list";
+
+/** The skill-level meter reuses the Languages meter shapes, minus the pill. */
+export type SkillMeterVariant = Exclude<LanguageMeterVariant, "pill">;
 
 // --- education -------------------------------------------------------------
 export interface EducationItem {
@@ -218,6 +231,12 @@ export interface SectionMeta {
    *  languages settings. The item TITLE is always rendered (no toggle). */
   achievementShowDescription: boolean;
   achievementShowIcons: boolean;
+  /** Skills-section display settings — section-wide, meaningful only for type
+   *  "skills" but present (defaulted) on every section like the languages
+   *  settings. The per-group title toggle lives on the group itself. */
+  skillDisplayMode: SkillDisplayMode;
+  skillShowLevel: boolean;
+  skillMeterVariant: SkillMeterVariant;
 }
 
 // --- theme -----------------------------------------------------------------
@@ -268,20 +287,24 @@ export type FontFamilyId =
   | "montserrat"
   | "inter";
 
-export type PhotoStyle = "round" | "square";
+/** Profile photo corner shape: full circle, rounded (lg) corners, or sharp (no rounding). */
+export type PhotoStyle = "round" | "square" | "sharp";
 
 /** Which physical side the personal-info photo sits on in the inline header. */
 export type ImageSide = "left" | "right";
 
 export type CalendarSystem = "jalali" | "hijri" | "gregorian";
 
-/** How the coloured column of a column template is drawn: flush to the A4
- *  edges ("classic", the historical look) or rounded and inset a little from
- *  them ("modern"). */
-export type ColumnStyle = "classic" | "modern";
+/**
+ * Width preset for the coloured side column of the column templates. "medium"
+ * is each template's original width; the other steps widen/narrow it by a fixed
+ * offset while the main column always stays the wider of the two.
+ */
+export type ColumnWidthId = "small" | "medium" | "large" | "xlarge";
 
 export interface ThemeSettings {
   themeId: ThemeId;
+  /** DEAD FIELD — retained for back-compat only; the page is always white now. */
   pageBackground: PageBackgroundMode;
   backgroundPattern: BackgroundPatternId;
   backgroundIntensity: number;
@@ -292,10 +315,23 @@ export interface ThemeSettings {
   pageMargin: number;
   sectionSpacing: number;
   columnIntensity: number;
+  /**
+   * Width preset of the coloured side column in the column templates. Default
+   * "medium" keeps each template's original width so existing résumés are
+   * unchanged until the user picks another size.
+   */
+  columnWidth: ColumnWidthId;
   /** Resume-wide toggle: show the section's icon beside each section heading. */
   showSectionIcons: boolean;
-  /** Coloured-column treatment of the column templates (classic = flush, modern = rounded + inset). */
-  columnStyle: ColumnStyle;
+  /** Resume-wide toggle: draw a thin theme-tinted hairline under each section title. */
+  showSectionSeparators: boolean;
+  /**
+   * ATS Friendly mode: render the résumé as a single-column, decoration-free,
+   * plain-black-on-white document (and real text nodes, not form controls, on
+   * the print/PDF surface) so applicant-tracking systems can parse it. Default
+   * false so existing résumés are unchanged until the user opts in.
+   */
+  atsMode: boolean;
 }
 
 // --- template --------------------------------------------------------------
@@ -317,6 +353,10 @@ export interface ResumeData extends Timestamped {
   title: string;
   locale: "fa" | "en";
   templateId: TemplateId;
+  /** Per-resume occupation-category id (see OCCUPATION_CATEGORY_IDS mirrors);
+   *  null = not chosen. Optional so payloads persisted before the field existed
+   *  stay assignable; only the id travels — Persian labels derive via i18n. */
+  occupationCategory?: string | null;
   theme: ThemeSettings;
   sections: SectionMeta[];
   personalInfo: PersonalInfo;
@@ -336,6 +376,8 @@ export interface ResumeSummary {
   id: ID;
   title: string;
   templateId: TemplateId;
+  /** Occupation-category id for this resume (null = not chosen). */
+  occupationCategory: string | null;
   updatedAt: string;
   createdAt: string;
 }

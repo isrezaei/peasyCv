@@ -1,5 +1,6 @@
 import type { Direction, ID } from "./common";
 import type { LanguageMeterVariant } from "./languages";
+import type { SkillDisplayMode, SkillMeterVariant } from "./skills";
 
 export type RemovableSectionType =
   | "summary"
@@ -46,4 +47,10 @@ export interface SectionMeta {
    *  languages settings. The item TITLE is always rendered (no toggle). */
   achievementShowDescription: boolean;
   achievementShowIcons: boolean;
+  /** Skills-section display settings — section-wide, meaningful only for type
+   *  "skills" but present (defaulted) on every section like the languages
+   *  settings. The per-group title toggle lives on the group itself. */
+  skillDisplayMode: SkillDisplayMode;
+  skillShowLevel: boolean;
+  skillMeterVariant: SkillMeterVariant;
 }

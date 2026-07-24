@@ -1,0 +1,233 @@
+/* Tailwind v4 first, then HeroUI's layered theme (import order matters — HeroUI
+   builds on top of Tailwind's foundation). HeroUI ships precompiled component
+   CSS (semantic .button/.card classes via @apply), so no @source scan of
+   node_modules is needed; Tailwind auto-detects this app's own sources. */
+@import "tailwindcss";
+@import "@heroui/styles";
+
+/* ============================================================================
+   BRAND THEME EXTENSIONS (Tailwind @theme → utilities + CSS vars)
+   Adds the warm-editorial palette, the fluid clamp type scale, and the Persian
+   font on top of HeroUI's token set. HeroUI's own --color-* come from the
+   primitive overrides in the :root block further down.
+   ========================================================================== */
+@theme {
+  /* Persian-first stack. Latin fallbacks keep embedded ATS/CV/PDF tokens clean;
+     never a Latin-only first font (would break connected Persian script). */
+  --font-sans: var(--font-vazirmatn), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, Arial, "Noto Sans", sans-serif;
+
+  /* Warm near-black ink + its alpha scale (rgb 11,9,7) for secondary text,
+     borders and faint surfaces — the calm canvas that lets accents punch. */
+  --color-ink: #3c3a39;
+  --color-ink-80: rgba(11, 9, 7, 0.8);
+  --color-ink-60: rgba(11, 9, 7, 0.6);
+  --color-ink-40: rgba(11, 9, 7, 0.4);
+  --color-ink-20: rgba(11, 9, 7, 0.2);
+  --color-ink-10: rgba(11, 9, 7, 0.1);
+  --color-ink-5: rgba(11, 9, 7, 0.05);
+  --color-canvas: #ffffff;
+  --color-tint: #f7f7f5;
+
+  /* Accent palette — brand = blue (#2677ff). Chosen for a career/résumé product:
+     it reads as trust + professionalism and doubles naturally as the link/focus
+     colour. The rest are decorative only (chart series, badges, highlights). */
+  --color-brand: #2677ff;
+  --color-brand-strong: #175fe0;
+  --color-accent-red: #ff272d;
+  --color-accent-orange: #ff7300;
+  --color-accent-yellow: #ffc753;
+  --color-accent-gold: #fdc211;
+  --color-accent-pink: #f49eff;
+  --color-accent-lavender: #817fff;
+  --color-accent-blue: #2677ff;
+  --color-accent-lightblue: #aaf2fc;
+  --color-accent-turquoise: #79deeb;
+
+  /* Fluid type scale (clamp) — h0…h4 / p1…p3. Persian line-heights: headings
+     1.2–1.35 (never the source's 1.0), body 1.7–1.8 for comfortable reading. */
+  --text-h0: clamp(2.25rem, 1.35rem + 4.2vw, 4rem);
+  --text-h0--line-height: 1.2;
+  --text-h1: clamp(1.875rem, 1.3rem + 2.7vw, 3rem);
+  --text-h1--line-height: 1.24;
+  --text-h2: clamp(1.5rem, 1.15rem + 1.7vw, 2.25rem);
+  --text-h2--line-height: 1.28;
+  --text-h3: clamp(1.25rem, 1.05rem + 0.95vw, 1.625rem);
+  --text-h3--line-height: 1.32;
+  --text-h4: clamp(1.125rem, 1.02rem + 0.5vw, 1.375rem);
+  --text-h4--line-height: 1.4;
+  --text-p1: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+  --text-p1--line-height: 1.8;
+  --text-p2: clamp(1rem, 0.96rem + 0.18vw, 1.125rem);
+  --text-p2--line-height: 1.75;
+  --text-p3: clamp(0.875rem, 0.85rem + 0.1vw, 0.9375rem);
+  --text-p3--line-height: 1.7;
+}
+
+/* ============================================================================
+   HEROUI PRIMITIVE OVERRIDES — white canvas, warm-black ink, blue accent.
+   Unlayered :root beats HeroUI's @layer base defaults in the cascade, so these
+   win without !important. Light-only: the marketing site is deliberately a
+   single warm printed-white surface (no dark mode), unlike the studio editor.
+   ========================================================================== */
+:root {
+  color-scheme: light;
+
+  --background: #ffffff;
+  --foreground: #3c3a39;
+
+  --surface: #ffffff;
+  --surface-foreground: #3c3a39;
+  --surface-secondary: #f7f7f5;
+  --surface-secondary-foreground: #3c3a39;
+  --surface-tertiary: #f2f2f0;
+  --surface-tertiary-foreground: #3c3a39;
+
+  --overlay: #ffffff;
+  --overlay-foreground: #3c3a39;
+
+  --muted: rgba(11, 9, 7, 0.6);
+
+  --accent: #2677ff;
+  --accent-foreground: #ffffff;
+  --accent-hover: #175fe0;
+
+  --border: rgba(11, 9, 7, 0.1);
+  --border-secondary: rgba(11, 9, 7, 0.08);
+  --separator: rgba(11, 9, 7, 0.1);
+  --focus: #2677ff;
+  --link: #2677ff;
+
+  --default: #f7f7f5;
+  --default-foreground: #3c3a39;
+
+  /* 12px base radius: cards ≈12, blocks ≈8, pills via rounded-full. */
+  --radius: 0.75rem;
+
+  /* Outlined-not-shadowed surfaces: keep any HeroUI shadow tokens whisper-soft;
+     lift is reserved for true overlays (popovers/modals). */
+  --surface-shadow: 0 1px 2px rgba(11, 9, 7, 0.04);
+}
+
+/* ============================================================================
+   BASE ELEMENTS
+   ========================================================================== */
+html {
+  -webkit-text-size-adjust: 100%;
+  /* HARD RULE: Persian is a connected script — never negative letter-spacing.
+     Positive tracking is allowed only on the opt-in .latin display class. */
+  letter-spacing: 0;
+}
+
+body {
+  min-height: 100dvh;
+  background: var(--color-canvas);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: var(--text-p2);
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: start;
+}
+
+::selection {
+  background: rgba(38, 119, 255, 0.16);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Latin-only display strings may use tight tracking; Persian never does. */
+.latin {
+  font-feature-settings: "kern";
+  letter-spacing: -0.01em;
+  unicode-bidi: isolate;
+}
+
+/* Bidi isolation for embedded LTR tokens (URLs, English terms, code) inside
+   Persian sentences — used by the <Bidi> component. */
+.bidi-ltr {
+  unicode-bidi: isolate;
+  direction: ltr;
+}
+
+/* Motion: quiet micro-interactions only, and none when the user opts out. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================================
+   SMALL UTILITIES (fluid type helpers + the section eyebrow gesture)
+   ========================================================================== */
+.text-balance {
+  text-wrap: balance;
+}
+.text-pretty {
+  text-wrap: pretty;
+}
+
+/* Long-form reading rhythm for trust pages + blog bodies (see <Prose>). */
+.rz-prose {
+  color: var(--color-ink-80);
+  font-size: var(--text-p2);
+  line-height: 1.9;
+}
+.rz-prose h2 {
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+  font-size: var(--text-h3);
+  line-height: var(--text-h3--line-height);
+  font-weight: 800;
+  color: var(--color-ink);
+  scroll-margin-top: 6rem;
+}
+.rz-prose h3 {
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+  font-size: var(--text-h4);
+  font-weight: 700;
+  color: var(--color-ink);
+}
+.rz-prose p {
+  margin-bottom: 1.1rem;
+}
+.rz-prose ul {
+  margin: 0 0 1.25rem;
+  padding-inline-start: 1.25rem;
+  list-style: none;
+}
+.rz-prose ul li {
+  position: relative;
+  margin-bottom: 0.6rem;
+  padding-inline-start: 1rem;
+}
+.rz-prose ul li::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0.75em;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--color-brand);
+}
+.rz-prose a {
+  color: var(--color-brand);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.rz-prose strong {
+  color: var(--color-ink);
+  font-weight: 700;
+}

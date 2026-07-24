@@ -66,21 +66,32 @@ export function richTextToPlainText(html: string): string {
     .trim();
 }
 
-function escapeHtml(text: string): string {
+export function escapeHtml(text: string): string {
   return text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 }
 
+// The entities the editor pipeline itself produces: escapeHtml emits
+// `&amp;`/`&lt;`/`&gt;`, and a contentEditable's innerHTML may add `&nbsp;`,
+// `&quot;` or numeric references. A stored value containing any of these is
+// already-escaped HTML, not legacy plain text.
+const KNOWN_HTML_ENTITY = /&(?:amp|lt|gt|nbsp|quot|#\d+|#x[0-9a-f]+);/i;
+
 /**
  * Prepares a stored value for injection into the contentEditable surface. Values
- * already containing markup are sanitized; legacy plain-text values (saved before
- * these fields became rich) are escaped and have their newlines turned into
- * `<br>` so older résumés keep their line breaks.
+ * already containing markup OR html entities are sanitized (never re-escaped —
+ * escaping an already-escaped value would corrupt `<`/`>`/`&` a little more on
+ * every hydrate); only genuinely legacy plain-text values (saved before these
+ * fields became rich: no tags, no entities) are escaped, with their newlines
+ * turned into `<br>` so older résumés keep their line breaks. Idempotent: the
+ * output of this function always takes the sanitize branch on the next hydrate.
  */
 export function toEditableHtml(value: string): string {
   if (!value) return "";
-  if (/<[a-z!/][\s\S]*>/i.test(value)) return sanitizeRichText(value);
+  if (/<[a-z!/][\s\S]*>/i.test(value) || KNOWN_HTML_ENTITY.test(value)) {
+    return sanitizeRichText(value);
+  }
   return escapeHtml(value).replace(/\r?\n/g, "<br>");
 }

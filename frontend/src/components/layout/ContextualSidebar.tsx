@@ -8,8 +8,9 @@ import { SidebarPanels } from "./SidebarPanels";
 
 /**
  * The contextual side panel. Its PRESENTATION is responsive:
- *  - lg and below → a Dialog MODAL ({@link SidebarModal}) that overlays the page
- *    with a backdrop, so the narrower canvas is never permanently covered.
+ *  - below xl (phone/tablet) → a full-height overlay DRAWER ({@link SidebarModal})
+ *    that starts CLOSED and slides over the canvas with a backdrop, so the page is
+ *    never permanently covered or squeezed.
  *  - xl and up → the inline overlay panel below: docked to the RTL start (physical
  *    right), always mounted, sliding on `transform`/`opacity` only (GPU-friendly,
  *    no layout reflow) so toggling it never resizes the workspace or shifts the

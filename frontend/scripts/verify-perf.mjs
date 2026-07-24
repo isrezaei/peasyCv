@@ -6,7 +6,7 @@ import { chromium } from "playwright-core";
 //   3. Backspace on an empty responsibility line deletes it and moves focus up.
 
 const BASE_URL = process.env.SMOKE_URL ?? "http://localhost:3000";
-const NAME_PLACEHOLDER = "مثال: علی محمدی";
+const NAME_PLACEHOLDER = "علی محمدی";
 const RESP_LABEL = "یک مسئولیت یا دستاورد را بنویسید...";
 const ADD_ENTRY = "افزودن مورد";
 const EXP_HEADING = "تجربه کاری";

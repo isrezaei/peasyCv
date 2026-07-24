@@ -9,7 +9,9 @@ export function useSkills() {
       updateSkillGroup: state.updateSkillGroup,
       removeSkillGroup: state.removeSkillGroup,
       addSkill: state.addSkill,
+      addSkillAfter: state.addSkillAfter,
       updateSkill: state.updateSkill,
+      setSkillLevel: state.setSkillLevel,
       removeSkill: state.removeSkill,
     })),
   );

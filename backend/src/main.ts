@@ -29,8 +29,33 @@ async function bootstrap(): Promise<void> {
 
   // CORS for the frontend origin(s). credentials enabled in case cookie-based
   // flows are added later; the default flow uses bearer tokens.
+  //
+  // Policy:
+  //   * localhost / 127.0.0.1 (any port, http or https) is ALWAYS allowed, so the
+  //     API can be exercised from a local browser or tooling in every environment.
+  //   * The explicitly-configured origins (FRONTEND_ORIGIN — e.g. the production
+  //     studio domain https://studio.peasycv.ir and its http:// variant) are
+  //     always allowed.
+  //   * Private-LAN origins (a phone/other device at 10./192.168./172.16-31.) are
+  //     allowed ONLY in development, where the dev server is reachable over the LAN
+  //     (see next.config `allowedDevOrigins`) so a phone opens the app at, e.g.,
+  //     http://192.168.1.9:3000. Without this the browser blocks every API call
+  //     from that origin — login "Failed to fetch", no merge, an empty dashboard.
+  //     Production stays locked to localhost plus the configured origins.
+  const configuredOrigins = config.get('frontendOrigins', { infer: true });
+  const allowLanOrigins = config.get('nodeEnv', { infer: true }) !== 'production';
+  const LOCALHOST_ORIGIN = /^https?:\/\/(localhost|127\.0\.0\.1)(?::\d+)?$/;
+  const LAN_ORIGIN =
+    /^https?:\/\/(10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})(?::\d+)?$/;
   app.enableCors({
-    origin: config.get('frontendOrigins', { infer: true }),
+    origin: (origin, callback) => {
+      // Non-browser / same-origin requests carry no Origin header — allow them.
+      if (!origin) return callback(null, true);
+      if (LOCALHOST_ORIGIN.test(origin)) return callback(null, true);
+      if (configuredOrigins.includes(origin)) return callback(null, true);
+      if (allowLanOrigins && LAN_ORIGIN.test(origin)) return callback(null, true);
+      return callback(null, false);
+    },
     credentials: true,
   });
 

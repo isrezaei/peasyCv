@@ -1,7 +1,23 @@
 "use client";
 
-import { memo } from "react";
+import { createContext, memo, useContext } from "react";
 import { Box } from "@chakra-ui/react";
+import { useAtsMode } from "@/hooks/store/useAtsMode";
+
+/**
+ * Opt-out for templates that draw their OWN timeline. The timeline-panel design
+ * puts a single rail + marker beside each SECTION, so the per-entry rail would
+ * paint a second, competing line inside it. A template wraps its pages in this
+ * provider instead of forking the shared entry blocks; every other template keeps
+ * the default (rail shown) and is untouched.
+ *
+ * Dropping the rail only frees horizontal space inside the entry — exactly what
+ * ATS mode already does — so the height reserve stays valid (the text simply
+ * wraps a touch less than estimated, which can only over-reserve).
+ */
+const EntryRailHiddenContext = createContext(false);
+
+export const EntryRailHiddenProvider = EntryRailHiddenContext.Provider;
 
 interface TimelineRailProps {
   /** Resume accent (resolved theme accent) used for the entry's dot. */
@@ -17,6 +33,13 @@ interface TimelineRailProps {
  * centred with logical insets so the rail is identical in RTL and LTR.
  */
 export const TimelineRail = memo(function TimelineRail({ accentColor }: TimelineRailProps) {
+  // ATS Friendly mode is text-only: the rail (a decorative line + dot) is dropped
+  // entirely, which only frees horizontal space in the entry row.
+  const ats = useAtsMode();
+  // A template that paints its own section-level timeline suppresses this one.
+  const hidden = useContext(EntryRailHiddenContext);
+  if (ats || hidden) return null;
+
   return (
     <Box position="relative" flexShrink={0} alignSelf="stretch" width="9px" mx="1">
       {/* Connecting vertical line, centred in the rail. */}

@@ -13,8 +13,10 @@ export function useDesign() {
       setPageBackground: state.setPageBackground,
       setBackgroundIntensity: state.setBackgroundIntensity,
       setColumnIntensity: state.setColumnIntensity,
+      setColumnWidth: state.setColumnWidth,
       setShowSectionIcons: state.setShowSectionIcons,
-      setColumnStyle: state.setColumnStyle,
+      setShowSectionSeparators: state.setShowSectionSeparators,
+      setAtsMode: state.setAtsMode,
       templateId: state.resume.templateId,
     })),
   );

@@ -16,6 +16,21 @@ export class UserProfileDto {
   @ApiProperty({ description: 'Whether a Google account is linked.', example: false })
   googleLinked!: boolean;
 
+  @ApiProperty({
+    description:
+      'Read-only admin flag (display only — the AdminGuard re-checks the DB on every admin request).',
+    example: false,
+  })
+  isAdmin!: boolean;
+
+  @ApiProperty({
+    description:
+      'Broad occupation category (drives resume default-content tailoring); null until chosen.',
+    example: 'software-it',
+    nullable: true,
+  })
+  occupationCategory!: string | null;
+
   @ApiProperty({ example: '2026-06-27T12:00:00.000Z' })
   createdAt!: string;
 }

@@ -1,4 +1,4 @@
-import type { MonthFormat } from "@/types";
+import type { ColumnWidthId, MonthFormat } from "@/types";
 
 export const A4_WIDTH_MM = 210;
 export const A4_HEIGHT_MM = 297;
@@ -26,21 +26,90 @@ export const PAGE_MARGIN_MM = 16;
  */
 export const SIDE_COLUMN_PAD_FACTOR = 0.4;
 
+/**
+ * Millimetre offset each "Column Layout" width preset applies to a column
+ * template's base side-column width. "medium" (0) is the template's original
+ * width, so existing résumés render byte-identically. The steps are sized so
+ * that even "xlarge" keeps every template's coloured column well narrower than
+ * the main column (worst case: timeline-panel 66mm + 16mm = 82mm vs a 128mm
+ * main column). Read through {@link resolveSideWidthMm} by both the rendered
+ * column and the pagination width model so they stay in lockstep.
+ */
+export const COLUMN_WIDTH_DELTA_MM: Record<ColumnWidthId, number> = {
+  small: -8,
+  medium: 0,
+  large: 8,
+  xlarge: 16,
+};
+
+/** Outer side-column width (mm) of a column template at the given width preset. */
+export function resolveSideWidthMm(baseMm: number, columnWidth: ColumnWidthId): number {
+  return baseMm + (COLUMN_WIDTH_DELTA_MM[columnWidth] ?? 0);
+}
+
 /** CSS pixels per millimetre at 96dpi (the reference used for screen + print). */
 export const PX_PER_MM = 96 / 25.4;
 
 /**
- * Inset (mm) of the "modern" column style's coloured column from the A4 edges —
- * the Chakra space token "6" (24px ≈ 6.35mm), the SAME spacing step
- * double-column's inter-column gap already uses. The column keeps its inner
- * boundary (the main column is untouched) and pulls its outer edge and its
- * top/bottom in by this amount, so the modern column's usable content width
- * shrinks by exactly this value. Shared by the column templates (the rendered
- * box) AND `useColumnLayout`'s width model, so paint and reserve can never
- * diverge. Vertically it is margin traded for padding (the content still
- * starts at the fixed 16mm page margin), so the usable height is unchanged.
+ * Geometry of the opt-in section-title separator (`theme.showSectionSeparators`):
+ * a 1px hairline drawn WITHIN the title→content gap the frame already paints —
+ * an absolutely-positioned overlay centred on that corridor (see
+ * `SectionSeparator`), so turning it on adds ZERO in-flow height and the
+ * content sits in exactly the same place as with it off (the approved E-12
+ * spacing in both states). The 10/1/10 values describe the separator's own
+ * clearance box, {@link SECTION_SEPARATOR_EXTRA_PX}, whose centre the overlay
+ * aligns to the corridor midpoint — landing the line with ~10px of ink air on
+ * each side. Because the separator is out of flow, `estimateSectionTitleHeight`
+ * carries NO separator term: paint and reserve are identical on and off.
  */
-export const MODERN_COLUMN_INSET_MM = 24 / PX_PER_MM;
+export const SECTION_SEPARATOR_LINE_PX = 1;
+export const SECTION_SEPARATOR_GAP_ABOVE_PX = 10;
+export const SECTION_SEPARATOR_GAP_BELOW_PX = 10;
+
+/** SectionFrame's fixed title→content gap (its content Box `mt="0.5"` = 2px) —
+ *  the content's side of the separator's below-gap. */
+export const SECTION_TITLE_CONTENT_GAP_PX = 2;
+
+/**
+ * Painted line box (px) of the "•" list marker the responsibilities and skills
+ * LIST rows carry beside their text: fontSize "sm" (a rem token — 14px,
+ * deliberately not font-scale-tracking) × its own lineHeight 1.5 = 21px, fixed.
+ * A row is never shorter than this glyph box (measured 21.0px in the live DOM),
+ * so the bullet-row estimators floor on it.
+ */
+export const LIST_BULLET_LINE_PX = 21;
+
+/**
+ * Vertical padding of the section-title row, in em of the page's base font
+ * (0.9em = 13.5px at scale 1) — owned by SectionFrame, NOT by the heading
+ * element. It replaces the <h2>'s UA-default 0.83em block margins (~13.4px),
+ * which previously supplied this rhythm: as FLEX-ITEM margins they entered the
+ * title row's centring, so any asymmetric drop (for the separator) pushed the
+ * title glyphs off the icon's centre line. The headings now carry
+ * `marginBlock=0` and the frame pads the row symmetrically instead, so the
+ * icon/title alignment is identical with the separator on or off. The pads are
+ * the SAME in both states — the separator overlay centres itself inside the
+ * bottom pad + content gap without consuming or changing them.
+ */
+export const SECTION_TITLE_PAD_EM = 0.9;
+
+/**
+ * Minimum painted height (mm) of a titled section while the separators are ON —
+ * the stabilizer that keeps the E-12 rhythm consistent: a very short section
+ * (e.g. a single-line skills group) would otherwise let the next title crowd
+ * upward. Painted by SectionFrame as CSS `min-height` (only on the run that
+ * carries the title, so a continuation run is never stretched) and mirrored by
+ * `buildSectionBlocks`, which floors the section's summed block heights at the
+ * same constant — paint and reserve agree. `min-height` never clips: a taller
+ * section simply grows past it.
+ */
+export const SECTION_MIN_HEIGHT_MM = 20;
+
+/** The separator overlay's own padded box height (px): its two pads + the line.
+ *  Used only to centre the out-of-flow overlay on the title→content corridor —
+ *  it adds no flow height and appears in no estimate. */
+export const SECTION_SEPARATOR_EXTRA_PX =
+  SECTION_SEPARATOR_GAP_ABOVE_PX + SECTION_SEPARATOR_LINE_PX + SECTION_SEPARATOR_GAP_BELOW_PX;
 
 /** Body font size in px at font scale 1.0; mirrors BASE_FONT_PX in A4Page. */
 export const BASE_FONT_PX = 15;
@@ -67,6 +136,31 @@ export const CHARS_PER_LINE_AT_BASE = 105;
  * that made every entry estimate tall and broke pages a whole block early.
  */
 export const BODY_CHARS_PER_LINE_AT_BASE = 100;
+
+/**
+ * Average painted advance (mm) of ONE body character per px of font-size —
+ * measured in the live Chrome DOM from the natural (unwrapped) width of the
+ * calibration sentence: 79 chars span 89.98mm at 9.6px, 112.48mm at 12px and
+ * 129.35mm at 13.8px — exactly 0.11865 mm/(char·px) at every scale, i.e. glyph
+ * width is perfectly linear in the font size. Biased a hair wide (never narrow)
+ * so a derived per-line capacity errs toward MORE wrapped lines, not fewer.
+ * Together with {@link LINE_WRAP_LOSS_CHARS} this replaces flow-width-linear
+ * scaling for the wrap-capacity of entry text: capacity must be priced against
+ * the element's REAL rendered width (see `LayoutMetrics.wrapCharsPerLine`),
+ * because the fixed date-column/rail chrome eats a far larger share of a narrow
+ * column — the old `bodyCharsPerLine × columnWidth/178` model over-stated a
+ * 68.97mm bullet column's capacity by ~33% (64 chars vs Chrome's real ~48).
+ */
+export const CHAR_MM_PER_FONT_PX = 0.119;
+
+/**
+ * Characters lost per wrapped line to word-break raggedness (a line breaks at a
+ * word boundary, leaving roughly half a word of unused width). Measured against
+ * long wrapped runs in the live DOM: effective capacity sat 2–3 chars below the
+ * natural-width capacity at BOTH 132.96mm and 68.97mm columns, so the loss is a
+ * constant char count, not a width fraction.
+ */
+export const LINE_WRAP_LOSS_CHARS = 3;
 
 // --- Font sizes (em) used by the resume blocks, mirrored from the components ---
 export const EM_NAME = 1.85; // 2xl — full name
@@ -134,6 +228,18 @@ export const LANGUAGE_BAR_HEIGHT_PX = 24;
  * {@link LANGUAGE_BAR_HEIGHT_PX}, so paint and reserve can never diverge.
  */
 export const LANGUAGE_METER_BOX_PX = 14;
+
+/**
+ * The COMPACT dot/pill box + bar height the meter shrinks to inside a narrow
+ * COLUMN (the timeline-panel design's panel): a full-size 14px dot row eats
+ * roughly half a ~38mm panel cell, squeezing the language name to a few
+ * characters. The column-stacked cell drops the meter onto its own row at these
+ * reduced sizes so the name keeps the full width. Shared by the meter renderer
+ * (its `compact` mode) and the stacked branch of the language-row estimator so
+ * paint and reserve stay in lockstep.
+ */
+export const LANGUAGE_METER_BOX_COMPACT_PX = 9;
+export const LANGUAGE_BAR_HEIGHT_COMPACT_PX = 15;
 
 /**
  * Fixed thickness (px) of the "line" meter variant's full-width track, which
@@ -228,6 +334,54 @@ export function languageGridColumns(contentWidthMm: number): number {
 /** Height in px of the small (2xs) inline control buttons that show on screen. */
 export const CONTROL_BUTTON_PX = 22;
 
+// ── Reference-pinned STACKED/GRID entry layout (timeline-panel) ──────────────
+// Shared paint↔reserve constants of the stacked composition the timeline-panel
+// design uses (read verbatim off the imported `Resume.dc.html`): the entry
+// title, its one-line «date | company» meta row and the bullet rows, plus the
+// projects 2-up sub-grid and the one-line certification row. Consumed ONLY by
+// flows that opt in via `LayoutMetrics.stackedEntries` / `projectsGrid` /
+// `certInlineMeta` — no other template reaches any of them.
+/** Entry title — reference 12.5px / 700 / +0.03em. */
+export const STACKED_ENTRY_TITLE_EM = 12.5 / 15;
+/** «date | company» meta row — reference 11px. */
+export const STACKED_ENTRY_META_EM = 11 / 15;
+/** Bullet text — reference 11.5px. */
+export const STACKED_BULLET_EM = 11.5 / 15;
+/** Bullet list: reference `ul` margin-top 6px and 3px row gap. */
+export const STACKED_LIST_TOP_PX = 6;
+export const STACKED_BULLET_GAP_PX = 3;
+/** Inline space of the stacked bullet marker column — reference `padding-right: 14px`. */
+export const STACKED_BULLET_MARKER_COL_PX = 14;
+/** Stacked panel education — reference 11px date / 12px degree / 11.5px school. */
+export const STACKED_EDU_META_EM = 11 / 15;
+export const STACKED_EDU_TITLE_EM = 12 / 15;
+export const STACKED_EDU_SUBTITLE_EM = 11.5 / 15;
+
+/** Projects 2-up sub-grid — reference `1fr 1fr` with 26px column / 12px row gap.
+ *  The min cell width keeps the reference's 2-up in the design's ~100mm main
+ *  column and collapses to stacked anywhere genuinely narrower. */
+export const PROJECT_CELL_MIN_MM = 45;
+export const PROJECT_GRID_COL_GAP_MM = 26 / PX_PER_MM;
+export const PROJECT_GRID_ROW_GAP_MM = 12 / PX_PER_MM;
+/** Project cell type — reference 12.5px name / 10.5px link / 11px description. */
+export const PROJECT_CELL_TITLE_EM = 12.5 / 15;
+export const PROJECT_CELL_LINK_EM = 10.5 / 15;
+export const PROJECT_CELL_DESC_EM = 11 / 15;
+
+/** One-line certification row — reference 13px name / 11px «issuer · date». */
+export const CERT_INLINE_NAME_EM = 13 / 15;
+export const CERT_INLINE_META_EM = 11 / 15;
+
+/** Key-achievements as a PLAIN bullet list (the reference's «دستاوردهای کلیدی»
+ *  `<ul>`): 12.5px body-tier rows behind a 15px marker column. */
+export const ACHIEVEMENT_BULLET_EM = 12.5 / 15;
+export const ACHIEVEMENT_BULLET_MARKER_COL_PX = 15;
+
+/** Projects column count at a content width (2-up at the reference width). */
+export function projectGridColumns(contentWidthMm: number): number {
+  return autoFillGridColumns(contentWidthMm, PROJECT_CELL_MIN_MM, PROJECT_GRID_COL_GAP_MM, 2);
+}
+
 /**
  * Fixed width (mm) of the Experience/Education date column, per period-date
  * display mode. The column follows the LENGTH CLASS of its date text — the full
@@ -256,6 +410,45 @@ export function periodDateColumnMm(showMonth: boolean, monthFormat: MonthFormat)
  * real wrap width.
  */
 export const TIMELINE_CHROME_PX = 41;
+
+/**
+ * Inline-end padding (px) of the Experience entry's main column (`pe="6"`) that
+ * clears the overlaid gear/trash controls. Part of the fixed chrome between the
+ * flow width and the description's REAL wrap width — verified in the live DOM:
+ * the description container measures mainColumn − 6.35mm (24px) in both the
+ * 178mm and the 114mm flow.
+ */
+export const EXP_MAIN_END_PAD_PX = 24;
+
+/**
+ * Inline space (px) the "•" marker column takes from a responsibility row: the
+ * glyph box plus the row's `gap="1.5"` (6px). Measured in the live DOM: the
+ * bullet text container sits 2.84mm (10.75px) inside the description width at
+ * every scale (the marker is a fixed `sm` rem token, so this does not scale).
+ */
+export const BULLET_MARKER_COL_PX = 11;
+
+/**
+ * Inline space (px) the Education entry's IN-FLOW remove button takes from its
+ * main column: the 2xs IconButton (24px) plus the outer HStack's 8px gap.
+ * Unlike Experience (absolute overlay + pe), Education's control participates
+ * in layout on screen, so the achievements field wraps at mainColumn − 32px —
+ * measured 8.47mm in the live DOM at both flow widths. The control is
+ * `no-print`, so the PDF renders WIDER text (fewer wraps) — pricing the
+ * on-screen width is the safe, taller reserve.
+ */
+export const EDU_REMOVE_COL_PX = 32;
+
+/** The section heading's own tight line-box factor (`lineHeight="1.15"` on the
+ *  h2 — NOT the theme's body line-height). Part of the painted title-row model
+ *  shared by SectionTitleBlock and `estimateSectionTitleHeight`. */
+export const SECTION_TITLE_TEXT_LINE_HEIGHT = 1.15;
+
+/** The section-title icon chip's box size in em of the page base font
+ *  (`boxSize="1.6em"` in SectionTitleIcon) — with icons on, the chip (24px at
+ *  scale 1) is taller than the heading's 18.6px line-box and governs the
+ *  title row's height. Shared so paint and reserve read the same box. */
+export const SECTION_ICON_BOX_EM = 1.6;
 
 /**
  * Bottom-of-page safety buffer (mm) subtracted from the usable height so that

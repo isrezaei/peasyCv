@@ -18,6 +18,7 @@ import {
 } from "@/lib/api/auth";
 import { onUnauthorized } from "@/lib/api/client";
 import { clearTokens, hasSession, setTokens } from "@/lib/api/tokens";
+import { flushPendingWork } from "@/store/useResumeStore";
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";
 
@@ -25,10 +26,16 @@ interface AuthContextValue {
   status: AuthStatus;
   user: UserProfile | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name?: string) => Promise<void>;
+  register: (email: string, password: string, name?: string, occupation?: string) => Promise<void>;
   logout: () => Promise<void>;
   /** Adopt tokens obtained out-of-band (e.g. the Google OAuth redirect). */
   adoptSession: (accessToken: string, refreshToken: string) => Promise<void>;
+  /**
+   * Replace the cached profile with a fresher one (e.g. the response of a
+   * profile PATCH), so consumers like the occupation prompt never re-fire off
+   * stale data.
+   */
+  applyUser: (profile: UserProfile) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -79,16 +86,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const login = useCallback(async (email: string, password: string) => {
+    // Commit guest edits still inside a debounce window BEFORE the session
+    // exists, so the post-login merge reads a complete guest document.
+    flushPendingWork();
     const profile = await loginUser(email, password);
     setUser(profile);
     setStatus("authenticated");
   }, []);
 
-  const register = useCallback(async (email: string, password: string, name?: string) => {
-    const profile = await registerUser(email, password, name);
-    setUser(profile);
-    setStatus("authenticated");
-  }, []);
+  const register = useCallback(
+    async (email: string, password: string, name?: string, occupation?: string) => {
+      flushPendingWork();
+      const profile = await registerUser(email, password, name, occupation);
+      setUser(profile);
+      setStatus("authenticated");
+    },
+    [],
+  );
 
   const logout = useCallback(async () => {
     await logoutUser();
@@ -105,9 +119,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [loadCurrentUser],
   );
 
+  const applyUser = useCallback((profile: UserProfile) => {
+    setUser(profile);
+  }, []);
+
   const value = useMemo<AuthContextValue>(
-    () => ({ status, user, login, register, logout, adoptSession }),
-    [status, user, login, register, logout, adoptSession],
+    () => ({ status, user, login, register, logout, adoptSession, applyUser }),
+    [status, user, login, register, logout, adoptSession, applyUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

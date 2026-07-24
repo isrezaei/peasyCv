@@ -20,8 +20,8 @@ export class PdfService {
   constructor(private readonly config: ConfigService<AppConfig, true>) {}
 
   async renderResumePdf(resume: ResumeData): Promise<Buffer> {
-    const frontendUrl = this.config.get('frontendUrl', { infer: true });
     const pdfConfig = this.config.get('pdf', { infer: true });
+    const frontendUrl = pdfConfig.frontendUrl;
     const executablePath = resolveChromeExecutable(pdfConfig.executablePath);
     const timeout = pdfConfig.renderTimeoutMs;
 

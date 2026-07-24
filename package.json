@@ -5,6 +5,7 @@
   "description": "Persian/RTL resume builder — Next.js frontend + NestJS backend monorepo.",
   "workspaces": [
     "packages/*",
+    "apps/*",
     "frontend",
     "backend"
   ],

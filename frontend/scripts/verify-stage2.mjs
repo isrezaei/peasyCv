@@ -22,7 +22,7 @@ const log = (...a) => console.log(...a);
 await page.screenshot({ path: "scripts/s2-01-default.png", fullPage: true });
 
 // 2) Personal-info gear popover: open, then verify it closes on outside click.
-const name = page.getByPlaceholder("مثال: علی محمدی");
+const name = page.getByPlaceholder("علی محمدی");
 await name.hover();
 await page.getByRole("button", { name: "فیلد‌ها" }).first().click();
 await page.waitForTimeout(300);

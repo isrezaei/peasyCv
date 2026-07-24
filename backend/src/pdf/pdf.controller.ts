@@ -11,6 +11,7 @@ import type { Response } from 'express';
 import type { ResumeData } from '@resume/types';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
+import { MetricsService, type DownloadSnapshot } from '../metrics/metrics.service';
 import { ResumeDataDto } from '../resumes/dto/resume-data.dto';
 import { ResumesService } from '../resumes/resumes.service';
 import { ShareService } from '../share/share.service';
@@ -24,6 +25,7 @@ export class PdfController {
     private readonly pdf: PdfService,
     private readonly resumes: ResumesService,
     private readonly share: ShareService,
+    private readonly metrics: MetricsService,
   ) {}
 
   @ApiBearerAuth('access-token')
@@ -32,8 +34,19 @@ export class PdfController {
     summary: 'Render the supplied resume to an A4 PDF (matches the live editor preview).',
   })
   @ApiOkResponse({ description: 'The generated PDF.', content: { 'application/pdf': {} } })
-  async renderFromBody(@Body() resume: ResumeDataDto, @Res() res: Response): Promise<void> {
+  async renderFromBody(
+    @CurrentUser('id') userId: string,
+    @Body() resume: ResumeDataDto,
+    @Res() res: Response,
+  ): Promise<void> {
     const buffer = await this.pdf.renderResumePdf(resume as ResumeData);
+    // Recorded server-side, only after a successful render (never client-side).
+    await this.metrics.recordDownload({
+      userId,
+      resumeId: resume.id ?? null,
+      source: 'editor',
+      snapshot: snapshotOf(resume as ResumeData),
+    });
     this.send(res, buffer, resume.title);
   }
 
@@ -48,6 +61,12 @@ export class PdfController {
   ): Promise<void> {
     const resume = await this.resumes.getOne(userId, id);
     const buffer = await this.pdf.renderResumePdf(resume);
+    await this.metrics.recordDownload({
+      userId,
+      resumeId: id,
+      source: 'editor',
+      snapshot: snapshotOf(resume),
+    });
     this.send(res, buffer, resume.title);
   }
 
@@ -58,6 +77,13 @@ export class PdfController {
   async renderShared(@Param('token') token: string, @Res() res: Response): Promise<void> {
     const resume = await this.share.getPublicResumeData(token);
     const buffer = await this.pdf.renderResumePdf(resume);
+    // Anonymous by design: share downloads have no requesting user.
+    await this.metrics.recordDownload({
+      userId: null,
+      resumeId: resume.id,
+      source: 'share',
+      snapshot: snapshotOf(resume),
+    });
     this.send(res, buffer, resume.title);
   }
 
@@ -70,6 +96,20 @@ export class PdfController {
     });
     res.end(buffer);
   }
+}
+
+/**
+ * The design selection in effect on the résumé being rendered. Read server-side
+ * here (never trusted from a client field) so "downloads per option" reflects
+ * what was actually exported.
+ */
+function snapshotOf(resume: ResumeData): DownloadSnapshot {
+  return {
+    templateId: resume.templateId,
+    themeId: resume.theme.themeId,
+    backgroundPattern: resume.theme.backgroundPattern,
+    fontId: resume.theme.fontFamily,
+  };
 }
 
 /** RFC 5987 disposition with an ASCII fallback + UTF-8 (Persian) filename. */

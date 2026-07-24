@@ -36,7 +36,7 @@ async function switchTo(name) {
   await page.waitForTimeout(550);
 }
 
-await page.getByPlaceholder("مثال: علی محمدی").fill("سارا احمدی");
+await page.getByPlaceholder("علی محمدی").fill("سارا احمدی");
 
 // D: summary justified by default.
 const summaryJustify = await page.evaluate(() =>
@@ -48,7 +48,7 @@ check("About/Summary is justified by default", summaryJustify);
 
 // Inputs: no hover/focus background.
 const nameInputBg = await page.evaluate(() => {
-  const el = document.querySelector('input[placeholder="مثال: علی محمدی"]');
+  const el = document.querySelector('input[placeholder="علی محمدی"]');
   el?.focus();
   return el ? getComputedStyle(el).backgroundColor : "missing";
 });

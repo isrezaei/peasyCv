@@ -29,6 +29,12 @@ interface SectionTitleIconProps {
 export function SectionTitleIcon({ type }: SectionTitleIconProps) {
   const theme = useResumeStore((state) => state.resume.theme);
   if (!theme.showSectionIcons) return null;
+  // Achievements is deliberately excluded from the resume-wide section-icon row:
+  // even when the toggle is on it shows no heading icon (its in-item diamond
+  // icons are a separate, independently-toggled decoration and are unaffected).
+  if (type === "achievements") return null;
+  // ATS Friendly mode is text-only: no heading icons anywhere, whatever the toggle.
+  if (theme.atsMode) return null;
 
   const colors = resolveTheme(theme);
   const iconColor = colors.marker ?? colors.accent;

@@ -31,10 +31,25 @@ model User {
   // Null for accounts created purely via Google OAuth (no local password).
   passwordHash       String?
   name               String?
+  // Optional contact phone shown in the admin users table. Nothing collects it
+  // yet (empty for everyone); deliberately separate from resume-content phone.
+  phone              String?
+  // Admin-dashboard access. NEVER settable from any client payload: absent from
+  // every DTO, and granted only out-of-band (manual UPDATE or the seed script).
+  isAdmin            Boolean  @default(false)
   // Google OAuth subject id; null for email/password-only accounts.
   googleId           String?  @unique
   // Hashed (bcrypt) current refresh token for rotation/revocation. Null = logged out.
   hashedRefreshToken String?
+  // Self-declared occupation picked from a fixed list at email/password signup
+  // (see OCCUPATION_IDS). Null for existing accounts and for Google-OAuth signups
+  // (the form is bypassed) — aggregated as "unspecified" in the admin panel.
+  occupation         String?
+  // Broad occupation CATEGORY driving the resume's tailored default/example
+  // content (see OCCUPATION_CATEGORY_IDS — 10 Iran-focused families + "azad").
+  // Nullable: existing users and fresh OAuth signups have no category until the
+  // one-time post-login prompt; null = "not chosen yet", never a display value.
+  occupationCategory String?
   resumes            Resume[]
   assets             Asset[]
   createdAt          DateTime @default(now())
@@ -61,6 +76,64 @@ model Asset {
 }
 
 // ---------------------------------------------------------------------------
+// Metrics events (admin dashboard). Deliberately NOT related to Resume/User —
+// events must survive resume/user deletion, and joins are never needed.
+// ---------------------------------------------------------------------------
+
+// One row per unique visitor per UTC day. `visitorId` is an opaque random UUID
+// minted client-side (first-party, localStorage) — no IP, no user agent, never
+// joined to User. The unique constraint IS the dedup: daily visitor count =
+// COUNT(rows) per date.
+model VisitEvent {
+  id        String @id @default(uuid())
+  visitorId String
+  date      String // UTC day bucket, "YYYY-MM-DD"
+
+  @@unique([visitorId, date])
+  @@index([date])
+}
+
+// One row per successful server-side PDF render (recorded in the PDF
+// controller, never client-side). userId is null only for public share-link
+// downloads; resumeId is a plain string (not a relation) so history outlives
+// the resume.
+model DownloadEvent {
+  id        String   @id @default(uuid())
+  userId    String?
+  resumeId  String?
+  source    String // "editor" | "share"
+  date      String // UTC day bucket, "YYYY-MM-DD" — enables plain groupBy
+  // Selection snapshot of the résumé AS RENDERED, captured server-side in the PDF
+  // controller (never client-supplied). Enables "downloads per option per day" as
+  // a plain groupBy — no join, no extra table. Null on rows written before this
+  // column existed.
+  templateId        String?
+  themeId           String?
+  backgroundPattern String?
+  fontId            String?
+  createdAt DateTime @default(now())
+
+  @@index([date])
+}
+
+// Product analytics for what users CHOOSE (background / colour / template / font).
+// One generic table + a `kind` discriminator instead of four parallel tables:
+// adding a new dimension (e.g. "font" — already wired) needs ZERO schema change,
+// just a new `kind` string. Deliberately anonymous: kind/value/date only — no
+// userId, no IP — these are aggregate product metrics, not user tracking. Written
+// by the @Public() /selections beacon only when the user actually changes a
+// setting (never on load/hydration).
+model SelectionEvent {
+  id        String   @id @default(uuid())
+  kind      String // "background" | "theme" | "template" | "font"
+  value     String // the chosen id, e.g. "sidebar-column" / "navyGold" / "dotGrid"
+  date      String // UTC day bucket, "YYYY-MM-DD" — matches VisitEvent's convention
+  createdAt DateTime @default(now())
+
+  @@index([kind, date])
+}
+
+// ---------------------------------------------------------------------------
 // Resume (root) + 1:1 singletons
 // ---------------------------------------------------------------------------
 
@@ -72,6 +145,11 @@ model Resume {
   title       String
   locale      String   @default("fa") // "fa" | "en"
   templateId  String
+  // Per-resume occupation-category id (OCCUPATION_CATEGORY_IDS; validated with
+  // @IsIn at the DTO). Nullable: resumes created before the field existed, or
+  // by users who never chose, have null — the frontend renders the «آزاد»
+  // fallback. Defaults at creation to the owner's User.occupationCategory.
+  occupationCategory String?
   // summary is { html }; stored as a single column and re-wrapped on read.
   summaryHtml String   @default("")
 
@@ -102,6 +180,8 @@ model ResumeTheme {
   resumeId            String @unique
   resume              Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   themeId             String
+  // DEAD COLUMN — page is always white now; retained so old rows still load. No
+  // destructive migration. Safe to drop once no stored theme carries a value.
   pageBackground      String
   backgroundPattern   String
   backgroundIntensity Float
@@ -112,8 +192,14 @@ model ResumeTheme {
   pageMargin          Float
   sectionSpacing      Float
   columnIntensity     Float
+  columnWidth         String  @default("medium")
   showSectionIcons    Boolean @default(false)
-  columnStyle         String  @default("classic") // ColumnStyle: "classic" | "modern"
+  showSectionSeparators Boolean @default(false)
+  // DEAD COLUMN — the "modern column style" feature was removed; nothing reads or
+  // writes this anymore (the serializer/DTO dropped it), but the column is kept so
+  // no destructive migration is needed. Safe to drop in a later cleanup migration.
+  columnStyle         String  @default("classic")
+  atsMode             Boolean @default(false)
 }
 
 model ResumePersonalInfo {
@@ -126,9 +212,10 @@ model ResumePersonalInfo {
   phone         String  @default("")
   location      String  @default("")
   email         String  @default("")
-  dateOfBirth   String  @default("")
-  nationality   String  @default("")
-  uppercaseName Boolean @default(false)
+  dateOfBirth     String  @default("")
+  nationality     String  @default("")
+  militaryService String  @default("")
+  uppercaseName   Boolean @default(false)
   photoStyle    String  @default("round") // "round" | "square"
   imageSide     String  @default("left") // "left" | "right"
 
@@ -139,8 +226,9 @@ model ResumePersonalInfo {
   fvEmail       Boolean @default(true)
   fvLocation    Boolean @default(true)
   fvPhoto       Boolean @default(true)
-  fvDateOfBirth Boolean @default(false)
-  fvNationality Boolean @default(false)
+  fvDateOfBirth     Boolean @default(false)
+  fvNationality     Boolean @default(false)
+  fvMilitaryService Boolean @default(false)
 
   // profileImage (ImageMeta | null). When photoMetaId is null the whole
   // profileImage serializes to null. When photoCropZoom is null, crop is null.
@@ -194,6 +282,12 @@ model Section {
   // "achievements" but defaulted on every row like the languages settings.
   achievementShowDescription Boolean @default(true)
   achievementShowIcons       Boolean @default(true)
+  // Skills display settings — section-wide, meaningful only for type "skills"
+  // but defaulted on every row like the languages settings. The per-group title
+  // toggle lives on the SkillGroup row itself.
+  skillDisplayMode  String  @default("row") // SkillDisplayMode: "row" | "list"
+  skillShowLevel    Boolean @default(false)
+  skillMeterVariant String  @default("line") // SkillMeterVariant (no "pill")
 
   @@index([resumeId])
 }
@@ -234,6 +328,8 @@ model SkillGroup {
   resumeId String
   resume   Resume  @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   name     String  @default("")
+  // Whether the group's title row renders — per group, not section-wide.
+  showTitle Boolean @default(true)
   position Int
   skills   Skill[]
 
@@ -245,6 +341,9 @@ model Skill {
   groupId  String
   group    SkillGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   name     String     @default("")
+  // Proficiency on the shared 1–5 scale (LanguageLevel); rendered only when the
+  // section-wide skillShowLevel toggle is on, but always stored.
+  level    Int        @default(3)
   position Int
 
   @@index([groupId])

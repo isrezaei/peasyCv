@@ -72,7 +72,18 @@ const persistResume = debounce((resume: RootStore["resume"]) => {
   });
 }, AUTOSAVE_DELAY_MS);
 
-export async function hydrateResumeStore(): Promise<void> {
+/**
+ * Commit every deferred field edit and run any owed persist immediately.
+ * Called before the tab goes away AND right before a login/register, so the
+ * guest merge always reads a localStorage document that includes edits still
+ * inside a debounce window.
+ */
+export function flushPendingWork(): void {
+  flushAllFields();
+  persistResume.flush();
+}
+
+export async function hydrateResumeStore(resumeId?: string | null): Promise<void> {
   // In the headless PDF render the resume is injected on the window and the
   // /print route hydrates the store directly; never overwrite it from (empty)
   // localStorage here.
@@ -80,10 +91,19 @@ export async function hydrateResumeStore(): Promise<void> {
     return;
   }
 
-  const stored = await resumeRepository.get();
-  if (stored) {
-    useResumeStore.getState().setResume(normalizeResume(stored));
+  let stored: RootStore["resume"] | null = null;
+  try {
+    stored = await resumeRepository.get(resumeId ?? undefined);
+  } catch {
+    // An id that no longer resolves (deleted elsewhere, revoked) falls back to
+    // the latest document rather than breaking the editor.
+    stored = resumeId ? await resumeRepository.get().catch(() => null) : null;
   }
+  // Always replace the document: when nothing is stored (fresh guest, an empty
+  // account, or right after a logout) the store resets to a new default so a
+  // previous session's resume can never leak across the auth boundary. Nothing
+  // is persisted by this — autosave only subscribes after hydration.
+  useResumeStore.getState().setResume(normalizeResume(stored));
   useResumeStore.getState().setHydrated(true);
   // A freshly loaded document is, by definition, in sync with storage.
   refreshSaveStatus();
@@ -108,8 +128,7 @@ export function startAutosave(): () => void {
   // Flush deferred field edits and any owed persist before the tab goes away, so
   // nothing typed within a debounce window is lost on reload/close.
   const flushBeforeUnload = () => {
-    flushAllFields();
-    persistResume.flush();
+    flushPendingWork();
   };
   const handleVisibility = () => {
     if (document.visibilityState === "hidden") flushBeforeUnload();
@@ -119,6 +138,13 @@ export function startAutosave(): () => void {
 
   stopAutosave = () => {
     unsubscribe();
+    // Drop (don't flush) any still-pending persist: the session that scheduled
+    // it is over, and flushing here after an auth flip would write one side's
+    // document into the other side's store (e.g. a private resume into the
+    // guest key after logout). Anything worth keeping was already flushed by
+    // flushPendingWork before the flip.
+    persistResume.cancel();
+    persistPending = false;
     window.removeEventListener("pagehide", flushBeforeUnload);
     document.removeEventListener("visibilitychange", handleVisibility);
     stopAutosave = null;

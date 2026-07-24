@@ -53,6 +53,9 @@ export function createDefaultSections(): SectionMeta[] {
     monthFormat: "name" as const,
     achievementShowDescription: true,
     achievementShowIcons: true,
+    skillDisplayMode: "row" as const,
+    skillShowLevel: false,
+    skillMeterVariant: "line" as const,
   }));
 }
 
@@ -72,11 +75,16 @@ export function createDefaultTheme(): ThemeSettings {
     sectionSpacing: 6,
     // 1 = each coloured-column template keeps its original tint (the current look).
     columnIntensity: 1,
+    // "medium" = each column template keeps its original side-column width.
+    columnWidth: "medium",
     // Off by default so existing résumés look unchanged until the user opts in.
     showSectionIcons: false,
-    // Classic (flush, full-bleed column) by default so existing résumés are
-    // byte-identical until the user picks the modern rounded/inset column.
-    columnStyle: "classic",
+    // Off by default: sections stay separated by spacing/typography alone until
+    // the user turns on the thin title separator.
+    showSectionSeparators: false,
+    // Off by default: the résumé keeps its designed template until the user turns
+    // on ATS Friendly mode.
+    atsMode: false,
   };
 }
 
@@ -89,6 +97,7 @@ export function createDefaultPersonalInfo(): PersonalInfo {
     email: "",
     dateOfBirth: "",
     nationality: "",
+    militaryService: "",
     links: [],
     profileImage: null,
     uppercaseName: false,
@@ -103,74 +112,74 @@ export function createDefaultPersonalInfo(): PersonalInfo {
       photo: true,
       dateOfBirth: false,
       nationality: false,
+      militaryService: false,
     },
   };
 }
 
 // --- Default seed content -------------------------------------------------
-// A brand-new resume ships with one illustrative example per section so nothing
-// renders empty on first load. The text is intentionally written as guidance
-// (prose prefixed with «نمونه») so it reads as example content the user replaces,
-// not as their own data. Seeds are real schema-valid data, so persistence,
-// normalization and the API contracts are unaffected.
+// A brand-new resume ships with EMPTY items only: no sample names, companies,
+// dates, skills or prose anywhere — every field relies on its sample-value
+// placeholder instead (most sections prefix it with «مثال:»; personal info and
+// skills show the bare value), which clears the moment the user types. Only the item
+// COUNTS are seeded (4 experiences × 2 bullets, 1 skill, 4 educations,
+// 2 achievements) so the editor opens with ready-to-fill entries.
 
 export function createDefaultSummary(): SummaryContent {
-  // Ships empty so the «درباره من» editor shows its guidance as a placeholder
-  // (t.summary.placeholder) that clears the moment the user types — rather than
-  // seeding example prose the user has to delete first.
   return { html: "" };
 }
 
+function createEmptyExperience(): ExperienceItem {
+  return {
+    id: createId(),
+    jobTitle: "",
+    companyName: "",
+    period: { start: "", end: "", current: false },
+    city: "",
+    projectLink: "",
+    projectDescription: "",
+    link: "",
+    linkVisible: true,
+    responsibilities: [
+      { id: createId(), text: "" },
+      { id: createId(), text: "" },
+    ],
+  };
+}
+
 export function createDefaultExperience(): ExperienceItem[] {
-  const seed = t.defaults.experience;
-  return [
-    {
-      id: createId(),
-      jobTitle: seed.jobTitle,
-      companyName: seed.companyName,
-      period: { start: seed.periodStart, end: "", current: true },
-      city: seed.city,
-      projectLink: "",
-      projectDescription: seed.projectDescription,
-      link: "",
-      linkVisible: true,
-      responsibilities: [
-        { id: createId(), text: seed.responsibilityOne },
-        { id: createId(), text: seed.responsibilityTwo },
-      ],
-    },
-  ];
+  return Array.from({ length: 4 }, createEmptyExperience);
 }
 
 export function createDefaultSkills(): SkillGroup[] {
-  const seed = t.defaults.skills;
   return [
     {
       id: createId(),
-      name: seed.groupName,
-      skills: seed.items.map((name) => ({ id: createId(), name })),
+      name: "",
+      showTitle: true,
+      skills: [{ id: createId(), name: "", level: 3 }],
     },
   ];
+}
+
+function createEmptyEducation(): EducationItem {
+  return {
+    id: createId(),
+    degree: "",
+    university: "",
+    startDate: "",
+    endDate: "",
+    gpa: "",
+    achievements: "",
+    city: "",
+  };
 }
 
 export function createDefaultEducation(): EducationItem[] {
-  const seed = t.defaults.education;
-  return [
-    {
-      id: createId(),
-      degree: seed.degree,
-      university: seed.university,
-      startDate: seed.startDate,
-      endDate: seed.endDate,
-      gpa: "",
-      achievements: seed.achievements,
-      city: seed.city,
-    },
-  ];
+  return Array.from({ length: 4 }, createEmptyEducation);
 }
 
 export function createDefaultProjects(): ProjectItem[] {
-  // Projects ship empty so ONLY the placeholder texts show; no seeded dummy data.
   return [
     {
       id: createId(),
@@ -184,35 +193,17 @@ export function createDefaultProjects(): ProjectItem[] {
 }
 
 export function createDefaultLanguages(): LanguageItem[] {
-  return t.defaults.languages.map((language) => ({
-    id: createId(),
-    name: language.name,
-    level: language.level,
-    showBars: true,
-    showLevelText: true,
-  }));
+  return [{ id: createId(), name: "", level: 3, showBars: true, showLevelText: true }];
 }
 
 export function createDefaultCertifications(): CertificationItem[] {
-  const seed = t.defaults.certification;
-  return [
-    {
-      id: createId(),
-      name: seed.name,
-      issuer: seed.issuer,
-      date: seed.date,
-    },
-  ];
+  return [{ id: createId(), name: "", issuer: "", date: "" }];
 }
 
 export function createDefaultAchievements(): AchievementItem[] {
-  const seed = t.defaults.achievement;
   return [
-    {
-      id: createId(),
-      title: seed.title,
-      description: seed.description,
-    },
+    { id: createId(), title: "", description: "" },
+    { id: createId(), title: "", description: "" },
   ];
 }
 

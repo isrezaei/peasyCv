@@ -126,7 +126,7 @@ export function SettingsPopover({
             className="no-print"
           >
             <HStack justify="space-between" align="center" px="3" pt="2.5" pb="1.5">
-              <Text fontSize="xs" fontWeight="600" color="fg.muted" lineClamp={1}>
+              <Text fontSize="xs"  color="fg.muted" lineClamp={1}>
                 {title}
               </Text>
               <Popover.CloseTrigger asChild>

@@ -1,4 +1,4 @@
-import { Box, Text, VStack } from "@chakra-ui/react";
+import { Stack, Text, VStack } from "@chakra-ui/react";
 import type { ReactNode } from "react";
 import { COLORS } from "@/lib/design/tokens";
 
@@ -16,18 +16,26 @@ interface PanelGroupProps {
  */
 export function PanelGroup({ label, description, children }: PanelGroupProps) {
   return (
-    <Box>
-      <Text fontSize="15px" fontWeight="700" letterSpacing="0.01em" my={description ? "3px" : "14px"} style={{ color: COLORS.ink700 }}>
-        {label}
-      </Text>
-      {description ? (
-        <Text fontSize="11.5px" lineHeight="1.6" mb="14px" color="fg.muted">
-          {description}
+    <Stack gapY={5} my={2}>
+      <Stack gapY={1}>
+        <Text
+          p={0}
+          m={0}
+          fontSize="sm"
+          fontWeight="700"
+          style={{ color: COLORS.ink700 }}
+        >
+          {label}
         </Text>
-      ) : null}
+        {description ? (
+          <Text p={0} my={0} fontSize="xs" color="fg.muted">
+            {description}
+          </Text>
+        ) : null}
+      </Stack>
       <VStack align="stretch" gap="3">
         {children}
       </VStack>
-    </Box>
+    </Stack>
   );
 }

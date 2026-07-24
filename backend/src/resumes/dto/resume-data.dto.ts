@@ -18,7 +18,7 @@ import type {
   BackgroundPatternId,
   CalendarSystem,
   CertificationItem,
-  ColumnStyle,
+  ColumnWidthId,
   Direction,
   EducationItem,
   EmploymentPeriod,
@@ -41,8 +41,10 @@ import type {
   ResponsibilityItem,
   ResumeData,
   SectionMeta,
+  SkillDisplayMode,
   SkillGroup,
   SkillItem,
+  SkillMeterVariant,
   SummaryContent,
   TemplateId,
   ThemeId,
@@ -51,7 +53,7 @@ import type {
 import {
   BACKGROUND_PATTERNS,
   CALENDAR_SYSTEMS,
-  COLUMN_STYLES,
+  COLUMN_WIDTHS,
   DIRECTIONS,
   FONT_FAMILIES,
   IMAGE_SIDES,
@@ -62,9 +64,12 @@ import {
   PAGE_BACKGROUND_MODES,
   PHOTO_STYLES,
   SECTION_TYPES,
+  SKILL_DISPLAY_MODES,
+  SKILL_METER_VARIANTS,
   TEMPLATE_IDS,
   THEME_IDS,
 } from '../resume.constants';
+import { OCCUPATION_CATEGORY_IDS } from '../../auth/occupation-category.constants';
 
 // --- image -----------------------------------------------------------------
 
@@ -106,6 +111,7 @@ export class PersonalInfoFieldVisibilityDto implements PersonalInfoFieldVisibili
   @IsBoolean() photo!: boolean;
   @IsBoolean() dateOfBirth!: boolean;
   @IsBoolean() nationality!: boolean;
+  @IsBoolean() militaryService!: boolean;
 }
 
 export class PersonalInfoDto implements PersonalInfo {
@@ -116,6 +122,7 @@ export class PersonalInfoDto implements PersonalInfo {
   @IsString() email!: string;
   @IsString() dateOfBirth!: string;
   @IsString() nationality!: string;
+  @IsString() militaryService!: string;
 
   @IsArray()
   @ValidateNested({ each: true })
@@ -193,11 +200,15 @@ export class ExperienceItemDto implements ExperienceItem {
 export class SkillItemDto implements SkillItem {
   @IsString() id!: string;
   @IsString() name!: string;
+
+  @IsIn(LANGUAGE_LEVELS)
+  level!: LanguageLevel;
 }
 
 export class SkillGroupDto implements SkillGroup {
   @IsString() id!: string;
   @IsString() name!: string;
+  @IsBoolean() showTitle!: boolean;
 
   @IsArray()
   @ValidateNested({ each: true })
@@ -298,6 +309,14 @@ export class SectionMetaDto implements SectionMeta {
 
   @IsBoolean() achievementShowDescription!: boolean;
   @IsBoolean() achievementShowIcons!: boolean;
+
+  @IsIn(SKILL_DISPLAY_MODES)
+  skillDisplayMode!: SkillDisplayMode;
+
+  @IsBoolean() skillShowLevel!: boolean;
+
+  @IsIn(SKILL_METER_VARIANTS)
+  skillMeterVariant!: SkillMeterVariant;
 }
 
 // --- theme -----------------------------------------------------------------
@@ -306,6 +325,8 @@ export class ThemeSettingsDto implements ThemeSettings {
   @IsIn(THEME_IDS)
   themeId!: ThemeId;
 
+  // DEAD FIELD — the page is always white now; validation is kept so résumés
+  // saved with the old colored-page option still pass (no 400). See ThemeSettings.
   @IsIn(PAGE_BACKGROUND_MODES)
   pageBackground!: PageBackgroundMode;
 
@@ -348,10 +369,14 @@ export class ThemeSettingsDto implements ThemeSettings {
   @Max(3)
   columnIntensity!: number;
 
+  @IsIn(COLUMN_WIDTHS)
+  columnWidth!: ColumnWidthId;
+
   @IsBoolean() showSectionIcons!: boolean;
 
-  @IsIn(COLUMN_STYLES)
-  columnStyle!: ColumnStyle;
+  @IsBoolean() showSectionSeparators!: boolean;
+
+  @IsBoolean() atsMode!: boolean;
 }
 
 // --- resume (root) ---------------------------------------------------------
@@ -365,6 +390,13 @@ export class ResumeDataDto implements ResumeData {
 
   @IsIn(TEMPLATE_IDS)
   templateId!: TemplateId;
+
+  // Per-resume occupation-category id. User-writable, so it is validated
+  // against the fixed id list (arbitrary strings rejected); null/absent means
+  // "not chosen" and renders the «آزاد» fallback client-side.
+  @IsOptional()
+  @IsIn(OCCUPATION_CATEGORY_IDS)
+  occupationCategory?: string | null;
 
   @ValidateNested()
   @Type(() => ThemeSettingsDto)

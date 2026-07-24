@@ -91,12 +91,12 @@ ok("skill-add is ICON-ONLY (no visible text)", addInfo.visibleText === "");
 ok("skill-add keeps «افزودن مهارت» as its aria-label", addInfo.ariaLabel === "افزودن مهارت");
 ok("skill-add is the LAST element after all chips", addInfo.isLastChild);
 
-const before = await page.getByPlaceholder("نام مهارت").count();
+const before = await page.getByPlaceholder("JavaScript").count();
 await addBtn.click();
 await page.waitForTimeout(300);
 ok(
   "clicking add inserts a new skill",
-  (await page.getByPlaceholder("نام مهارت").count()) === before + 1,
+  (await page.getByPlaceholder("JavaScript").count()) === before + 1,
 );
 ok(
   "skill-add still trails the newly added (last) skill",

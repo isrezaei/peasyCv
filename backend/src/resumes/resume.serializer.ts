@@ -6,6 +6,8 @@ import type {
   MonthFormat,
   PersonalInfo,
   ResumeData,
+  SkillDisplayMode,
+  SkillMeterVariant,
   ThemeSettings,
 } from '@resume/types';
 
@@ -50,6 +52,7 @@ export function serializeResume(row: ResumeWithRelations): ResumeData {
     title: row.title,
     locale: row.locale as 'fa' | 'en',
     templateId: row.templateId as ResumeData['templateId'],
+    occupationCategory: row.occupationCategory,
     theme: serializeTheme(row.theme),
     sections: row.sections.map((s) => ({
       id: s.id,
@@ -65,6 +68,9 @@ export function serializeResume(row: ResumeWithRelations): ResumeData {
       monthFormat: s.monthFormat as MonthFormat,
       achievementShowDescription: s.achievementShowDescription,
       achievementShowIcons: s.achievementShowIcons,
+      skillDisplayMode: s.skillDisplayMode as SkillDisplayMode,
+      skillShowLevel: s.skillShowLevel,
+      skillMeterVariant: s.skillMeterVariant as SkillMeterVariant,
     })),
     personalInfo: serializePersonalInfo(row.personalInfo, row.links),
     summary: { html: row.summaryHtml },
@@ -83,7 +89,12 @@ export function serializeResume(row: ResumeWithRelations): ResumeData {
     skills: row.skillGroups.map((g) => ({
       id: g.id,
       name: g.name,
-      skills: g.skills.map((sk) => ({ id: sk.id, name: sk.name })),
+      showTitle: g.showTitle,
+      skills: g.skills.map((sk) => ({
+        id: sk.id,
+        name: sk.name,
+        level: sk.level as LanguageLevel,
+      })),
     })),
     education: row.educations.map((ed) => ({
       id: ed.id,
@@ -139,8 +150,10 @@ function serializeTheme(theme: NonNullable<ResumeWithRelations['theme']>): Theme
     pageMargin: theme.pageMargin,
     sectionSpacing: theme.sectionSpacing,
     columnIntensity: theme.columnIntensity,
+    columnWidth: theme.columnWidth as ThemeSettings['columnWidth'],
     showSectionIcons: theme.showSectionIcons,
-    columnStyle: theme.columnStyle as ThemeSettings['columnStyle'],
+    showSectionSeparators: theme.showSectionSeparators,
+    atsMode: theme.atsMode,
   };
 }
 
@@ -156,6 +169,7 @@ function serializePersonalInfo(
     email: pi.email,
     dateOfBirth: pi.dateOfBirth,
     nationality: pi.nationality,
+    militaryService: pi.militaryService,
     links: links.map((l) => ({ id: l.id, label: l.label, url: l.url })),
     profileImage: serializeProfileImage(pi),
     uppercaseName: pi.uppercaseName,
@@ -170,6 +184,7 @@ function serializePersonalInfo(
       photo: pi.fvPhoto,
       dateOfBirth: pi.fvDateOfBirth,
       nationality: pi.fvNationality,
+      militaryService: pi.fvMilitaryService,
     },
   };
 }
@@ -214,8 +229,10 @@ export function buildThemeData(theme: ThemeSettings) {
     pageMargin: theme.pageMargin,
     sectionSpacing: theme.sectionSpacing,
     columnIntensity: theme.columnIntensity,
+    columnWidth: theme.columnWidth,
     showSectionIcons: theme.showSectionIcons,
-    columnStyle: theme.columnStyle,
+    showSectionSeparators: theme.showSectionSeparators,
+    atsMode: theme.atsMode,
   };
 }
 
@@ -228,6 +245,7 @@ export function buildPersonalInfoData(pi: PersonalInfo) {
     email: pi.email,
     dateOfBirth: pi.dateOfBirth,
     nationality: pi.nationality,
+    militaryService: pi.militaryService,
     uppercaseName: pi.uppercaseName,
     photoStyle: pi.photoStyle,
     imageSide: pi.imageSide,
@@ -239,6 +257,7 @@ export function buildPersonalInfoData(pi: PersonalInfo) {
     fvPhoto: pi.fieldVisibility.photo,
     fvDateOfBirth: pi.fieldVisibility.dateOfBirth,
     fvNationality: pi.fieldVisibility.nationality,
+    fvMilitaryService: pi.fieldVisibility.militaryService,
     ...buildPhotoColumns(pi.profileImage),
   };
 }
@@ -292,6 +311,9 @@ export function buildSectionRows(
     monthFormat: s.monthFormat,
     achievementShowDescription: s.achievementShowDescription,
     achievementShowIcons: s.achievementShowIcons,
+    skillDisplayMode: s.skillDisplayMode,
+    skillShowLevel: s.skillShowLevel,
+    skillMeterVariant: s.skillMeterVariant,
   }));
 }
 
@@ -412,9 +434,10 @@ export function buildSkillGroupCreateInput(
     id: group.id,
     resume: { connect: { id: resumeId } },
     name: group.name,
+    showTitle: group.showTitle,
     position,
     skills: {
-      create: group.skills.map((s, i) => ({ id: s.id, name: s.name, position: i })),
+      create: group.skills.map((s, i) => ({ id: s.id, name: s.name, level: s.level, position: i })),
     },
   };
 }

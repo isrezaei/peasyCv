@@ -43,6 +43,14 @@ export interface AppConfig {
   pdf: {
     executablePath: string;
     renderTimeoutMs: number;
+    /**
+     * Frontend base URL Puppeteer loads to render the /print page. Kept separate
+     * from `frontendUrl` (which builds public share links) so a containerized
+     * deploy can point PDF rendering at the INTERNAL service URL
+     * (e.g. http://frontend:3000) while share links stay on the public domain.
+     * Falls back to `frontendUrl` when PDF_FRONTEND_URL is unset.
+     */
+    frontendUrl: string;
   };
 }
 
@@ -99,6 +107,8 @@ export default (): AppConfig => {
     pdf: {
       executablePath: process.env.PUPPETEER_EXECUTABLE_PATH ?? '',
       renderTimeoutMs: parseInt(process.env.PDF_RENDER_TIMEOUT_MS ?? '60000', 10),
+      frontendUrl:
+        process.env.PDF_FRONTEND_URL ?? process.env.FRONTEND_URL ?? 'http://localhost:3000',
     },
   };
 };

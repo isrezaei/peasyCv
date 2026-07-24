@@ -16,8 +16,10 @@ describe('resume write builders', () => {
       pageMargin: 18,
       sectionSpacing: 8,
       columnIntensity: 1.2,
+      columnWidth: 'large',
       showSectionIcons: true,
-      columnStyle: 'modern',
+      showSectionSeparators: true,
+      atsMode: true,
     };
     expect(buildThemeData(theme)).toEqual(theme);
   });
@@ -31,6 +33,7 @@ describe('resume write builders', () => {
       email: '',
       dateOfBirth: '',
       nationality: '',
+      militaryService: '',
       links: [],
       profileImage: null,
       uppercaseName: true,
@@ -45,6 +48,7 @@ describe('resume write builders', () => {
         photo: false,
         dateOfBirth: true,
         nationality: false,
+        militaryService: false,
       },
     };
 
@@ -108,8 +112,26 @@ describe('createDefaultResumeData', () => {
       'certifications',
       'achievements',
     ]);
-    expect(resume.languages).toHaveLength(2);
-    expect(resume.achievements).toHaveLength(1);
+    expect(resume.experience).toHaveLength(4);
+    expect(resume.experience.every((e) => e.responsibilities.length === 2)).toBe(true);
+    expect(resume.education).toHaveLength(4);
+    expect(resume.skills).toHaveLength(1);
+    expect(resume.skills[0].skills).toHaveLength(1);
+    // Skills display defaults: visible group title, mid-scale level, tag row
+    // with no level meter and the line meter pre-selected for when it turns on.
+    expect(resume.skills[0].showTitle).toBe(true);
+    expect(resume.skills[0].skills[0].level).toBe(3);
+    expect(
+      resume.sections.every(
+        (s) =>
+          s.skillDisplayMode === 'row' && s.skillShowLevel === false && s.skillMeterVariant === 'line',
+      ),
+    ).toBe(true);
+    expect(resume.languages).toHaveLength(1);
+    expect(resume.achievements).toHaveLength(2);
+    // No pre-filled example content anywhere — everything placeholder-driven.
+    expect(resume.experience.every((e) => e.jobTitle === '' && e.companyName === '')).toBe(true);
+    expect(resume.education.every((e) => e.degree === '' && e.university === '')).toBe(true);
     expect(resume.theme.themeId).toBe('indigo');
     expect(resume.personalInfo.profileImage).toBeNull();
     // Every section carries a sequential order starting at 0.

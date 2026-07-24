@@ -21,21 +21,22 @@ const LAYOUT: ColumnTemplateLayout = {
 
 export function DoubleColumnTemplate({ resume, theme }: TemplateProps) {
   const colors = resolveTheme(theme);
-  const backgroundColor = theme.pageBackground === "white" ? "#FFFFFF" : colors.soft;
+  // Page is ALWAYS white (pageBackground is a dead field — see ThemeSettings).
+  const backgroundColor = "#FFFFFF";
   const fontStack = getFontStack(theme.fontFamily);
   const gap = `${theme.sectionSpacing}mm`;
   const pages = useColumnLayout(resume, LAYOUT);
 
-  const renderSection = ({ section, itemIds, showTitle }: ColumnSectionRun) => (
+  const renderSection = ({ section, itemIds, showTitle, itemSlices }: ColumnSectionRun) => (
     <SectionColumnItem
       section={section}
       resume={resume}
       accent={colors.accent}
       soft={colors.soft}
       markerColor={colors.marker}
-      showRule
       compact
       itemIds={itemIds}
+      itemSlices={itemSlices}
       showTitle={showTitle}
     />
   );
@@ -60,11 +61,16 @@ export function DoubleColumnTemplate({ resume, theme }: TemplateProps) {
                 <PersonalInfoBlock accentColor={colors.accent} markerColor={colors.marker} />
               </Box>
             ) : null}
+            {/* Inter-column separator removed at the user's request. It was a
+                vertical 1px rule (`alignSelf="stretch"`), so it only ever occupied
+                horizontal space inside the HStack's `gap="6"` — no section gained
+                or lost vertical height. Without it the two columns simply share the
+                single 6mm gap the pagination width model (`flex.gapMm`) already
+                assumes, so the estimate is unchanged. */}
             <HStack align="flex-start" gap="6">
               <VStack align="stretch" flex="1.7" minW="0" gap="0">
                 <ColumnBody blocks={pages.main[page] ?? []} sections={resume.sections} renderSection={renderSection} />
               </VStack>
-              <Box width="1px" alignSelf="stretch" bg="border" />
               <VStack align="stretch" flex="1" minW="0" gap="0">
                 <ColumnBody blocks={pages.side[page] ?? []} sections={resume.sections} renderSection={renderSection} />
               </VStack>

@@ -20,11 +20,12 @@ export function SectionDirectionControl({ section }: SectionDirectionControlProp
 
   return (
     <VStack align="stretch" gap="2">
-      <Text fontSize="xs" fontWeight="medium" color="fg.muted">
+      <Text m={0} fontSize="xs"  color="fg.muted">
         {t.sectionPanel.direction}
       </Text>
       <SegmentGroup.Root
-        size="sm"
+        size="xs"
+        fontSize={"xs"}
         width="100%"
         value={section.direction}
         onValueChange={(details) => {

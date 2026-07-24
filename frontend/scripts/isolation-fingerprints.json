@@ -1,0 +1,1031 @@
+{
+  "professional-single-column": {
+    "pageCount": 2,
+    "pageHeights": [
+      1122.52,
+      1122.52
+    ],
+    "pageBase": 15,
+    "respLists": [
+      {
+        "rowGap": 4,
+        "marginTop": 16,
+        "rows": 2
+      },
+      {
+        "rowGap": 4,
+        "marginTop": 16,
+        "rows": 2
+      },
+      {
+        "rowGap": 4,
+        "marginTop": 8,
+        "rows": 2
+      }
+    ],
+    "skillBullets": [
+      14,
+      14,
+      14,
+      14,
+      14,
+      14
+    ],
+    "summaryEm": 0.92,
+    "contactOrder": [
+      "۰۹۱۲۳۴۵۶۷۸۹",
+      "sara@example.com",
+      "تهران، ایران",
+      "LinkedIn"
+    ],
+    "h2s": [
+      {
+        "text": "درباره من",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "تجربه کاری",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "مهارت‌ها",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "تحصیلات",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "پروژه‌ها",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "زبان‌ها",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "گواهینامه‌ها",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "دستاوردها",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(91, 91, 214)"
+      }
+    ],
+    "subtitleNowrap": [
+      "nowrap",
+      "nowrap"
+    ],
+    "inputCount": 39
+  },
+  "double-column": {
+    "pageCount": 2,
+    "pageHeights": [
+      1122.52,
+      1122.52
+    ],
+    "pageBase": 15,
+    "respLists": [
+      {
+        "rowGap": 4,
+        "marginTop": 16,
+        "rows": 2
+      },
+      {
+        "rowGap": 4,
+        "marginTop": 16,
+        "rows": 2
+      },
+      {
+        "rowGap": 4,
+        "marginTop": 8,
+        "rows": 2
+      }
+    ],
+    "skillBullets": [
+      14,
+      14,
+      14,
+      14,
+      14,
+      14
+    ],
+    "summaryEm": 0.92,
+    "contactOrder": [
+      "۰۹۱۲۳۴۵۶۷۸۹",
+      "sara@example.com",
+      "تهران، ایران",
+      "LinkedIn"
+    ],
+    "h2s": [
+      {
+        "text": "درباره من",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "تجربه کاری",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "مهارت‌ها",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "دستاوردها",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "تحصیلات",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "پروژه‌ها",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "زبان‌ها",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "گواهینامه‌ها",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(91, 91, 214)"
+      }
+    ],
+    "subtitleNowrap": [
+      "nowrap",
+      "nowrap"
+    ],
+    "inputCount": 39
+  },
+  "sidebar-column": {
+    "pageCount": 2,
+    "pageHeights": [
+      1122.52,
+      1122.52
+    ],
+    "pageBase": 15,
+    "respLists": [
+      {
+        "rowGap": 4,
+        "marginTop": 16,
+        "rows": 2
+      },
+      {
+        "rowGap": 4,
+        "marginTop": 16,
+        "rows": 2
+      },
+      {
+        "rowGap": 4,
+        "marginTop": 8,
+        "rows": 2
+      }
+    ],
+    "skillBullets": [
+      14,
+      14,
+      14,
+      14,
+      14,
+      14
+    ],
+    "summaryEm": 0.92,
+    "contactOrder": [
+      "۰۹۱۲۳۴۵۶۷۸۹",
+      "sara@example.com",
+      "تهران، ایران",
+      "LinkedIn"
+    ],
+    "h2s": [
+      {
+        "text": "دستاوردها",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(82, 82, 193)"
+      },
+      {
+        "text": "درباره من",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "تجربه کاری",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "مهارت‌ها",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "تحصیلات",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "پروژه‌ها",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "زبان‌ها",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "گواهینامه‌ها",
+        "em": 1.08,
+        "weight": "700",
+        "ls": "-0.162px",
+        "color": "rgb(91, 91, 214)"
+      }
+    ],
+    "subtitleNowrap": [
+      "nowrap",
+      "nowrap"
+    ],
+    "inputCount": 39
+  },
+  "header-band": {
+    "pageCount": 1,
+    "pageHeights": [
+      1122.52
+    ],
+    "pageBase": 15,
+    "respLists": [
+      {
+        "rowGap": 4,
+        "marginTop": 16,
+        "rows": 2
+      },
+      {
+        "rowGap": 4,
+        "marginTop": 16,
+        "rows": 2
+      },
+      {
+        "rowGap": 4,
+        "marginTop": 8,
+        "rows": 2
+      }
+    ],
+    "skillBullets": [
+      14,
+      14,
+      14,
+      14,
+      14,
+      14
+    ],
+    "summaryEm": 0.92,
+    "contactOrder": [
+      "۰۹۱۲۳۴۵۶۷۸۹",
+      "sara@example.com",
+      "تهران، ایران",
+      "LinkedIn"
+    ],
+    "h2s": [
+      {
+        "text": "درباره من",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "تجربه کاری",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "تحصیلات",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "مهارت‌ها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "پروژه‌ها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "زبان‌ها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "گواهینامه‌ها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "دستاوردها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      }
+    ],
+    "subtitleNowrap": [
+      "nowrap",
+      "nowrap"
+    ],
+    "inputCount": 39
+  },
+  "aside-dark": {
+    "pageCount": 2,
+    "pageHeights": [
+      1122.52,
+      1122.52
+    ],
+    "pageBase": 15,
+    "respLists": [
+      {
+        "rowGap": 4,
+        "marginTop": 16,
+        "rows": 2
+      },
+      {
+        "rowGap": 4,
+        "marginTop": 16,
+        "rows": 2
+      },
+      {
+        "rowGap": 4,
+        "marginTop": 8,
+        "rows": 2
+      }
+    ],
+    "skillBullets": [
+      14,
+      14,
+      14,
+      14,
+      14,
+      14
+    ],
+    "summaryEm": 0.92,
+    "contactOrder": [
+      "۰۹۱۲۳۴۵۶۷۸۹",
+      "sara@example.com",
+      "تهران، ایران",
+      "LinkedIn"
+    ],
+    "h2s": [
+      {
+        "text": "درباره من",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "تجربه کاری",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "تحصیلات",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "مهارت‌ها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(255, 255, 255)"
+      },
+      {
+        "text": "پروژه‌ها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(255, 255, 255)"
+      },
+      {
+        "text": "زبان‌ها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(255, 255, 255)"
+      },
+      {
+        "text": "گواهینامه‌ها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(255, 255, 255)"
+      },
+      {
+        "text": "دستاوردها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      }
+    ],
+    "subtitleNowrap": [
+      "nowrap",
+      "nowrap"
+    ],
+    "inputCount": 39
+  },
+  "aside-photo": {
+    "pageCount": 2,
+    "pageHeights": [
+      1122.52,
+      1122.52
+    ],
+    "pageBase": 15,
+    "respLists": [
+      {
+        "rowGap": 4,
+        "marginTop": 16,
+        "rows": 2
+      },
+      {
+        "rowGap": 4,
+        "marginTop": 16,
+        "rows": 2
+      },
+      {
+        "rowGap": 4,
+        "marginTop": 8,
+        "rows": 2
+      }
+    ],
+    "skillBullets": [
+      14,
+      14,
+      14,
+      14,
+      14,
+      14
+    ],
+    "summaryEm": 0.92,
+    "contactOrder": [
+      "۰۹۱۲۳۴۵۶۷۸۹",
+      "sara@example.com",
+      "تهران، ایران",
+      "LinkedIn"
+    ],
+    "h2s": [
+      {
+        "text": "پروژه‌ها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(82, 82, 193)"
+      },
+      {
+        "text": "زبان‌ها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(82, 82, 193)"
+      },
+      {
+        "text": "گواهینامه‌ها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(82, 82, 193)"
+      },
+      {
+        "text": "درباره من",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "تجربه کاری",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "مهارت‌ها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "تحصیلات",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "دستاوردها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      }
+    ],
+    "subtitleNowrap": [
+      "nowrap",
+      "nowrap"
+    ],
+    "inputCount": 39
+  },
+  "compact-duo": {
+    "pageCount": 2,
+    "pageHeights": [
+      1122.52,
+      1122.52
+    ],
+    "pageBase": 15,
+    "respLists": [
+      {
+        "rowGap": 4,
+        "marginTop": 16,
+        "rows": 2
+      },
+      {
+        "rowGap": 4,
+        "marginTop": 16,
+        "rows": 2
+      },
+      {
+        "rowGap": 4,
+        "marginTop": 8,
+        "rows": 2
+      }
+    ],
+    "skillBullets": [
+      14,
+      14,
+      14,
+      14,
+      14,
+      14
+    ],
+    "summaryEm": 0.92,
+    "contactOrder": [
+      "۰۹۱۲۳۴۵۶۷۸۹",
+      "sara@example.com",
+      "تهران، ایران",
+      "LinkedIn"
+    ],
+    "h2s": [
+      {
+        "text": "تجربه کاری",
+        "em": 0.82,
+        "weight": "800",
+        "ls": "-0.123px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "مهارت‌ها",
+        "em": 0.82,
+        "weight": "800",
+        "ls": "-0.123px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "تحصیلات",
+        "em": 0.82,
+        "weight": "800",
+        "ls": "-0.123px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "درباره من",
+        "em": 0.82,
+        "weight": "800",
+        "ls": "-0.123px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "زبان‌ها",
+        "em": 0.82,
+        "weight": "800",
+        "ls": "-0.123px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "گواهینامه‌ها",
+        "em": 0.82,
+        "weight": "800",
+        "ls": "-0.123px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "پروژه‌ها",
+        "em": 0.82,
+        "weight": "800",
+        "ls": "-0.123px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "دستاوردها",
+        "em": 0.82,
+        "weight": "800",
+        "ls": "-0.123px",
+        "color": "rgb(91, 91, 214)"
+      }
+    ],
+    "subtitleNowrap": [
+      "nowrap",
+      "nowrap"
+    ],
+    "inputCount": 39
+  },
+  "ruled-single": {
+    "pageCount": 2,
+    "pageHeights": [
+      1122.52,
+      1122.52
+    ],
+    "pageBase": 15,
+    "respLists": [
+      {
+        "rowGap": 4,
+        "marginTop": 16,
+        "rows": 2
+      },
+      {
+        "rowGap": 4,
+        "marginTop": 16,
+        "rows": 2
+      },
+      {
+        "rowGap": 4,
+        "marginTop": 8,
+        "rows": 2
+      }
+    ],
+    "skillBullets": [
+      14,
+      14,
+      14,
+      14,
+      14,
+      14
+    ],
+    "summaryEm": 0.92,
+    "contactOrder": [
+      "۰۹۱۲۳۴۵۶۷۸۹",
+      "sara@example.com",
+      "تهران، ایران",
+      "LinkedIn"
+    ],
+    "h2s": [
+      {
+        "text": "درباره من",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "تجربه کاری",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "مهارت‌ها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "تحصیلات",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "پروژه‌ها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "زبان‌ها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "گواهینامه‌ها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "دستاوردها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      }
+    ],
+    "subtitleNowrap": [
+      "nowrap",
+      "nowrap"
+    ],
+    "inputCount": 39
+  },
+  "classic-centered": {
+    "pageCount": 2,
+    "pageHeights": [
+      1122.52,
+      1122.52
+    ],
+    "pageBase": 15,
+    "respLists": [
+      {
+        "rowGap": 4,
+        "marginTop": 16,
+        "rows": 2
+      },
+      {
+        "rowGap": 4,
+        "marginTop": 16,
+        "rows": 2
+      },
+      {
+        "rowGap": 4,
+        "marginTop": 8,
+        "rows": 2
+      }
+    ],
+    "skillBullets": [
+      14,
+      14,
+      14,
+      14,
+      14,
+      14
+    ],
+    "summaryEm": 0.92,
+    "contactOrder": [
+      "۰۹۱۲۳۴۵۶۷۸۹",
+      "sara@example.com",
+      "تهران، ایران",
+      "LinkedIn"
+    ],
+    "h2s": [
+      {
+        "text": "درباره من",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "تجربه کاری",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "مهارت‌ها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "تحصیلات",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "پروژه‌ها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "زبان‌ها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "گواهینامه‌ها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "دستاوردها",
+        "em": 1.04,
+        "weight": "700",
+        "ls": "-0.156px",
+        "color": "rgb(91, 91, 214)"
+      }
+    ],
+    "subtitleNowrap": [
+      "nowrap",
+      "nowrap"
+    ],
+    "inputCount": 39
+  },
+  "timeline-panel": {
+    "pageCount": 1,
+    "pageHeights": [
+      1122.52
+    ],
+    "pageBase": 15,
+    "respLists": [
+      {
+        "rowGap": 3,
+        "marginTop": 6,
+        "rows": 2
+      },
+      {
+        "rowGap": 3,
+        "marginTop": 6,
+        "rows": 2
+      }
+    ],
+    "skillBullets": [
+      11.5,
+      11.5,
+      11.5,
+      11.5,
+      12.5
+    ],
+    "summaryEm": 0.8,
+    "contactOrder": [
+      "۰۹۱۲۳۴۵۶۷۸۹",
+      "sara@example.com",
+      "LinkedIn",
+      "تهران، ایران"
+    ],
+    "h2s": [
+      {
+        "text": "درباره من",
+        "em": 1.267,
+        "weight": "800",
+        "ls": "0.570015px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "تجربه کاری",
+        "em": 1.267,
+        "weight": "800",
+        "ls": "0.570015px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "پروژه‌ها",
+        "em": 1.267,
+        "weight": "800",
+        "ls": "0.570015px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "گواهینامه‌ها",
+        "em": 1.267,
+        "weight": "800",
+        "ls": "0.570015px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "دستاوردها",
+        "em": 1.267,
+        "weight": "800",
+        "ls": "0.570015px",
+        "color": "rgb(91, 91, 214)"
+      },
+      {
+        "text": "تماس",
+        "em": 0.933,
+        "weight": "800",
+        "ls": "0.27999px",
+        "color": "rgb(73, 73, 171)"
+      },
+      {
+        "text": "مهارت‌ها",
+        "em": 0.933,
+        "weight": "800",
+        "ls": "0.27999px",
+        "color": "rgb(73, 73, 171)"
+      },
+      {
+        "text": "تحصیلات",
+        "em": 0.933,
+        "weight": "800",
+        "ls": "0.27999px",
+        "color": "rgb(73, 73, 171)"
+      },
+      {
+        "text": "زبان‌ها",
+        "em": 0.933,
+        "weight": "800",
+        "ls": "0.27999px",
+        "color": "rgb(73, 73, 171)"
+      }
+    ],
+    "subtitleNowrap": [
+      "normal",
+      "normal"
+    ],
+    "inputCount": 39
+  }
+}

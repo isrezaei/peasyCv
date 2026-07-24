@@ -6,7 +6,7 @@
 import type {
   BackgroundPatternId,
   CalendarSystem,
-  ColumnStyle,
+  ColumnWidthId,
   FontFamilyId,
   LanguageLevel,
   LanguageMeterVariant,
@@ -15,6 +15,8 @@ import type {
   PageBackgroundMode,
   PhotoStyle,
   RemovableSectionType,
+  SkillDisplayMode,
+  SkillMeterVariant,
   TemplateId,
   ThemeId,
 } from '@resume/types';
@@ -97,16 +99,21 @@ export const FONT_FAMILIES: FontFamilyId[] = [
   'inter',
 ];
 
-export const PHOTO_STYLES: PhotoStyle[] = ['round', 'square'];
+export const PHOTO_STYLES: PhotoStyle[] = ['round', 'square', 'sharp'];
 
 export const IMAGE_SIDES: ImageSide[] = ['left', 'right'];
 
 export const CALENDAR_SYSTEMS: CalendarSystem[] = ['jalali', 'hijri', 'gregorian'];
 
+export const COLUMN_WIDTHS: ColumnWidthId[] = ['small', 'medium', 'large', 'xlarge'];
+
 export const LANGUAGE_LEVELS: LanguageLevel[] = [1, 2, 3, 4, 5];
 
 export const LANGUAGE_METER_VARIANTS: LanguageMeterVariant[] = ['bars', 'dots', 'pill', 'line'];
 
-export const MONTH_FORMATS: MonthFormat[] = ['name', 'number'];
+export const SKILL_DISPLAY_MODES: SkillDisplayMode[] = ['row', 'list'];
 
-export const COLUMN_STYLES: ColumnStyle[] = ['classic', 'modern'];
+// The skill meter reuses the Languages meter shapes, minus the pill.
+export const SKILL_METER_VARIANTS: SkillMeterVariant[] = ['bars', 'dots', 'line'];
+
+export const MONTH_FORMATS: MonthFormat[] = ['name', 'number'];

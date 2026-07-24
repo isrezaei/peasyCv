@@ -12,8 +12,9 @@ import { useResumeDocument } from "@/hooks/store/useResumeDocument";
 import { type ColumnTemplateLayout, useColumnLayout } from "@/hooks/resume/useColumnLayout";
 import { getFontStack } from "@/lib/fonts/registry";
 import { t } from "@/lib/i18n";
-import { MODERN_COLUMN_INSET_MM, PAGE_MARGIN_MM, SIDE_COLUMN_PAD_FACTOR } from "@/lib/pagination";
+import { PAGE_MARGIN_MM, resolveSideWidthMm, SIDE_COLUMN_PAD_FACTOR } from "@/lib/pagination";
 import {
+  columnTint,
   darken,
   ensureReadable,
   isDarkSurface,
@@ -21,12 +22,12 @@ import {
   ON_DARK_SURFACE_TEXT,
   resolveTheme,
   resumeTextVars,
-  tintColor,
 } from "@/lib/themes";
 import type { RemovableSectionType, TemplateProps } from "@/types";
 
-/** Outer width (mm) of the tinted sidebar — the ONE source the rendered column
- *  and the pagination width model both read. */
+/** BASE outer width (mm) of the tinted sidebar — the ONE source the rendered
+ *  column and the pagination width model both read. The theme's "Column Layout"
+ *  preset offsets it via {@link resolveSideWidthMm}. */
 const SIDE_WIDTH_MM = 64;
 
 const LAYOUT: ColumnTemplateLayout = {
@@ -35,20 +36,19 @@ const LAYOUT: ColumnTemplateLayout = {
   // the main column.
   sideTypes: new Set<RemovableSectionType>(["achievements"]),
   sideWidthMm: SIDE_WIDTH_MM,
-  // This template paints the theme's modern column style, so the width model
-  // may apply the modern inset (see useColumnLayout).
-  supportsColumnStyle: true,
+  sideWidthAdjustable: true,
   header: {
     kind: "split",
     main: { identity: true },
-    side: { photo: true, photoSizePx: 96, contacts: true, contactsPerRow: 1, layout: "stack" },
+    side: { photo: true, photoSizePx: 116, contacts: true, contactsPerRow: 1, layout: "stack" },
   },
 };
 
 export function SidebarColumnTemplate({ resume, theme }: TemplateProps) {
   const personalInfo = useResumeDocument().personalInfo;
   const colors = resolveTheme(theme);
-  const mainBg = theme.pageBackground === "white" ? "#FFFFFF" : colors.soft;
+  // Page is ALWAYS white (pageBackground is a dead field — see ThemeSettings).
+  const mainBg = "#FFFFFF";
   const fontStack = getFontStack(theme.fontFamily);
   const gap = `${theme.sectionSpacing}mm`;
   // Vertical margin is the fixed 16mm page margin (equal top/bottom on every page);
@@ -57,23 +57,13 @@ export function SidebarColumnTemplate({ resume, theme }: TemplateProps) {
   const padX = `${theme.pageMargin}mm`;
   const sidePadX = `${(theme.pageMargin * SIDE_COLUMN_PAD_FACTOR).toFixed(1)}mm`;
   const nameGap = `${(theme.sectionSpacing * 0.5).toFixed(1)}mm`;
-  // "modern" column style: the sidebar becomes a rounded box inset from the A4
-  // edges. It keeps its INNER boundary (the main column is untouched) — the
-  // outer edge and top/bottom pull in by the shared inset, and the vertical
-  // inset is margin traded for padding so the content still starts at the
-  // fixed 16mm page margin. The SAME inset useColumnLayout narrows the
-  // sidebar's content width by, so paint and reserve agree.
-  const modern = theme.columnStyle === "modern";
-  const insetMm = `${MODERN_COLUMN_INSET_MM.toFixed(2)}mm`;
-  const sideBoxW = modern
-    ? `${(SIDE_WIDTH_MM - MODERN_COLUMN_INSET_MM).toFixed(2)}mm`
-    : `${SIDE_WIDTH_MM}mm`;
-  const sidePadY = modern ? `${(PAGE_MARGIN_MM - MODERN_COLUMN_INSET_MM).toFixed(2)}mm` : padY;
+  const sideBoxW = `${resolveSideWidthMm(SIDE_WIDTH_MM, theme.columnWidth)}mm`;
+  const sidePadY = padY;
   const pages = useColumnLayout(resume, LAYOUT);
 
   // In vivid, `marker` equals `base`, so the fill keeps sourcing the palette's
   // secondary exactly as before; classic (marker unset) is byte-identical.
-  const sidebarBg = tintColor(colors.marker ?? colors.base, 0.45, theme.columnIntensity);
+  const sidebarBg = columnTint(colors.marker ?? colors.base, 0.45, theme.columnIntensity);
   // F: keep the accent-family text on a light tint (its proven look), but flip the
   // whole tier — heading, body, chip AND placeholder — to the white family when a
   // saturated palette or a high column-intensity pushes the tint dark, so the
@@ -89,29 +79,34 @@ export function SidebarColumnTemplate({ resume, theme }: TemplateProps) {
     ? ON_DARK_SURFACE_TEXT.chip
     : colors.marker ?? mixWithWhite(colors.accent, 0.84);
   const sidebarPlaceholder = sidebarOnDark ? ON_DARK_SURFACE_TEXT.placeholder : undefined;
+  // On a dark sidebar the vivid marker override is dropped, so contact/link icons
+  // and the section decorations fall back to the adaptive white-family colours
+  // instead of keeping a raw hue that may not read on the dark fill.
+  const sidebarMarker = sidebarOnDark ? undefined : colors.marker;
 
-  const renderSide = ({ section, itemIds, showTitle }: ColumnSectionRun) => (
+  const renderSide = ({ section, itemIds, showTitle, itemSlices }: ColumnSectionRun) => (
     <SectionColumnItem
       section={section}
       resume={resume}
       accent={sidebarText}
       soft={sidebarChip}
       titleColor={sidebarHeading}
-      markerColor={colors.marker}
-      showRule
+      markerColor={sidebarMarker}
+      tone={sidebarOnDark ? "onDark" : "onLight"}
       itemIds={itemIds}
+      itemSlices={itemSlices}
       showTitle={showTitle}
     />
   );
-  const renderMain = ({ section, itemIds, showTitle }: ColumnSectionRun) => (
+  const renderMain = ({ section, itemIds, showTitle, itemSlices }: ColumnSectionRun) => (
     <SectionColumnItem
       section={section}
       resume={resume}
       accent={colors.accent}
       soft={colors.soft}
       markerColor={colors.marker}
-      showRule
       itemIds={itemIds}
+      itemSlices={itemSlices}
       showTitle={showTitle}
     />
   );
@@ -139,11 +134,6 @@ export function SidebarColumnTemplate({ resume, theme }: TemplateProps) {
               color={sidebarText}
               paddingBlock={sidePadY}
               paddingInline={sidePadX}
-              // The sidebar is the first (inline-start) child, so the modern
-              // inset margins push it off the start edge and the top/bottom.
-              marginInlineStart={modern ? insetMm : "0"}
-              marginBlock={modern ? insetMm : "0"}
-              borderRadius={modern ? "2xl" : "0"}
               gap="0"
               dir="rtl"
               style={resumeTextVars(sidebarHeading, sidebarText, sidebarHeading, sidebarPlaceholder)}
@@ -152,16 +142,24 @@ export function SidebarColumnTemplate({ resume, theme }: TemplateProps) {
                 <VStack align="stretch" gap={gap} mb={gap}>
                   {personalInfo.fieldVisibility.photo ? (
                     <Box alignSelf="center">
-                      <ProfileImageEditor size="96px" />
+                      <ProfileImageEditor size="116px" />
                     </Box>
                   ) : null}
-                  <PersonalInfoContacts accentColor={sidebarHeading} color={sidebarText} markerColor={colors.marker} />
+                  <PersonalInfoContacts accentColor={sidebarHeading} color={sidebarText} markerColor={sidebarMarker} />
                 </VStack>
               ) : null}
               <ColumnBody blocks={pages.side[page] ?? []} sections={resume.sections} renderSection={renderSide} />
               <Box flex="1" />
               {page === pages.pageCount - 1 ? (
-                <Text fontSize="2xs" color={sidebarHeading} opacity="0.7" textAlign="center" mt={gap}>
+                // Editor-only brand footer: `no-print` keeps it out of the PDF.
+                <Text
+                  className="no-print"
+                  fontSize="2xs"
+                  color={sidebarHeading}
+                  opacity="0.7"
+                  textAlign="center"
+                  mt={gap}
+                >
                   {t.app.title}
                 </Text>
               ) : null}

@@ -17,6 +17,7 @@ const FIELD_LABELS: { key: keyof PersonalInfoFieldVisibility; label: string }[] 
   { key: "photo", label: t.personalInfo.profileImage },
   { key: "dateOfBirth", label: t.personalInfo.dateOfBirth },
   { key: "nationality", label: t.personalInfo.nationality },
+  { key: "militaryService", label: t.personalInfo.militaryService },
 ];
 
 interface PersonalInfoSettingsProps {
@@ -107,7 +108,11 @@ export function PersonalInfoSettings({
             width="100%"
             value={personalInfo.photoStyle}
             onValueChange={(details) =>
-              setPhotoStyle(details.value === "square" ? "square" : "round")
+              setPhotoStyle(
+                details.value === "square" || details.value === "sharp"
+                  ? details.value
+                  : "round",
+              )
             }
           >
             <SegmentGroup.Indicator />
@@ -116,6 +121,7 @@ export function PersonalInfoSettings({
               items={[
                 { value: "round", label: t.personalInfo.photoRound },
                 { value: "square", label: t.personalInfo.photoSquare },
+                { value: "sharp", label: t.personalInfo.photoSharp },
               ]}
             />
           </SegmentGroup.Root>

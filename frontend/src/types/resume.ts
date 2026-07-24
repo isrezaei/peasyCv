@@ -17,6 +17,10 @@ export interface ResumeData extends Timestamped {
   title: string;
   locale: "fa" | "en";
   templateId: TemplateId;
+  /** Per-resume occupation-category id (lib/occupationCategories.ts); null =
+   *  not chosen. Optional so pre-existing persisted payloads stay assignable —
+   *  normalizeResume backfills it to null on hydration. */
+  occupationCategory?: string | null;
   theme: ThemeSettings;
   sections: SectionMeta[];
   personalInfo: PersonalInfo;

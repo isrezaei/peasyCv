@@ -17,6 +17,18 @@ const nextConfig: NextConfig = {
   // Defaults to ".next"; an alternate dir can be supplied (e.g. to build while a
   // dev server holds the default one open on Windows) without affecting normal runs.
   distDir: process.env.NEXT_DIST_DIR || '.next',
+  // The studio is an application, not indexable content: send X-Robots-Tag on
+  // every response so crawlers skip it at the host level (belt-and-braces with
+  // the `robots` metadata in app/layout.tsx). The public marketing site lives on
+  // a separate host (peasycv.ir) and is the surface meant to rank.
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

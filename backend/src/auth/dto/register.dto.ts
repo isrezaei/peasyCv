@@ -1,5 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEmail, IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { OCCUPATION_IDS, type OccupationId } from '../occupation.constants';
 
 export class RegisterDto {
   @ApiProperty({ example: 'sara@example.com', description: 'Unique account email.' })
@@ -21,4 +22,13 @@ export class RegisterDto {
   @IsString()
   @MaxLength(120)
   name?: string;
+
+  @ApiPropertyOptional({
+    enum: OCCUPATION_IDS,
+    example: 'software-engineering',
+    description: 'Self-declared occupation from the fixed list. Optional at signup.',
+  })
+  @IsOptional()
+  @IsIn(OCCUPATION_IDS)
+  occupation?: OccupationId;
 }
