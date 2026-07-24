@@ -5,6 +5,8 @@ export interface ResumeSummary {
   id: string;
   title: string;
   templateId: TemplateId;
+  /** Occupation-category id for this resume (null = not chosen → «آزاد»). */
+  occupationCategory: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -18,6 +20,18 @@ export interface ShareLink {
 /** The authenticated user's current (most recently updated) resume, or null. */
 export function getCurrentResume(): Promise<ResumeData | null> {
   return apiJson<ResumeData | null>("/resumes/current");
+}
+
+/** One full resume by id (owner only — 404 for anyone else's). */
+export function getResume(id: string): Promise<ResumeData> {
+  return apiJson<ResumeData>(`/resumes/${id}`);
+}
+
+/** Create a new server-seeded resume (all overrides optional). */
+export function createResume(
+  input: { title?: string; templateId?: TemplateId; locale?: "fa" | "en" } = {},
+): Promise<ResumeData> {
+  return apiJson<ResumeData>("/resumes", { method: "POST", body: JSON.stringify(input) });
 }
 
 export function listResumes(): Promise<ResumeSummary[]> {

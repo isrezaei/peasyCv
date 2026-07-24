@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
   Req,
   Res,
@@ -24,6 +25,7 @@ import type { AuthUser } from '../common/types/auth-user';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { AuthResponseDto, AuthTokensDto, UserProfileDto } from './dto/auth-response.dto';
@@ -85,6 +87,23 @@ export class AuthController {
   @ApiOkResponse({ type: UserProfileDto })
   async me(@CurrentUser('id') userId: string): Promise<UserProfileDto> {
     const user = await this.users.getByIdOrThrow(userId);
+    return this.users.toProfile(user);
+  }
+
+  @ApiBearerAuth('access-token')
+  @Patch('me')
+  @ApiOperation({
+    summary:
+      'Update the current user profile (occupation category only — the write path for the one-time category prompt and the dashboard selector).',
+  })
+  @ApiOkResponse({ type: UserProfileDto })
+  async updateMe(
+    @CurrentUser('id') userId: string,
+    @Body() dto: UpdateProfileDto,
+  ): Promise<UserProfileDto> {
+    const user = dto.occupationCategory
+      ? await this.users.setOccupationCategory(userId, dto.occupationCategory)
+      : await this.users.getByIdOrThrow(userId);
     return this.users.toProfile(user);
   }
 

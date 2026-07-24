@@ -9,13 +9,18 @@ import {
   useImperativeHandle,
   useRef,
   type CSSProperties,
+  type ClipboardEvent,
   type KeyboardEvent,
 } from "react";
 import { useDeferredCommit } from "@/hooks/resume/useDeferredCommit";
 import { useInlineFormatting } from "@/hooks/resume/useInlineFormatting";
 import { focusEditableEnd, isEditableEmpty } from "@/lib/richtext/caret";
+import { normalizePastedHtml, plainTextToHtml } from "@/lib/richtext/paste";
 import { sanitizeRichText, toEditableHtml } from "@/lib/richtext/sanitize";
+import { isBlank } from "@/lib/resume/emptyFields";
+import { useEmptyHighlightActive } from "./EmptyHighlightContext";
 import { FormattingPopover } from "./FormattingPopover";
+import { usePrintText } from "./PrintTextContext";
 
 /** Imperative handle so a list owner can move the caret into a field (e.g. after
  *  a Backspace-delete moves focus to the previous line). */
@@ -46,6 +51,11 @@ interface RichTextFieldProps {
    * behaves normally (prose fields like the summary keep their line breaks).
    */
   onEnter?: () => void;
+  /**
+   * Opt this field into download-time empty-field validation (see EditableText's
+   * `validate`). Editor-only marker — never provided on /print or /share.
+   */
+  validate?: boolean;
 }
 
 // Reads as plain résumé prose, inherits the surrounding typography, and never
@@ -91,13 +101,21 @@ export const RichTextField = memo(
       textAlign,
       onBackspaceWhenEmpty,
       onEnter,
+      validate,
     },
     ref,
   ) {
     const el = useRef<HTMLDivElement | null>(null);
+    const plainText = usePrintText();
 
     // Defer store commits until the user pauses or leaves the field.
     const { value: liveValue, setValue, flush } = useDeferredCommit(value, onChange);
+
+    // Empty-field validation marker (editor-only, same contract as EditableText):
+    // the placeholder gets the soft-red band while this field opted in, a blocked
+    // download turned the highlights on, and the value is still blank.
+    const highlightActive = useEmptyHighlightActive();
+    const showEmptyHighlight = Boolean(validate) && highlightActive && isBlank(liveValue);
 
     const emitChange = useCallback(() => {
       const node = el.current;
@@ -126,6 +144,30 @@ export const RichTextField = memo(
       flush();
     }, [close, flush]);
 
+    // Normalize pasted content to the editor's own subset (text, line breaks,
+    // bold/italic/underline) so it inherits the field's typography exactly like
+    // typed text. Without this the browser inserts the clipboard's raw HTML —
+    // foreign font-family/size/weight styles included. insertHTML is used for
+    // the same reason as useInlineFormatting's execCommand: it edits the live
+    // selection (replacing it when non-collapsed) and preserves the undo stack.
+    const handlePaste = useCallback(
+      (event: ClipboardEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        const html = event.clipboardData.getData("text/html");
+        const insert =
+          (html && normalizePastedHtml(html)) ||
+          plainTextToHtml(event.clipboardData.getData("text/plain"));
+        if (!insert) return;
+        try {
+          document.execCommand("insertHTML", false, insert);
+        } catch {
+          return;
+        }
+        emitChange();
+      },
+      [emitChange],
+    );
+
     const handleKeyDown = useCallback(
       (event: KeyboardEvent<HTMLDivElement>) => {
         // Never hijack keys mid-IME-composition.
@@ -142,16 +184,48 @@ export const RichTextField = memo(
         // Plain Enter splits the list into a new item; Shift+Enter keeps a line break.
         if (event.key === "Enter" && !event.shiftKey && onEnter) {
           event.preventDefault();
+          // Commit this line's deferred text first, so anything the add action
+          // consults (the page-bottom boundary probe reads the store's resume)
+          // sees the field's final content, not a debounce-stale value.
+          flush();
           onEnter();
         }
       },
-      [onBackspaceWhenEmpty, onEnter],
+      [onBackspaceWhenEmpty, onEnter, flush],
     );
+
+    // Print/ATS surface: render the stored HTML as static text nodes (no
+    // contentEditable) so the PDF carries real, extractable prose. Empty prose
+    // renders an empty box — the placeholder never prints.
+    if (plainText) {
+      return (
+        <chakra.div
+          dir={dir}
+          fontFamily="inherit"
+          lineHeight="inherit"
+          fontSize={fontSize}
+          fontWeight={fontWeight}
+          color={color}
+          textAlign={textAlign}
+          css={{
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+            "& strong, & b": { fontWeight: "700" },
+            "& em, & i": { fontStyle: "italic" },
+            "& u": { textDecoration: "underline" },
+            "& p": { margin: 0 },
+            "& ul, & ol": { paddingInlineStart: "1.2em", margin: 0 },
+          }}
+          dangerouslySetInnerHTML={{ __html: toEditableHtml(liveValue) }}
+        />
+      );
+    }
 
     return (
       <>
         <chakra.div
           {...baseFieldProps}
+          {...(showEmptyHighlight ? { "data-empty-highlight": "true" } : null)}
           ref={el}
           contentEditable
           suppressContentEditableWarning
@@ -165,6 +239,7 @@ export const RichTextField = memo(
           color={color}
           textAlign={textAlign}
           onInput={emitChange}
+          onPaste={handlePaste}
           onKeyDown={handleKeyDown}
           onMouseUp={handleSelect}
           onKeyUp={handleSelect}
@@ -173,7 +248,12 @@ export const RichTextField = memo(
           css={{
             "&:empty:before": {
               content: "attr(data-placeholder)",
-              color: "var(--chakra-colors-fg-subtle)",
+              // Follows the surface via --rz-placeholder (set on tinted/dark
+              // columns); falls back to the default subtle grey elsewhere. When
+              // flagged empty, the placeholder text turns the literal spec red.
+              color: showEmptyHighlight
+                ? "#fb5858"
+                : "var(--rz-placeholder, var(--chakra-colors-fg-subtle))",
               fontWeight: "normal",
               pointerEvents: "none",
             },

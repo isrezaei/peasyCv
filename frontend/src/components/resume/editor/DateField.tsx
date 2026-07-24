@@ -12,7 +12,10 @@ import {
 import { t } from "@/lib/i18n";
 import type { CalendarSystem } from "@/types";
 import { CalendarPicker } from "./CalendarPicker";
+import { EMPTY_HIGHLIGHT_COLOR } from "./EditableText";
+import { useEmptyHighlightActive } from "./EmptyHighlightContext";
 import { MonthYearPicker } from "./MonthYearPicker";
+import { usePrintText } from "./PrintTextContext";
 
 interface DateFieldProps {
   /** Selected date as canonical ISO (Gregorian), or "" when unset. */
@@ -40,6 +43,14 @@ interface DateFieldProps {
    */
   present?: boolean;
   onPresentChange?: (present: boolean) => void;
+  /**
+   * Opt this date into download-time empty-field validation (same contract as
+   * EditableText's `validate`): when a blocked download turns the highlights on
+   * and the date is still unset, the trigger's placeholder text turns the literal
+   * validation red and the button opts into the shake via `data-empty-highlight`.
+   * An ongoing role (`present`) counts as filled, so it never highlights.
+   */
+  validate?: boolean;
 }
 
 const SYSTEM_LABELS: Record<CalendarSystem, string> = {
@@ -66,6 +77,7 @@ export function DateField({
   format,
   present = false,
   onPresentChange,
+  validate,
 }: DateFieldProps) {
   const { calendar, setDateCalendar } = useDateCalendar();
   const [open, setOpen] = useState(false);
@@ -75,6 +87,42 @@ export function DateField({
   const display = present
     ? t.calendars.present
     : formatStoredDate(value, system, format);
+
+  // Empty-field validation marker (editor-only, same contract as EditableText):
+  // an unset, non-ongoing date that opted in gets the red placeholder + the shake
+  // hook while a blocked download has the highlights on. Never provided on
+  // /print (usePrintText short-circuits above), so it can't reach a PDF.
+  const highlightActive = useEmptyHighlightActive();
+  const showEmptyHighlight = Boolean(validate) && highlightActive && !present && !value;
+
+  // Print surface: the date is a real text node (never the picker button), so the
+  // PDF carries extractable text and an unset date prints nothing — the button's
+  // placeholder label is an editor-only affordance.
+  const plainText = usePrintText();
+  if (plainText) {
+    if (!display) return null;
+    return (
+      <chakra.span
+        display="block"
+        dir="rtl"
+        textAlign="start"
+        fontSize={fontSize}
+        fontWeight={fontWeight}
+        fontFamily="inherit"
+        lineHeight="inherit"
+        color={color}
+        // The editor renders this date as a non-wrapping picker button; keep the
+        // print text node one line too. Without these, a sibling width-100% text
+        // field (the certification issuer) flex-squeezes this span and the date
+        // wraps to a second line that only exists on /print — painting the row
+        // taller than the editor and the height estimate.
+        whiteSpace="nowrap"
+        flexShrink={0}
+      >
+        {display}
+      </chakra.span>
+    );
+  }
 
   const handleSelect = (iso: string) => {
     onChange(iso);
@@ -99,6 +147,7 @@ export function DateField({
           type="button"
           dir="rtl"
           aria-label={t.calendars.pickDate}
+          {...(showEmptyHighlight ? { "data-empty-highlight": "true" } : null)}
           width="full"
           textAlign="start"
           border="none"
@@ -110,7 +159,9 @@ export function DateField({
           fontWeight={fontWeight}
           fontFamily="inherit"
           lineHeight="inherit"
-          color={display ? color : "fg.subtle"}
+          // Flagged empty → the placeholder text turns the literal validation red
+          // (a colour-only change, so it never shifts the row height/pagination).
+          color={showEmptyHighlight ? EMPTY_HIGHLIGHT_COLOR : display ? color : "fg.subtle"}
           transition="background 0.12s"
           cursor="pointer"
         >
@@ -123,9 +174,9 @@ export function DateField({
             width="auto"
             borderRadius="2xl"
             borderWidth="1px"
-            borderColor="blackAlpha.100"
+            borderColor={{ base: "blackAlpha.100", _dark: "border" }}
             boxShadow="lg"
-            bg="white"
+            bg="bg.panel"
             overflow="hidden"
             className="no-print"
           >
@@ -152,7 +203,7 @@ export function DateField({
                         fontSize="2xs"
                         fontWeight="medium"
                         whiteSpace="nowrap"
-                        bg={active ? "white" : "transparent"}
+                        bg={active ? { base: "white", _dark: "bg.emphasized" } : "transparent"}
                         color={active ? "accent.fg" : "fg.muted"}
                         boxShadow={active ? "sm" : "none"}
                         transition="background 0.12s, color 0.12s"
@@ -223,7 +274,7 @@ export function DateField({
                     px="1.5"
                     py="1"
                     borderRadius="md"
-                    _hover={{ bg: "blackAlpha.50", color: "red.fg" }}
+                    _hover={{ bg: { base: "blackAlpha.50", _dark: "bg.muted" }, color: "red.fg" }}
                     onClick={() => handleSelect("")}
                   >
                     {t.calendars.clear}

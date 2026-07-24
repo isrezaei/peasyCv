@@ -1,5 +1,6 @@
 import { writeFileSync } from "node:fs";
 import { chromium } from "playwright-core";
+import { createPdfClient } from "./backend-api.mjs";
 
 const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const BASE = "http://localhost:3000";
@@ -10,34 +11,30 @@ function countPages(buf) {
   return m.length;
 }
 
-async function postPdf(label, body) {
-  const res = await fetch(`${BASE}/api/pdf`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    console.log(`FAIL: PDF ${label} -> HTTP ${res.status}: ${await res.text()}`);
-    return;
+// PDF rendering goes through the authenticated backend /pdf endpoint (the
+// unauthenticated Next /api/pdf route was removed). The backend DTO is strict,
+// so each variation starts from a server-seeded default resume.
+const pdfClient = await createPdfClient();
+
+async function postPdf(label, themeOverrides) {
+  try {
+    const resume = await pdfClient.defaultResume({ theme: themeOverrides });
+    const buf = await pdfClient.renderPdf(resume);
+    const isPdf = buf.subarray(0, 5).toString() === "%PDF-";
+    const file = `scripts/s3-${label}.pdf`;
+    writeFileSync(file, buf);
+    console.log(
+      `${isPdf ? "OK" : "FAIL"}: PDF ${label} -> ${buf.length} bytes, ~${countPages(buf)} page(s), saved ${file}`,
+    );
+  } catch (e) {
+    console.log(`FAIL: PDF ${label} -> ${e.message.split("\n")[0]}`);
   }
-  const ct = res.headers.get("content-type");
-  const buf = Buffer.from(await res.arrayBuffer());
-  const isPdf = buf.subarray(0, 5).toString() === "%PDF-";
-  const file = `scripts/s3-${label}.pdf`;
-  writeFileSync(file, buf);
-  console.log(
-    `${isPdf ? "OK" : "FAIL"}: PDF ${label} -> ${ct}, ${buf.length} bytes, ~${countPages(buf)} page(s), saved ${file}`,
-  );
 }
 
 // --- 1) PDF pipeline: default + variations (color toggle + calendars) -------
-await postPdf("default", { resume: {} });
-await postPdf("white-hijri", {
-  resume: { theme: { pageBackground: "white", backgroundPattern: "dotGrid", dateCalendar: "hijri" } },
-});
-await postPdf("colored-gregorian", {
-  resume: { theme: { pageBackground: "theme", backgroundPattern: "none", dateCalendar: "gregorian" } },
-});
+await postPdf("default", {});
+await postPdf("white-hijri", { pageBackground: "white", backgroundPattern: "dotGrid", dateCalendar: "hijri" });
+await postPdf("colored-gregorian", { pageBackground: "theme", backgroundPattern: "none", dateCalendar: "gregorian" });
 
 // --- 2) UI checks: bg-color toggle independence + date picker ---------------
 const browser = await chromium.launch({ executablePath: CHROME });

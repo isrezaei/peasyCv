@@ -31,6 +31,20 @@ async function main(): Promise<void> {
     console.log(`Seeded resume "${data.title}" (${data.id})`);
   }
 
+  // Out-of-band admin grant (the ONLY ways to become admin are this seed or a
+  // manual UPDATE — no endpoint or payload can set isAdmin). Grants the flag to
+  // an existing account named via SEED_ADMIN_EMAIL:
+  //   SEED_ADMIN_EMAIL=you@example.com npm run prisma:seed --workspace @resume/backend
+  const adminEmail = process.env.SEED_ADMIN_EMAIL?.toLowerCase();
+  if (adminEmail) {
+    const admin = await prisma.user.update({
+      where: { email: adminEmail },
+      data: { isAdmin: true },
+    });
+    // eslint-disable-next-line no-console
+    console.log(`Granted admin to ${admin.email}`);
+  }
+
   // eslint-disable-next-line no-console
   console.log('Seed complete. Login with demo@example.com / Demo1234');
 }

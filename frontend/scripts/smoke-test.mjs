@@ -41,7 +41,7 @@ async function dismissAdModal() {
 }
 
 await step("fill full name", async () => {
-  await page.getByPlaceholder("مثال: علی محمدی").fill("سارا احمدی");
+  await page.getByPlaceholder("علی محمدی").fill("سارا احمدی");
 });
 
 await step("add experience via section dots menu", async () => {

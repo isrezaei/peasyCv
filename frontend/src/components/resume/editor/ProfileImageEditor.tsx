@@ -15,13 +15,17 @@ interface ProfileImageEditorProps {
   size?: string;
 }
 
-export function ProfileImageEditor({ size = "88px" }: ProfileImageEditorProps) {
+// photoStyle → Avatar shape variant: "round" = full circle, "square" = rounded
+// (lg) corners, "sharp" = no rounding.
+const PHOTO_SHAPES = { round: "full", square: "rounded", sharp: "square" } as const;
+
+export function ProfileImageEditor({ size = "128px" }: ProfileImageEditorProps) {
   const { personalInfo, setProfileImage, removeProfileImage } = usePersonalInfo();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pendingImageSrc, setPendingImageSrc] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const shape = personalInfo.photoStyle === "square" ? "rounded" : "full";
+  const shape = PHOTO_SHAPES[personalInfo.photoStyle] ?? "full";
   const iconSize = Math.round(Number.parseInt(size, 10) * 0.52);
 
   const handleFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {

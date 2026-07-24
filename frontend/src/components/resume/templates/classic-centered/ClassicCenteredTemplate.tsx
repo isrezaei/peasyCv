@@ -23,7 +23,8 @@ const LAYOUT: ColumnTemplateLayout = {
 
 export function ClassicCenteredTemplate({ resume, theme }: TemplateProps) {
   const colors = resolveTheme(theme);
-  const backgroundColor = theme.pageBackground === "white" ? "#FFFFFF" : colors.soft;
+  // Page is ALWAYS white (pageBackground is a dead field — see ThemeSettings).
+  const backgroundColor = "#FFFFFF";
   const fontStack = getFontStack(theme.fontFamily);
   const gap = `${theme.sectionSpacing}mm`;
   const pages = useColumnLayout(resume, LAYOUT);
@@ -53,7 +54,7 @@ export function ClassicCenteredTemplate({ resume, theme }: TemplateProps) {
             <ColumnBody
               blocks={pages.main[page] ?? []}
               sections={resume.sections}
-              renderSection={({ section, itemIds, showTitle }) => (
+              renderSection={({ section, itemIds, showTitle, itemSlices }) => (
                 <TemplateSection
                   section={section}
                   resume={resume}
@@ -62,6 +63,7 @@ export function ClassicCenteredTemplate({ resume, theme }: TemplateProps) {
                   variant="centered"
                   markerColor={colors.marker}
                   itemIds={itemIds}
+                  itemSlices={itemSlices}
                   showTitle={showTitle}
                 />
               )}

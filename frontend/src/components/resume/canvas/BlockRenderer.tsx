@@ -1,4 +1,5 @@
 import { Box } from "@chakra-ui/react";
+import { AchievementItemBlock } from "@/components/resume/editor/AchievementItemBlock";
 import { CertificationItemBlock } from "@/components/resume/editor/CertificationItemBlock";
 import { EducationItemBlock } from "@/components/resume/editor/EducationItemBlock";
 import { ExperienceItemBlock } from "@/components/resume/editor/ExperienceItemBlock";
@@ -8,7 +9,13 @@ import { ProjectItemBlock } from "@/components/resume/editor/ProjectItemBlock";
 import { SectionTitleBlock } from "@/components/resume/editor/SectionTitleBlock";
 import { SkillGroupBlock } from "@/components/resume/editor/SkillGroupBlock";
 import { SummaryBlock } from "@/components/resume/editor/SummaryBlock";
-import { LANGUAGE_GRID_COLUMNS, type PageBlock } from "@/lib/pagination";
+import {
+  ACHIEVEMENT_CELL_MIN_MM,
+  ACHIEVEMENT_GRID_GAP_MM,
+  LANGUAGE_CELL_MIN_MM,
+  LANGUAGE_GRID_GAP_MM,
+  type PageBlock,
+} from "@/lib/pagination";
 import type { ResumeData } from "@/types";
 
 interface BlockRendererProps {
@@ -26,6 +33,10 @@ export function BlockRenderer({ block, resume, accent, marker }: BlockRendererPr
     ? resume.sections.find((candidate) => candidate.id === block.sectionId) ?? null
     : null;
   const direction = section?.direction ?? "rtl";
+  // ATS Friendly mode is text-only: the language meter and the achievement diamond
+  // are graphics, so they are forced off here (their space is only ever removed, so
+  // the single-column estimate can never under-reserve).
+  const ats = resume.theme.atsMode;
 
   switch (block.kind) {
     case "personalInfo":
@@ -46,12 +57,24 @@ export function BlockRenderer({ block, resume, accent, marker }: BlockRendererPr
           markerColor={marker}
           showMonth={section?.showMonth ?? true}
           monthFormat={section?.monthFormat ?? "name"}
+          respRange={block.respRange}
+          continuation={block.continuation}
         />
       ) : null;
     }
     case "skillGroup": {
       const group = resume.skills.find((candidate) => candidate.id === block.refId);
-      return group ? <SkillGroupBlock group={group} direction={direction} /> : null;
+      return group ? (
+        <SkillGroupBlock
+          group={group}
+          direction={direction}
+          accentColor={accent}
+          markerColor={marker}
+          displayMode={section?.skillDisplayMode ?? "row"}
+          showLevel={(section?.skillShowLevel ?? false) && !ats}
+          meterVariant={section?.skillMeterVariant ?? "line"}
+        />
+      ) : null;
     }
     case "educationItem": {
       const item = resume.education.find((candidate) => candidate.id === block.refId);
@@ -79,8 +102,12 @@ export function BlockRenderer({ block, resume, accent, marker }: BlockRendererPr
         <Box
           dir={direction}
           display="grid"
-          gridTemplateColumns={`repeat(${LANGUAGE_GRID_COLUMNS}, 1fr)`}
-          columnGap="7"
+          // Width-adaptive: auto-fill against the SAME mm minimum the packer's
+          // `languageGridColumns` mirrors (3-up at full width, 2-up / stacked
+          // in a narrow column), so cells can never spill out of the section
+          // box — the achievements-grid pattern.
+          gridTemplateColumns={`repeat(auto-fill, minmax(min(${LANGUAGE_CELL_MIN_MM}mm, 100%), 1fr))`}
+          columnGap={`${LANGUAGE_GRID_GAP_MM}mm`}
         >
           {items.map((item) => (
             <LanguageItemBlock
@@ -88,7 +115,7 @@ export function BlockRenderer({ block, resume, accent, marker }: BlockRendererPr
               item={item}
               direction={direction}
               meterVariant={section.languageMeterVariant}
-              showMeter={section.languageShowMeter}
+              showMeter={section.languageShowMeter && !ats}
               showLevelText={section.languageShowLevelText}
               markerColor={marker}
             />
@@ -100,6 +127,30 @@ export function BlockRenderer({ block, resume, accent, marker }: BlockRendererPr
       const item = resume.certifications.find((candidate) => candidate.id === block.refId);
       return item ? (
         <CertificationItemBlock item={item} direction={direction} accentColor={accent} />
+      ) : null;
+    }
+    case "achievementRow": {
+      const wanted = new Set(block.refIds ?? []);
+      const items = resume.achievements.filter((candidate) => wanted.has(candidate.id));
+      return section && items.length > 0 ? (
+        <Box
+          dir={direction}
+          display="grid"
+          gridTemplateColumns={`repeat(auto-fill, minmax(min(${ACHIEVEMENT_CELL_MIN_MM}mm, 100%), 1fr))`}
+          columnGap={`${ACHIEVEMENT_GRID_GAP_MM}mm`}
+        >
+          {items.map((item) => (
+            <AchievementItemBlock
+              key={item.id}
+              item={item}
+              direction={direction}
+              accentColor={accent}
+              markerColor={marker}
+              showDescription={section.achievementShowDescription}
+              showIcon={section.achievementShowIcons && !ats}
+            />
+          ))}
+        </Box>
       ) : null;
     }
     default:

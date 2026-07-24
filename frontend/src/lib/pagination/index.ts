@@ -9,8 +9,18 @@ export {
   type PersonalBlockEstimate,
 } from "./estimateHeight";
 export {
+  experienceGrowthCrossesPage,
+  isExperienceItemAtBoundary,
+  registerExperienceBoundaryProbe,
+  singleColumnFlowPlans,
+  type FlowPlan,
+  type FlowPlanner,
+} from "./itemBoundary";
+export {
   groupIntoRuns,
   runHasTitle,
   runItemIds,
+  runItemSlices,
   type BlockRun,
+  type RunItemSlice,
 } from "./groupRuns";

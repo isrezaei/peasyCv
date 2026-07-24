@@ -227,7 +227,6 @@ export const themeOrder: ThemeId[] = [
   "softCoral",
   "peach",
   "ocean",
-  "slate",
   "grey",
 ];
 
@@ -258,6 +257,19 @@ export function isVividThemeId(themeId: ThemeId): boolean {
   return vividThemeOrder.includes(themeId);
 }
 
+/**
+ * Whether a persisted string is a known theme id. Hydration (`normalizeTheme`)
+ * allowlists every incoming themeId through this, so a retired/renamed id in an
+ * old payload can never reach the render path.
+ */
+export function isThemeId(value: string): value is ThemeId {
+  return Object.hasOwn(themePresets, value);
+}
+
 export function getThemePreset(themeId: ThemeId): ThemePreset {
-  return themePresets[themeId];
+  // Fail safe: hydration already allowlists themeId, but if an unknown id ever
+  // reaches here anyway (a stale in-memory value, a future missed migration),
+  // resolve to the default preset instead of returning undefined — reading
+  // `.accentDark` off undefined white-screens the editor and hangs /print.
+  return themePresets[themeId] ?? themePresets.indigo;
 }

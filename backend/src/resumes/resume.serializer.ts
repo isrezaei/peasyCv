@@ -6,6 +6,8 @@ import type {
   MonthFormat,
   PersonalInfo,
   ResumeData,
+  SkillDisplayMode,
+  SkillMeterVariant,
   ThemeSettings,
 } from '@resume/types';
 
@@ -30,6 +32,7 @@ export const resumeInclude = {
   projects: { orderBy: { position: 'asc' } },
   languages: { orderBy: { position: 'asc' } },
   certifications: { orderBy: { position: 'asc' } },
+  achievements: { orderBy: { position: 'asc' } },
 } satisfies Prisma.ResumeInclude;
 
 export type ResumeWithRelations = Prisma.ResumeGetPayload<{ include: typeof resumeInclude }>;
@@ -49,6 +52,7 @@ export function serializeResume(row: ResumeWithRelations): ResumeData {
     title: row.title,
     locale: row.locale as 'fa' | 'en',
     templateId: row.templateId as ResumeData['templateId'],
+    occupationCategory: row.occupationCategory,
     theme: serializeTheme(row.theme),
     sections: row.sections.map((s) => ({
       id: s.id,
@@ -62,6 +66,11 @@ export function serializeResume(row: ResumeWithRelations): ResumeData {
       languageShowLevelText: s.languageShowLevelText,
       showMonth: s.showMonth,
       monthFormat: s.monthFormat as MonthFormat,
+      achievementShowDescription: s.achievementShowDescription,
+      achievementShowIcons: s.achievementShowIcons,
+      skillDisplayMode: s.skillDisplayMode as SkillDisplayMode,
+      skillShowLevel: s.skillShowLevel,
+      skillMeterVariant: s.skillMeterVariant as SkillMeterVariant,
     })),
     personalInfo: serializePersonalInfo(row.personalInfo, row.links),
     summary: { html: row.summaryHtml },
@@ -80,7 +89,12 @@ export function serializeResume(row: ResumeWithRelations): ResumeData {
     skills: row.skillGroups.map((g) => ({
       id: g.id,
       name: g.name,
-      skills: g.skills.map((sk) => ({ id: sk.id, name: sk.name })),
+      showTitle: g.showTitle,
+      skills: g.skills.map((sk) => ({
+        id: sk.id,
+        name: sk.name,
+        level: sk.level as LanguageLevel,
+      })),
     })),
     education: row.educations.map((ed) => ({
       id: ed.id,
@@ -113,6 +127,11 @@ export function serializeResume(row: ResumeWithRelations): ResumeData {
       issuer: c.issuer,
       date: c.date,
     })),
+    achievements: row.achievements.map((a) => ({
+      id: a.id,
+      title: a.title,
+      description: a.description,
+    })),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -131,6 +150,10 @@ function serializeTheme(theme: NonNullable<ResumeWithRelations['theme']>): Theme
     pageMargin: theme.pageMargin,
     sectionSpacing: theme.sectionSpacing,
     columnIntensity: theme.columnIntensity,
+    columnWidth: theme.columnWidth as ThemeSettings['columnWidth'],
+    showSectionIcons: theme.showSectionIcons,
+    showSectionSeparators: theme.showSectionSeparators,
+    atsMode: theme.atsMode,
   };
 }
 
@@ -146,10 +169,12 @@ function serializePersonalInfo(
     email: pi.email,
     dateOfBirth: pi.dateOfBirth,
     nationality: pi.nationality,
+    militaryService: pi.militaryService,
     links: links.map((l) => ({ id: l.id, label: l.label, url: l.url })),
     profileImage: serializeProfileImage(pi),
     uppercaseName: pi.uppercaseName,
     photoStyle: pi.photoStyle as PersonalInfo['photoStyle'],
+    imageSide: pi.imageSide as PersonalInfo['imageSide'],
     fieldVisibility: {
       jobTitle: pi.fvJobTitle,
       phone: pi.fvPhone,
@@ -159,6 +184,7 @@ function serializePersonalInfo(
       photo: pi.fvPhoto,
       dateOfBirth: pi.fvDateOfBirth,
       nationality: pi.fvNationality,
+      militaryService: pi.fvMilitaryService,
     },
   };
 }
@@ -203,6 +229,10 @@ export function buildThemeData(theme: ThemeSettings) {
     pageMargin: theme.pageMargin,
     sectionSpacing: theme.sectionSpacing,
     columnIntensity: theme.columnIntensity,
+    columnWidth: theme.columnWidth,
+    showSectionIcons: theme.showSectionIcons,
+    showSectionSeparators: theme.showSectionSeparators,
+    atsMode: theme.atsMode,
   };
 }
 
@@ -215,8 +245,10 @@ export function buildPersonalInfoData(pi: PersonalInfo) {
     email: pi.email,
     dateOfBirth: pi.dateOfBirth,
     nationality: pi.nationality,
+    militaryService: pi.militaryService,
     uppercaseName: pi.uppercaseName,
     photoStyle: pi.photoStyle,
+    imageSide: pi.imageSide,
     fvJobTitle: pi.fieldVisibility.jobTitle,
     fvPhone: pi.fieldVisibility.phone,
     fvLinks: pi.fieldVisibility.links,
@@ -225,6 +257,7 @@ export function buildPersonalInfoData(pi: PersonalInfo) {
     fvPhoto: pi.fieldVisibility.photo,
     fvDateOfBirth: pi.fieldVisibility.dateOfBirth,
     fvNationality: pi.fieldVisibility.nationality,
+    fvMilitaryService: pi.fieldVisibility.militaryService,
     ...buildPhotoColumns(pi.profileImage),
   };
 }
@@ -276,6 +309,11 @@ export function buildSectionRows(
     languageShowLevelText: s.languageShowLevelText,
     showMonth: s.showMonth,
     monthFormat: s.monthFormat,
+    achievementShowDescription: s.achievementShowDescription,
+    achievementShowIcons: s.achievementShowIcons,
+    skillDisplayMode: s.skillDisplayMode,
+    skillShowLevel: s.skillShowLevel,
+    skillMeterVariant: s.skillMeterVariant,
   }));
 }
 
@@ -349,6 +387,19 @@ export function buildCertificationRows(
   }));
 }
 
+export function buildAchievementRows(
+  resumeId: string,
+  items: ResumeData['achievements'],
+): Prisma.AchievementCreateManyInput[] {
+  return items.map((a, position) => ({
+    id: a.id,
+    resumeId,
+    title: a.title,
+    description: a.description,
+    position,
+  }));
+}
+
 export function buildExperienceCreateInput(
   resumeId: string,
   exp: ResumeData['experience'][number],
@@ -383,9 +434,10 @@ export function buildSkillGroupCreateInput(
     id: group.id,
     resume: { connect: { id: resumeId } },
     name: group.name,
+    showTitle: group.showTitle,
     position,
     skills: {
-      create: group.skills.map((s, i) => ({ id: s.id, name: s.name, position: i })),
+      create: group.skills.map((s, i) => ({ id: s.id, name: s.name, level: s.level, position: i })),
     },
   };
 }

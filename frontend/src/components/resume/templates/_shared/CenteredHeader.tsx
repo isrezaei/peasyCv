@@ -36,7 +36,7 @@ export function CenteredHeader({ accentColor, subtitleColor, markerColor }: Cent
         <PersonalInfoSettings triggerSize="2xs" />
       </Box>
       <VStack gap="2" align="center">
-        {fieldVisibility.photo ? <ProfileImageEditor size="86px" /> : null}
+        {fieldVisibility.photo ? <ProfileImageEditor size="124px" /> : null}
         <Box width="100%" maxW="78%" letterSpacing="-0.02em">
           <EditableText
             value={personalInfo.fullName}
@@ -59,6 +59,10 @@ export function CenteredHeader({ accentColor, subtitleColor, markerColor }: Cent
               fontWeight="bold"
               color={markerColor ?? `var(--rz-subtitle, ${subtitleColor})`}
               textAlign="center"
+              // Same treatment as SecondaryTitleField: base direction follows
+              // the surrounding (RTL) context — no dir="auto", which misreads
+              // Latin/digit-initial Persian titles as LTR — plus end-ellipsis.
+              truncateEnd
             />
           </Box>
         ) : null}

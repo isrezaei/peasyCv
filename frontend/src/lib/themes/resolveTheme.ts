@@ -101,6 +101,112 @@ export function shadeColor(hex: string, defaultDarken: number, intensity: number
   return darken(hex, Math.max(0, Math.min(0.85, defaultDarken * intensity)));
 }
 
+/**
+ * Column-intensity value above which a tinted column hard-switches into its dark
+ * variant (the 105% slider stop itself stays light — the switch is exclusive).
+ */
+export const COLUMN_DARK_INTENSITY_THRESHOLD = 1.05;
+
+/**
+ * The coloured-column fill for the tinted-column templates — {@link tintColor}
+ * with a hard dark switch above {@link COLUMN_DARK_INTENSITY_THRESHOLD}. At or
+ * below the threshold it delegates to `tintColor` unchanged, so the whole
+ * 50–105% range is byte-identical to the classic light tint. Above it the fill
+ * jumps to a {@link shadeColor} of the SAME source colour (0.5 baseline, like the
+ * dark aside) that keeps deepening toward 200%; that shade lands dark for every
+ * palette source, so each template's existing `isDarkSurface` check flips the
+ * whole text tier — headings, body, icons, chips AND placeholders — to the
+ * on-dark tokens in one step, with no gradual interpolation and no per-component
+ * colour logic.
+ */
+export function columnTint(hex: string, defaultWhiteMix: number, intensity: number): string {
+  // Epsilon so the 105% stop stays on the light side even if the slider hands
+  // back 1.05 with float noise.
+  if (intensity > COLUMN_DARK_INTENSITY_THRESHOLD + 1e-6) return shadeColor(hex, 0.5, intensity);
+  return tintColor(hex, defaultWhiteMix, intensity);
+}
+
+/** WCAG relative luminance of a hex colour (0 = black … 1 = white). */
+export function relativeLuminance(hex: string): number {
+  const channel = (c: number) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  };
+  const [r, g, b] = hexToRgb(hex);
+  return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+}
+
+/** WCAG contrast ratio between two hex colours (1 → identical … 21 → black/white). */
+export function contrastRatio(a: string, b: string): number {
+  const la = relativeLuminance(a);
+  const lb = relativeLuminance(b);
+  const [hi, lo] = la >= lb ? [la, lb] : [lb, la];
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+/**
+ * Whether a surface colour is "dark" — i.e. white text reads on it at least as
+ * well as black text. The tinted-column and header-band templates call this on
+ * their computed background so they can flip their whole text tier (headings,
+ * body, sub-text AND placeholder) from the accent family to a white family when a
+ * saturated palette or a high column-intensity pushes the tint dark, keeping every
+ * surface readable instead of assuming a fixed dark ink.
+ */
+export function isDarkSurface(hex: string): boolean {
+  return contrastRatio(hex, "#FFFFFF") >= contrastRatio(hex, "#000000");
+}
+
+/**
+ * Returns `fg` unchanged when it already clears `target` contrast on `bg`;
+ * otherwise deepens it toward black in small steps until it does (falling back to
+ * black). Used on the LIGHT tinted surfaces so a text tier keeps its accent HUE but
+ * is darkened just enough to stay readable when a cross-hue palette (e.g. a green
+ * accent on a blue tint) or a high column-intensity would otherwise drop it below
+ * AA — palettes that already pass are byte-identical.
+ */
+export function ensureReadable(fg: string, bg: string, target = 4.5): string {
+  if (contrastRatio(fg, bg) >= target) return fg;
+  for (let ratio = 0.1; ratio < 1; ratio += 0.1) {
+    const deepened = darken(fg, ratio);
+    if (contrastRatio(deepened, bg) >= target) return deepened;
+  }
+  return "#000000";
+}
+
+/**
+ * The on-dark counterpart of {@link ensureReadable}: returns `fg` unchanged when it
+ * already clears `target` contrast on `bg`; otherwise lightens it toward white in
+ * small steps until it does (falling back to white). Used on the DARK shaded
+ * surfaces so an accent-hued tier keeps its HUE but is lifted just enough to stay
+ * readable when a light accent or a low column-intensity leaves the shade
+ * mid-luminance — combinations that already pass are byte-identical.
+ */
+export function ensureReadableOnDark(fg: string, bg: string, target = 4.5): string {
+  if (contrastRatio(fg, bg) >= target) return fg;
+  for (let ratio = 0.1; ratio < 1; ratio += 0.1) {
+    const lightened = mixWithWhite(fg, ratio);
+    if (contrastRatio(lightened, bg) >= target) return lightened;
+  }
+  return "#FFFFFF";
+}
+
+/**
+ * The readable text tiers for a DARK tinted surface — white-family alphas already
+ * proven legible on the dark asides. One source of truth reused by every surface
+ * the {@link isDarkSurface} check flags as dark (a deep header band, a dark aside),
+ * including the placeholder tier so empty fields never vanish on a dark column.
+ */
+export const ON_DARK_SURFACE_TEXT = {
+  heading: "#FFFFFF",
+  body: "rgba(255,255,255,0.82)",
+  subtitle: "rgba(255,255,255,0.90)",
+  placeholder: "rgba(255,255,255,0.55)",
+  chip: "rgba(255,255,255,0.14)",
+  /** Hairline section-title separator on a dark surface — a neutral light
+   *  white-alpha (the separator never takes the theme hue on any surface). */
+  separator: "rgba(255,255,255,0.35)",
+} as const;
+
 /** Linear blend of two colours: `ratio` 0 → base, 1 → overlay. */
 function mix(base: string, overlay: string, ratio: number): string {
   const [r1, g1, b1] = hexToRgb(base);
@@ -190,10 +296,19 @@ export function resumeTextVars(
   secondary: string,
   bodyText: string,
   subtitle: string,
+  /**
+   * Optional placeholder colour for empty fields on this surface. When set it
+   * drives `--rz-placeholder`, which the inline editors read (falling back to the
+   * default `fg.subtle` when unset), so placeholder text on a tinted/dark column
+   * stays visible instead of inheriting the page's fixed grey.
+   */
+  placeholder?: string,
 ): CSSProperties {
-  return {
+  const vars: Record<string, string> = {
     "--rz-secondary": secondary,
     "--rz-subtitle": subtitle,
     "--rz-body": bodyText,
-  } as CSSProperties;
+  };
+  if (placeholder) vars["--rz-placeholder"] = placeholder;
+  return vars as CSSProperties;
 }

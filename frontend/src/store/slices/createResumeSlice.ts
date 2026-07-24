@@ -1,10 +1,27 @@
+import { isExperienceItemAtBoundary } from "@/lib/pagination";
 import { createDefaultResume } from "@/lib/resume/createDefaultResume";
 import { createId } from "@/lib/utils/id";
+import type { ExperienceItem, ResponsibilityItem } from "@/types";
 import type { ResumeSlice, SliceCreator } from "../types";
 
 const touch = () => new Date().toISOString();
 
-export const createResumeSlice: SliceCreator<ResumeSlice> = (set) => ({
+/** The section's normal empty entry — the exact shape addExperience persists —
+ *  parameterized so the boundary path can seed exactly one bullet line. */
+const emptyExperienceItem = (responsibilities: ResponsibilityItem[]): ExperienceItem => ({
+  id: createId(),
+  jobTitle: "",
+  companyName: "",
+  period: { start: "", end: "", current: false },
+  city: "",
+  projectLink: "",
+  projectDescription: "",
+  link: "",
+  linkVisible: true,
+  responsibilities,
+});
+
+export const createResumeSlice: SliceCreator<ResumeSlice> = (set, get) => ({
   resume: createDefaultResume(),
 
   setResume: (resume) => set({ resume }),
@@ -41,6 +58,15 @@ export const createResumeSlice: SliceCreator<ResumeSlice> = (set) => ({
       resume: {
         ...state.resume,
         personalInfo: { ...state.resume.personalInfo, photoStyle: style },
+        updatedAt: touch(),
+      },
+    })),
+
+  setImageSide: (side) =>
+    set((state) => ({
+      resume: {
+        ...state.resume,
+        personalInfo: { ...state.resume.personalInfo, imageSide: side },
         updatedAt: touch(),
       },
     })),
@@ -118,22 +144,11 @@ export const createResumeSlice: SliceCreator<ResumeSlice> = (set) => ({
         ...state.resume,
         experience: [
           ...state.resume.experience,
-          {
-            id: createId(),
-            jobTitle: "",
-            companyName: "",
-            period: { start: "", end: "", current: false },
-            city: "",
-            projectLink: "",
-            projectDescription: "",
-            link: "",
-            linkVisible: true,
-            // A fresh entry starts with two empty bullet lines to invite content.
-            responsibilities: [
-              { id: createId(), text: "" },
-              { id: createId(), text: "" },
-            ],
-          },
+          // A fresh entry starts with two empty bullet lines to invite content.
+          emptyExperienceItem([
+            { id: createId(), text: "" },
+            { id: createId(), text: "" },
+          ]),
         ],
         updatedAt: touch(),
       },
@@ -176,6 +191,26 @@ export const createResumeSlice: SliceCreator<ResumeSlice> = (set) => ({
     })),
 
   addResponsibilityAfter: (experienceId, afterId) => {
+    // Product rule: an entry that has filled down to the page's bottom margin is
+    // "full for this page" — it never grows (which would relocate it to the next
+    // page). Enter on it creates a NEW sibling entry right after it instead; the
+    // packer then lands that entry on the next page while this one stays put.
+    // The verdict is a pure simulation over the active template's pagination
+    // model (see lib/pagination/itemBoundary.ts). This branch lives ONLY inside
+    // this user-triggered action — the auto-seed path (addResponsibility, fired
+    // when a list loads empty) and the layout/render pass can never reach it, so
+    // items are never created by pagination itself.
+    if (isExperienceItemAtBoundary(get().resume, experienceId)) {
+      const bulletId = createId();
+      set((state) => {
+        const index = state.resume.experience.findIndex((item) => item.id === experienceId);
+        const experience = [...state.resume.experience];
+        experience.splice(index + 1, 0, emptyExperienceItem([{ id: bulletId, text: "" }]));
+        return { resume: { ...state.resume, experience, updatedAt: touch() } };
+      });
+      return bulletId;
+    }
+
     const newId = createId();
     set((state) => ({
       resume: {
@@ -237,16 +272,18 @@ export const createResumeSlice: SliceCreator<ResumeSlice> = (set) => ({
     set((state) => ({
       resume: {
         ...state.resume,
-        skills: [...state.resume.skills, { id: createId(), name: "", skills: [] }],
+        skills: [...state.resume.skills, { id: createId(), name: "", showTitle: true, skills: [] }],
         updatedAt: touch(),
       },
     })),
 
-  updateSkillGroup: (id, name) =>
+  updateSkillGroup: (id, patch) =>
     set((state) => ({
       resume: {
         ...state.resume,
-        skills: state.resume.skills.map((group) => (group.id === id ? { ...group, name } : group)),
+        skills: state.resume.skills.map((group) =>
+          group.id === id ? { ...group, ...patch } : group,
+        ),
         updatedAt: touch(),
       },
     })),
@@ -266,12 +303,32 @@ export const createResumeSlice: SliceCreator<ResumeSlice> = (set) => ({
         ...state.resume,
         skills: state.resume.skills.map((group) =>
           group.id === groupId
-            ? { ...group, skills: [...group.skills, { id: createId(), name: "" }] }
+            ? { ...group, skills: [...group.skills, { id: createId(), name: "", level: 3 }] }
             : group,
         ),
         updatedAt: touch(),
       },
     })),
+
+  addSkillAfter: (groupId, afterId) => {
+    const newId = createId();
+    set((state) => ({
+      resume: {
+        ...state.resume,
+        skills: state.resume.skills.map((group) => {
+          if (group.id !== groupId) return group;
+          const index = group.skills.findIndex((skill) => skill.id === afterId);
+          const next = [...group.skills];
+          // Insert right after the current line (or at the end if not found),
+          // preserving order; the rest shift down by one.
+          next.splice(index < 0 ? next.length : index + 1, 0, { id: newId, name: "", level: 3 });
+          return { ...group, skills: next };
+        }),
+        updatedAt: touch(),
+      },
+    }));
+    return newId;
+  },
 
   updateSkill: (groupId, skillId, name) =>
     set((state) => ({
@@ -400,6 +457,24 @@ export const createResumeSlice: SliceCreator<ResumeSlice> = (set) => ({
       },
     })),
 
+  setSkillLevel: (groupId, skillId, level) =>
+    set((state) => ({
+      resume: {
+        ...state.resume,
+        skills: state.resume.skills.map((group) =>
+          group.id === groupId
+            ? {
+                ...group,
+                skills: group.skills.map((skill) =>
+                  skill.id === skillId ? { ...skill, level } : skill,
+                ),
+              }
+            : group,
+        ),
+        updatedAt: touch(),
+      },
+    })),
+
   setLanguageLevel: (id, level) =>
     set((state) => ({
       resume: {
@@ -448,6 +523,35 @@ export const createResumeSlice: SliceCreator<ResumeSlice> = (set) => ({
       resume: {
         ...state.resume,
         certifications: state.resume.certifications.filter((item) => item.id !== id),
+        updatedAt: touch(),
+      },
+    })),
+
+  addAchievement: () =>
+    set((state) => ({
+      resume: {
+        ...state.resume,
+        achievements: [...state.resume.achievements, { id: createId(), title: "", description: "" }],
+        updatedAt: touch(),
+      },
+    })),
+
+  updateAchievement: (id, patch) =>
+    set((state) => ({
+      resume: {
+        ...state.resume,
+        achievements: state.resume.achievements.map((item) =>
+          item.id === id ? { ...item, ...patch } : item,
+        ),
+        updatedAt: touch(),
+      },
+    })),
+
+  removeAchievement: (id) =>
+    set((state) => ({
+      resume: {
+        ...state.resume,
+        achievements: state.resume.achievements.filter((item) => item.id !== id),
         updatedAt: touch(),
       },
     })),

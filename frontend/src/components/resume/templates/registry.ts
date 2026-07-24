@@ -64,18 +64,40 @@ export const templateRegistry: Record<TemplateId, TemplateDefinition> = {
   },
 };
 
+/**
+ * Templates OFFERED in the picker, in display order. Five imported skins
+ * (aside-dark, aside-photo, compact-duo, ruled-single, classic-centered) are
+ * intentionally omitted here so they are no longer selectable — but they stay in
+ * {@link templateRegistry} (and in the TemplateId union / backend allowlist), so a
+ * résumé already saved on one still loads and renders unchanged. Removal is
+ * display-list only, mirroring how vivid palettes were pulled from the swatch grid.
+ */
 export const templateOrder: TemplateId[] = [
   "professional-single-column",
   "double-column",
   "sidebar-column",
-  "aside-dark",
-  "aside-photo",
   "timeline-panel",
   "header-band",
-  "compact-duo",
-  "ruled-single",
-  "classic-centered",
 ];
+
+/**
+ * Templates whose coloured side column honours the theme's "Column Layout"
+ * width preset (they mark their layout `sideWidthAdjustable`). The design panel
+ * shows the width picker only while one of these is selected.
+ */
+export const COLUMN_WIDTH_TEMPLATE_IDS: ReadonlySet<TemplateId> = new Set([
+  "sidebar-column",
+  "timeline-panel",
+]);
+
+/**
+ * Templates that paint a decorative pattern INSIDE their side column (the
+ * geometric COLUMN_* datasets) rather than as a full-page A4 background. The
+ * pattern picker previews and names the column variant for these.
+ */
+export const COLUMN_PATTERN_TEMPLATE_IDS: ReadonlySet<TemplateId> = new Set([
+  "timeline-panel",
+]);
 
 export function getTemplate(templateId: TemplateId): TemplateDefinition {
   return templateRegistry[templateId];

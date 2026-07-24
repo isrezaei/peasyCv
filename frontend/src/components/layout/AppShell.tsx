@@ -10,13 +10,14 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   return (
-    <VStack align="stretch" gap="0" height="100vh" bg="white">
+    <VStack align="stretch" gap="0" height="100vh" bg="bg">
       <TopBar />
-      {/* Workspace: a FIXED, non-scrolling frame (`overflow:hidden`) on a white
-          underlay. The canvas inside owns the single vertical scroll for the
-          pages; this frame never produces a scrollbar of its own. The side panel
-          is an absolutely-positioned overlay layered on top. */}
-      <Box position="relative" flex="1" overflow="hidden" bg="white">
+      {/* Workspace: a FIXED, non-scrolling frame (`overflow:hidden`) on the app
+          surface (white / #060709 per color mode). The canvas inside owns the
+          single vertical scroll for the pages; this frame never produces a
+          scrollbar of its own. The side panel is an absolutely-positioned
+          overlay layered on top. */}
+      <Box position="relative" flex="1" overflow="hidden" bg="bg">
         {children}
         <ContextualSidebar />
       </Box>

@@ -12,6 +12,13 @@ export class ResumeSummaryDto implements ResumeSummary {
   @ApiProperty({ example: 'professional-single-column' })
   templateId!: TemplateId;
 
+  @ApiProperty({
+    example: 'software-it',
+    nullable: true,
+    description: 'Occupation-category id for this resume (null = not chosen).',
+  })
+  occupationCategory!: string | null;
+
   @ApiProperty({ example: '2026-06-27T12:00:00.000Z' })
   updatedAt!: string;
 

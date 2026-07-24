@@ -10,9 +10,9 @@ import type {
 
 /**
  * Server-side port of the frontend `createDefaultResume` (frontend/src/lib/resume
- * /createDefaultResume.ts), including the Persian seed content from the fa.ts
- * dictionary, so a resume created via POST /resumes with no body is identical in
- * shape and spirit to one the frontend would create. Dates are canonical ISO.
+ * /createDefaultResume.ts): every item ships EMPTY (placeholders carry the
+ * guidance), only the item counts are seeded, so a resume created via
+ * POST /resumes with no body is identical in shape to one the frontend creates.
  */
 
 const DEFAULT_SECTION_ORDER: RemovableSectionType[] = [
@@ -23,6 +23,7 @@ const DEFAULT_SECTION_ORDER: RemovableSectionType[] = [
   'projects',
   'languages',
   'certifications',
+  'achievements',
 ];
 
 const SECTION_TITLES: Record<RemovableSectionType, string> = {
@@ -33,6 +34,7 @@ const SECTION_TITLES: Record<RemovableSectionType, string> = {
   projects: 'پروژه‌ها',
   languages: 'زبان‌ها',
   certifications: 'گواهینامه‌ها',
+  achievements: 'دستاوردهای کلیدی',
 };
 
 function createDefaultSections(): SectionMeta[] {
@@ -48,6 +50,11 @@ function createDefaultSections(): SectionMeta[] {
     languageShowLevelText: true,
     showMonth: true,
     monthFormat: 'name' as const,
+    achievementShowDescription: true,
+    achievementShowIcons: true,
+    skillDisplayMode: 'row' as const,
+    skillShowLevel: false,
+    skillMeterVariant: 'line' as const,
   }));
 }
 
@@ -64,6 +71,10 @@ function createDefaultTheme(): ThemeSettings {
     pageMargin: 16,
     sectionSpacing: 6,
     columnIntensity: 1,
+    columnWidth: 'medium',
+    showSectionIcons: false,
+    showSectionSeparators: false,
+    atsMode: false,
   };
 }
 
@@ -76,10 +87,12 @@ function createDefaultPersonalInfo(): PersonalInfo {
     email: '',
     dateOfBirth: '',
     nationality: '',
+    militaryService: '',
     links: [],
     profileImage: null,
     uppercaseName: false,
     photoStyle: 'round',
+    imageSide: 'left',
     fieldVisibility: {
       jobTitle: true,
       phone: true,
@@ -89,6 +102,7 @@ function createDefaultPersonalInfo(): PersonalInfo {
       photo: true,
       dateOfBirth: false,
       nationality: false,
+      militaryService: false,
     },
   };
 }
@@ -97,6 +111,7 @@ export interface DefaultResumeOverrides {
   title?: string;
   templateId?: TemplateId;
   locale?: 'fa' | 'en';
+  occupationCategory?: string | null;
 }
 
 export function createDefaultResumeData(overrides: DefaultResumeOverrides = {}): ResumeData {
@@ -107,54 +122,47 @@ export function createDefaultResumeData(overrides: DefaultResumeOverrides = {}):
     title: overrides.title ?? 'رزومه من',
     locale: overrides.locale ?? 'fa',
     templateId: overrides.templateId ?? 'professional-single-column',
+    occupationCategory: overrides.occupationCategory ?? null,
     theme: createDefaultTheme(),
     sections: createDefaultSections(),
     personalInfo: createDefaultPersonalInfo(),
     summary: { html: '' },
-    experience: [
-      {
-        id: randomUUID(),
-        jobTitle: 'نمونه: مهندس نرم‌افزار ارشد',
-        companyName: 'شرکت فناوری نمونه',
-        period: { start: '2021-06-01', end: '', current: true },
-        city: 'تهران',
-        projectLink: '',
-        projectDescription:
-          'نمونه: توضیح کوتاهی دربارهٔ نقش و حوزهٔ کاری خود در این موقعیت بنویسید.',
-        link: '',
-        linkVisible: true,
-        responsibilities: [
-          {
-            id: randomUUID(),
-            text:
-              'نمونه: یک دستاورد کلیدی را همراه با عدد و نتیجه بیان کنید (مثلاً «زمان بارگذاری صفحات را ۴۰٪ کاهش دادم»).',
-          },
-          { id: randomUUID(), text: 'نمونه: مهم‌ترین مسئولیت خود را در این نقش توضیح دهید.' },
-        ],
-      },
-    ],
+    // Empty items only — no sample content anywhere; the editor's «مثال: …»
+    // placeholders carry the guidance. Only the COUNTS are seeded (4 experiences
+    // × 2 bullets, 1 skill, 4 educations, 2 achievements), mirroring the frontend.
+    experience: Array.from({ length: 4 }, () => ({
+      id: randomUUID(),
+      jobTitle: '',
+      companyName: '',
+      period: { start: '', end: '', current: false },
+      city: '',
+      projectLink: '',
+      projectDescription: '',
+      link: '',
+      linkVisible: true,
+      responsibilities: [
+        { id: randomUUID(), text: '' },
+        { id: randomUUID(), text: '' },
+      ],
+    })),
     skills: [
       {
         id: randomUUID(),
-        name: 'مهارت‌های فنی',
-        skills: ['React', 'TypeScript', 'Node.js', 'طراحی واسط کاربری'].map((name) => ({
-          id: randomUUID(),
-          name,
-        })),
+        name: '',
+        showTitle: true,
+        skills: [{ id: randomUUID(), name: '', level: 3 }],
       },
     ],
-    education: [
-      {
-        id: randomUUID(),
-        degree: 'کارشناسی مهندسی کامپیوتر',
-        university: 'دانشگاه نمونه',
-        startDate: '2017-09-01',
-        endDate: '2021-06-01',
-        gpa: '',
-        achievements: 'نمونه: افتخارات و دستاوردهای تحصیلی خود را اینجا بنویسید.',
-        city: 'تهران',
-      },
-    ],
+    education: Array.from({ length: 4 }, () => ({
+      id: randomUUID(),
+      degree: '',
+      university: '',
+      startDate: '',
+      endDate: '',
+      gpa: '',
+      achievements: '',
+      city: '',
+    })),
     projects: [
       {
         id: randomUUID(),
@@ -165,17 +173,18 @@ export function createDefaultResumeData(overrides: DefaultResumeOverrides = {}):
         description: '',
       },
     ],
-    languages: [
-      { id: randomUUID(), name: 'فارسی', level: 5, showBars: true, showLevelText: true },
-      { id: randomUUID(), name: 'انگلیسی', level: 4, showBars: true, showLevelText: true },
-    ],
+    languages: [{ id: randomUUID(), name: '', level: 3, showBars: true, showLevelText: true }],
     certifications: [
       {
         id: randomUUID(),
-        name: 'نمونه: نام گواهینامه',
-        issuer: 'مؤسسهٔ صادرکننده',
-        date: '2022-05-01',
+        name: '',
+        issuer: '',
+        date: '',
       },
+    ],
+    achievements: [
+      { id: randomUUID(), title: '', description: '' },
+      { id: randomUUID(), title: '', description: '' },
     ],
     createdAt: now,
     updatedAt: now,

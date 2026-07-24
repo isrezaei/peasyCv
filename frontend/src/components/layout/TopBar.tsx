@@ -3,25 +3,24 @@
 import { Box, HStack } from "@chakra-ui/react";
 import type { CSSProperties } from "react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { AdModal } from "@/components/ads/AdModal";
 import { pickAdModalId } from "@/components/ads/adIds";
 import { useActivePanel } from "@/hooks/store/useActivePanel";
 import { useSidebar } from "@/hooks/store/useSidebar";
+import { useAuth } from "@/lib/auth/AuthProvider";
 import { DOCK, DOCK_RADII, DOCK_SHADOWS } from "@/lib/design/tokens";
 import { t } from "@/lib/i18n";
 import type { ActivePanel } from "@/store/types";
+import { ColorModeButton } from "./ColorModeButton";
 import { DockToggleButton } from "./DockToggleButton";
-import {
-  AssistantGlyph,
-  AvatarGlyph,
-  DesignGlyph,
-  ReviewGlyph,
-  SectionsGlyph,
-  TemplatesGlyph,
-  TextGlyph,
-} from "./dockIcons";
+import { AssistantGlyph, DesignGlyph, ReviewGlyph, SectionsGlyph, TemplatesGlyph, TextGlyph } from "./dockIcons";
+import { DownloadButton } from "./DownloadButton";
+import { ExpandableActionToolbar } from "./ExpandableActionToolbar";
+import { MobileToolMenu } from "./MobileToolMenu";
 import { SaveStatusIndicator } from "./SaveStatusIndicator";
 import { ToolButton } from "./ToolButton";
+import { UserMenu } from "./UserMenu";
 
 // Frosted-glass shell shared by the centre tool dock and the end cluster.
 const glass = (radius: string, shadow: string): CSSProperties => ({
@@ -43,8 +42,17 @@ export function TopBar() {
   const { collapsed, setCollapsed } = useSidebar();
   const [adOpen, setAdOpen] = useState(false);
   const [adId, setAdId] = useState(() => pickAdModalId());
-  // Pick a fresh random ad each time the modal is opened.
+  const { status } = useAuth();
+  const router = useRouter();
+  // The AI actions (review/improve/assistant) are account features: a guest is
+  // sent to the login sheet — the same gate as download/share — so the buttons
+  // are never silent no-ops. Authenticated clicks keep the existing ad-modal
+  // behavior (which the kill switch may suppress); picks a fresh ad per open.
   const openAd = () => {
+    if (status !== "authenticated") {
+      router.push("/login");
+      return;
+    }
     setAdId(pickAdModalId());
     setAdOpen(true);
   };
@@ -66,17 +74,21 @@ export function TopBar() {
       as="header"
       className="no-print"
       align="center"
-      gap="16px"
-      px="22px"
-      py="18px"
+      gap={{ base: "8px", lg: "16px" }}
+      px={{ base: "12px", lg: "22px" }}
+      py={{ base: "10px", lg: "18px" }}
       flexShrink={0}
     >
-      {/* RTL start (far right): side-panel toggle. */}
+      {/* RTL start (far right): side-panel toggle + download. */}
       <DockToggleButton />
+      <DownloadButton />
 
-      {/* Centre: icon-only tool dock. */}
+      {/* Centre: icon-only tool dock (desktop only; below `lg` the actions move
+          into the MobileToolMenu). The flex wrapper stays as a spacer on mobile so
+          the end cluster is pushed to the RTL end. */}
       <HStack flex="1" justify="center">
         <HStack
+          display={{ base: "none", lg: "flex" }}
           gap="5px"
           p="7px"
           bg={DOCK.glassBg}
@@ -116,25 +128,27 @@ export function TopBar() {
             icon={<AssistantGlyph />}
             onClick={openAd}
           />
+          {/* Expandable "More" toolbar: former rail's Preview + Share actions.
+              Lives inside the dock, so expanding it grows the dock itself. */}
+          <ExpandableActionToolbar />
         </HStack>
       </HStack>
 
-      {/* RTL end (far left): save status + avatar. */}
+      {/* RTL end (far left): save status + color mode + user avatar menu. Below
+          `lg` the save indicator and the color-mode cycle fold into the mobile
+          overflow menu; the avatar stays, and the compact «بیشتر» menu appears. */}
       <HStack flex="none" gap="4px" p="6px" bg={DOCK.glassBg} style={glass(DOCK_RADII.save, DOCK_SHADOWS.side)}>
-        <SaveStatusIndicator />
-        <Box width="1px" height="22px" bg={DOCK.divider} />
-        <Box
-          width="38px"
-          height="38px"
-          borderRadius="full"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          bg={DOCK.avatarBg}
-          color={DOCK.avatarFg}
-        >
-          <AvatarGlyph />
+        <Box display={{ base: "none", lg: "flex" }}>
+          <SaveStatusIndicator />
         </Box>
+        <Box display={{ base: "flex", lg: "none" }}>
+          <MobileToolMenu />
+        </Box>
+        <Box display={{ base: "none", lg: "flex" }}>
+          <ColorModeButton />
+        </Box>
+        <Box display={{ base: "none", lg: "block" }} width="1px" height="22px" bg={DOCK.divider} />
+        <UserMenu />
       </HStack>
 
       <AdModal open={adOpen} adId={adId} onClose={() => setAdOpen(false)} />

@@ -9,7 +9,38 @@ export type BlockKind =
   | "educationItem"
   | "projectItem"
   | "languageRow"
-  | "certificationItem";
+  | "certificationItem"
+  | "achievementRow";
+
+/**
+ * Height breakdown that lets the packer BREAK one over-page block between its
+ * list rows (today: an Experience entry's responsibilities). Present only on
+ * blocks that can split; the packer touches it ONLY when the block is taller
+ * than a whole page — an entry that fits a page still moves as one unit, so
+ * every previously-fitting layout is byte-identical.
+ */
+export interface BlockSplitMeta {
+  /** Fixed lead-in of the first part (titles, link, description). */
+  headMm: number;
+  /** The list's own top margin, painted above the rows in EVERY part. */
+  listTopMm: number;
+  /** Height of each list row, in order (row gap included). */
+  unitMm: number[];
+  /** Height floor of the first part's side (date) column. */
+  dateColumnMm: number;
+  /** Trailing padding painted at the bottom of every part. */
+  tailMm: number;
+  /**
+   * Split this block to FILL the current page even when it would fit a whole
+   * page on its own (the default only breaks a block taller than a full page).
+   * The timeline-panel design's flowing side column sets it on the panel's plain
+   * skill list, so a long list runs out the bottom of page 1 and continues on
+   * page 2 instead of jumping whole and leaving a hole. Unset — every other
+   * splittable block (Experience responsibilities) — keeps the move-whole-if-it-
+   * fits behaviour, so no existing layout changes.
+   */
+  splitToFill?: boolean;
+}
 
 export interface PageBlock {
   id: ID;
@@ -18,8 +49,8 @@ export interface PageBlock {
   refId: ID | null;
   /**
    * Item ids for a block that renders SEVERAL items as one vertical unit (the
-   * languages grid row). Single-item blocks keep using `refId` and leave this
-   * unset; a row block sets this and leaves `refId` null.
+   * languages and achievements grid rows). Single-item blocks keep using
+   * `refId` and leave this unset; a row block sets this and leaves `refId` null.
    */
   refIds?: ID[];
   heightMm: number;
@@ -31,6 +62,15 @@ export interface PageBlock {
    * the same value so on-screen spacing and pagination never diverge.
    */
   gapBeforeMm: number;
+  /** Split pricing for a block the packer may break between rows (see {@link BlockSplitMeta}). */
+  split?: BlockSplitMeta;
+  /**
+   * Set by the packer on the parts of a SPLIT block: the half-open row range
+   * `[start, end)` of the source item's list this part renders.
+   */
+  respRange?: { start: number; end: number };
+  /** True on the 2nd+ part of a split block — rendered without the entry head. */
+  continuation?: boolean;
 }
 
 export interface PageLayout {

@@ -26,12 +26,18 @@ export class UsersService {
     return this.prisma.user.findUnique({ where: { googleId } });
   }
 
-  createWithPassword(input: { email: string; passwordHash: string; name?: string | null }): Promise<User> {
+  createWithPassword(input: {
+    email: string;
+    passwordHash: string;
+    name?: string | null;
+    occupation?: string | null;
+  }): Promise<User> {
     return this.prisma.user.create({
       data: {
         email: input.email.toLowerCase(),
         passwordHash: input.passwordHash,
         name: input.name ?? null,
+        occupation: input.occupation ?? null,
       },
     });
   }
@@ -54,6 +60,14 @@ export class UsersService {
     return this.prisma.user.update({ where: { id: userId }, data: { hashedRefreshToken } });
   }
 
+  /**
+   * Sets the broad occupation category (validated upstream with @IsIn against
+   * OCCUPATION_CATEGORY_IDS — this never receives a free-form string).
+   */
+  setOccupationCategory(userId: string, occupationCategory: string): Promise<User> {
+    return this.prisma.user.update({ where: { id: userId }, data: { occupationCategory } });
+  }
+
   /** Maps a User row to the public profile shape returned by the API. */
   toProfile(user: User): UserProfileDto {
     return {
@@ -62,6 +76,10 @@ export class UsersService {
       name: user.name,
       hasPassword: Boolean(user.passwordHash),
       googleLinked: Boolean(user.googleId),
+      // Display-only (shows/hides the admin nav) — the real check is the
+      // AdminGuard's per-request DB read.
+      isAdmin: user.isAdmin,
+      occupationCategory: user.occupationCategory,
       createdAt: user.createdAt.toISOString(),
     };
   }

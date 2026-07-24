@@ -2,8 +2,10 @@
 
 import { Box, chakra, Grid } from "@chakra-ui/react";
 import { BackgroundLayer } from "@/components/resume/backgrounds/BackgroundLayer";
+import { COLUMN_PATTERN_TEMPLATE_IDS } from "@/components/resume/templates/registry";
 import { CheckIcon } from "@/components/ui/icons";
 import { Tooltip } from "@/components/ui/Tooltip";
+import { useDesign } from "@/hooks/store/useDesign";
 import { useTheme } from "@/hooks/store/useTheme";
 import { backgroundOptions } from "@/lib/backgrounds/options";
 import { COLORS, RADII, SHADOWS } from "@/lib/design/tokens";
@@ -11,19 +13,25 @@ import { resolveTheme } from "@/lib/themes";
 
 export function BackgroundGrid() {
   const { theme, setBackgroundPattern } = useTheme();
+  const { templateId } = useDesign();
   const colors = resolveTheme(theme);
+  // On a column template the swatches must preview (and be named after) the
+  // COLUMN pattern each id paints in the side column — a different geometric
+  // texture from the corner-anchored A4 artwork the other templates render.
+  const isColumn = COLUMN_PATTERN_TEMPLATE_IDS.has(templateId);
 
   return (
     <Grid templateColumns="repeat(4, 1fr)" gap="10px">
       {backgroundOptions.map((option) => {
         const isActive = theme.backgroundPattern === option.id;
+        const label = (isColumn && option.columnName) || option.name;
         return (
           // The pattern name shows only as a hover popover (English) — there is no
           // caption under the thumbnail, so the tooltip is the accessible name too.
-          <Tooltip key={option.id} label={option.name}>
+          <Tooltip key={option.id} label={label}>
             <chakra.button
               type="button"
-              aria-label={option.name}
+              aria-label={label}
               aria-pressed={isActive}
               position="relative"
               width="100%"
@@ -46,6 +54,7 @@ export function BackgroundGrid() {
                   idSuffix={`thumb-${option.id}`}
                   preserveAspectRatio="xMidYMid slice"
                   viewBox={option.thumbViewBox}
+                  column={isColumn}
                 />
               </Box>
               {isActive ? (

@@ -1,47 +1,88 @@
 "use client";
 
-import { Dialog, Portal, VisuallyHidden } from "@chakra-ui/react";
+import { Drawer, IconButton, Portal, SegmentGroup, VisuallyHidden } from "@chakra-ui/react";
+import { CloseIcon } from "@/components/ui/icons";
+import { useActivePanel } from "@/hooks/store/useActivePanel";
 import { useSidebar } from "@/hooks/store/useSidebar";
 import { t } from "@/lib/i18n";
+import type { ActivePanel } from "@/store/types";
 import { SidebarPanels } from "./SidebarPanels";
 
 /**
- * lg-and-below presentation of the contextual sidebar: a Chakra v3 Dialog modal.
- * It shares the exact same `useSidebar` collapse flag as the topbar toggle (which
- * opens it), and renders the identical `SidebarPanels` content. The modal is:
- *  - INSET from every viewport edge — the positioner padding plus `scrollBehavior`
- *    "inside" (which caps the content height) keep it clear of all four edges.
- *  - ROUNDED (the content's `2xl` radius).
- *  - CLOSED BY CLICKING OUTSIDE — `closeOnInteractOutside` (default, set explicitly)
- *    routes the backdrop click back onto the shared flag; Esc stays as a sensible
- *    default. There is intentionally NO on-modal close (X) control.
- * The portal children are `no-print` so the modal never reaches the PDF.
+ * Phone/tablet presentation of the contextual sidebar (below Chakra `xl`): a
+ * FULL-HEIGHT overlay drawer that starts CLOSED and slides over the canvas
+ * without squeezing it. It shares the exact `useSidebar` collapse flag the top
+ * bar drives, and renders the identical `SidebarPanels` content the desktop
+ * inline panel uses.
+ *
+ * Unlike the desktop dock (which switches panels from the top bar), the drawer
+ * carries its OWN panel switcher — a segmented control in the header — so a touch
+ * user can move between Design / Templates / Sections without closing the sheet,
+ * plus an explicit close (×) for a clear finger target. Portal children are
+ * `no-print` so the drawer never reaches the PDF.
  */
 export function SidebarModal() {
   const { collapsed, setCollapsed } = useSidebar();
+  const { activePanel, setActivePanel } = useActivePanel();
+
+  const panelItems: { value: ActivePanel; label: string }[] = [
+    { value: "design", label: t.topbar.design },
+    { value: "templates", label: t.topbar.templates },
+    { value: "rearrange", label: t.topbar.rearrange },
+  ];
 
   return (
-    <Dialog.Root
+    <Drawer.Root
       open={!collapsed}
       onOpenChange={(details) => setCollapsed(!details.open)}
-      placement="center"
-      scrollBehavior="inside"
-      size="xs"
-      closeOnInteractOutside={true}
+      placement="start"
     >
       <Portal>
-        <Dialog.Backdrop className="no-print" bg="blackAlpha.500" />
-        <Dialog.Positioner className="no-print" padding="4">
-          <Dialog.Content bg="white" width="full" maxW="sm" borderRadius="2xl" overflow="hidden">
+        <Drawer.Backdrop className="no-print" bg="blackAlpha.500" />
+        <Drawer.Positioner className="no-print">
+          <Drawer.Content
+            bg="bg.panel"
+            height="100dvh"
+            width={{ base: "92vw", sm: "380px" }}
+            maxWidth="420px"
+            display="flex"
+            flexDirection="column"
+          >
             <VisuallyHidden>
-              <Dialog.Title>{t.sidebar.expand}</Dialog.Title>
+              <Drawer.Title>{t.sidebar.expand}</Drawer.Title>
             </VisuallyHidden>
-            <Dialog.Body p="0" overflowY="auto">
+            {/* Header: panel switcher + close. Stays fixed while the body scrolls. */}
+            <Drawer.Header
+              display="flex"
+              alignItems="center"
+              gap="10px"
+              px="14px"
+              py="12px"
+              borderBottomWidth="1px"
+              borderColor="border"
+              flexShrink={0}
+            >
+              <SegmentGroup.Root
+                size="sm"
+                flex="1"
+                value={activePanel}
+                onValueChange={(details) => details.value && setActivePanel(details.value as ActivePanel)}
+              >
+                <SegmentGroup.Indicator />
+                <SegmentGroup.Items flex="1" items={panelItems} />
+              </SegmentGroup.Root>
+              <Drawer.CloseTrigger asChild>
+                <IconButton aria-label={t.sidebar.collapse} variant="ghost" size="sm" flexShrink={0}>
+                  <CloseIcon />
+                </IconButton>
+              </Drawer.CloseTrigger>
+            </Drawer.Header>
+            <Drawer.Body p="0" overflowY="auto" flex="1">
               <SidebarPanels />
-            </Dialog.Body>
-          </Dialog.Content>
-        </Dialog.Positioner>
+            </Drawer.Body>
+          </Drawer.Content>
+        </Drawer.Positioner>
       </Portal>
-    </Dialog.Root>
+    </Drawer.Root>
   );
 }

@@ -7,53 +7,62 @@
  *
  * Centralising here keeps the accent, shadow stacks, radii and key spacings in
  * one place. Styling only — no behaviour depends on this module.
+ *
+ * COLOR MODE: every colour/shadow below resolves through the `chrome.*` /
+ * named-shadow semantic tokens in `lib/chakra/system.ts`, so the whole chrome
+ * follows the app's light/dark mode via CSS variables. Light values are the
+ * original design values verbatim. The A4 résumé subtree pins these vars back
+ * to light via its `.light` scope, so the page never follows the mode.
  */
+const chromeVar = (name: string) => `var(--chakra-colors-chrome-${name})`;
+const shadowVar = (name: string) => `var(--chakra-shadows-${name})`;
+
 export const COLORS = {
   // App/chrome accent (Chakra `gray`). This mirrors the Chakra `accent`
   // semantic palette in `lib/chakra/system.ts` (the canonical swap point) for
   // the few inline styles that can't use a Chakra prop. accent = gray.600,
   // accentHover = gray.700, accentTint = gray.600 @ 10%.
-  accent: "#52525b",
-  accentHover: "#3f3f46",
-  accentTint: "rgba(82,82,91,0.10)",
-  ink: "#18181b",
-  ink700: "#3f3f46",
-  ink600: "#52525b",
-  ink500: "#71717a",
-  muted: "#a1a1aa",
-  faint: "#c4c4cc",
-  track: "#e4e4e7",
-  activeTab: "#f1f1f4",
-  workspace: "#f4f4f5",
+  accent: chromeVar("accent"),
+  accentHover: chromeVar("accent-hover"),
+  accentTint: chromeVar("accent-tint"),
+  ink: chromeVar("ink"),
+  ink700: chromeVar("ink-700"),
+  ink600: chromeVar("ink-600"),
+  ink500: chromeVar("ink-500"),
+  muted: chromeVar("muted"),
+  faint: chromeVar("faint"),
+  track: chromeVar("track"),
+  activeTab: chromeVar("active-tab"),
+  workspace: chromeVar("workspace"),
+  // True white — mode-invariant (surfaces that must stay white use this).
   white: "#ffffff",
-  saveGreen: "#16a34a",
-  deleteBg: "#fee2e2",
-  deleteFg: "#dc2626",
-  line06: "rgba(0,0,0,0.06)",
-  line07: "rgba(0,0,0,0.07)",
-  line08: "rgba(0,0,0,0.08)",
+  saveGreen: chromeVar("save-green"),
+  deleteBg: chromeVar("delete-bg"),
+  deleteFg: chromeVar("delete-fg"),
+  line06: chromeVar("line-06"),
+  line07: chromeVar("line-07"),
+  line08: chromeVar("line-08"),
 } as const;
 
 export const SHADOWS = {
-  rail: "0 0 0 1px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.08)",
-  railHover: "0 0 0 1px rgba(113,113,122,0.45), 0 2px 6px rgba(0,0,0,0.10)",
-  toolbar: "0 0 0 1px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.06)",
-  page: "0 0 0 1px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.04), 0 12px 32px rgba(0,0,0,0.08)",
-  panel: "0 0 0 1px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.06)",
-  card: "inset 0 0 0 1px rgba(0,0,0,0.08)",
-  cardSoft: "inset 0 0 0 1px rgba(0,0,0,0.07)",
-  cardFaint: "inset 0 0 0 1px rgba(0,0,0,0.06)",
-  cardHover: "inset 0 0 0 1px rgba(113,113,122,0.60)",
-  thumb: "0 0 0 1px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.25)",
-  ring: "0 0 0 2px #71717a, 0 4px 12px rgba(113,113,122,0.25)",
-  hairlineRing: "0 0 0 1px rgba(0,0,0,0.08)",
-  badge: "0 1px 3px rgba(0,0,0,0.2)",
-  avatarInset: "inset 0 0 0 1px rgba(0,0,0,0.08)",
-  photoInset: "inset 0 0 0 1px rgba(0,0,0,0.06)",
-  swatchInnerRing:
-    "inset 0 0 0 2.5px rgba(255,255,255,0.85), inset 0 0 0 3.5px rgba(0,0,0,0.22)",
-  knob: "0 1px 2px rgba(0,0,0,0.3)",
-  dotRing: "0 0 0 3px #fff",
+  rail: shadowVar("rail"),
+  railHover: shadowVar("rail-hover"),
+  toolbar: shadowVar("toolbar"),
+  page: shadowVar("page"),
+  panel: shadowVar("panel"),
+  card: shadowVar("card"),
+  cardSoft: shadowVar("card-soft"),
+  cardFaint: shadowVar("card-faint"),
+  cardHover: shadowVar("card-hover"),
+  thumb: shadowVar("thumb"),
+  ring: shadowVar("ring"),
+  hairlineRing: shadowVar("hairline-ring"),
+  badge: shadowVar("badge"),
+  avatarInset: shadowVar("avatar-inset"),
+  photoInset: shadowVar("photo-inset"),
+  swatchInnerRing: shadowVar("swatch-inner-ring"),
+  knob: shadowVar("knob"),
+  dotRing: shadowVar("dot-ring"),
 } as const;
 
 export const RADII = {
@@ -76,22 +85,24 @@ export const RADII = {
  */
 export const DOCK = {
   // Frosted-white clusters floating over the workspace.
-  glassBg: "rgba(255,255,255,0.92)",
+  glassBg: chromeVar("glass"),
+  // Solid raised surface a glass cluster lifts to on hover.
+  glassSolid: chromeVar("glass-solid"),
   blur: "blur(12px)",
   border: COLORS.line07,
   borderStrong: COLORS.line08,
   divider: COLORS.line08,
   // Tool states — app zinc chrome (active = near-black ink pill).
   activeBg: COLORS.ink,
-  activeFg: COLORS.white,
+  activeFg: chromeVar("on-ink"),
   idleFg: COLORS.ink600,
   hoverBg: COLORS.line06,
   hoverFg: COLORS.ink,
   // Save + avatar.
   saveGreen: COLORS.saveGreen,
-  saveGreenTrack: "rgba(22,163,74,0.28)",
+  saveGreenTrack: chromeVar("save-green-track"),
   spinner: COLORS.ink500,
-  spinnerTrack: "rgba(113,113,122,0.25)",
+  spinnerTrack: chromeVar("spinner-track"),
   avatarBg: COLORS.track,
   avatarFg: COLORS.ink500,
 } as const;
@@ -102,8 +113,8 @@ export const DOCK = {
  * lift reads cleaner than a heavy drop while still detaching them from the page.
  */
 export const DOCK_SHADOWS = {
-  center: "0 6px 16px -12px rgba(0,0,0,0.10), 0 1px 3px rgba(0,0,0,0.03)",
-  side: "0 4px 12px -10px rgba(0,0,0,0.09), 0 1px 2px rgba(0,0,0,0.03)",
+  center: shadowVar("dock-center"),
+  side: shadowVar("dock-side"),
 } as const;
 
 /** Dock corner radii, ported 1:1 from the design. */
@@ -116,5 +127,4 @@ export const DOCK_RADII = {
 } as const;
 
 /** Hatched "advertising space" placeholder fill used in every side panel. */
-export const AD_HATCH =
-  "repeating-linear-gradient(135deg, #fafafa, #fafafa 8px, #f4f4f5 8px, #f4f4f5 16px)";
+export const AD_HATCH = `repeating-linear-gradient(135deg, ${chromeVar("hatch-a")}, ${chromeVar("hatch-a")} 8px, ${chromeVar("hatch-b")} 8px, ${chromeVar("hatch-b")} 16px)`;

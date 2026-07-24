@@ -19,7 +19,8 @@ interface PlainHeaderProps {
   showPhoto?: boolean;
   /** Show the inline contact row (hidden when the contacts live in an aside). */
   showContacts?: boolean;
-  /** Draw a hairline divider beneath the header. */
+  /** Extra bottom padding beneath the header (the hairline it used to draw was
+   *  removed with the rest of the section separators; the spacing remains). */
   divider?: boolean;
   photoSize?: string;
   /** Decorative colour for the contact/link icons; unset falls back to the accent. */
@@ -39,7 +40,7 @@ export function PlainHeader({
   showPhoto = true,
   showContacts = true,
   divider = false,
-  photoSize = "86px",
+  photoSize = "124px",
   markerColor,
 }: PlainHeaderProps) {
   const { personalInfo } = usePersonalInfo();
@@ -47,13 +48,7 @@ export function PlainHeader({
 
   return (
     <Box className="group" css={SECTION_HOVER_FRAME_REVEAL} dir="rtl">
-      <HStack
-        align="flex-start"
-        gap="22px"
-        pb={divider ? "4" : "0"}
-        borderBottomWidth={divider ? "1px" : undefined}
-        borderColor="blackAlpha.200"
-      >
+      <HStack align="flex-start" gap="22px" pb={divider ? "4" : "0"}>
         <VStack align="stretch" flex="1" minW="0" gap="12px">
           <PersonalInfoIdentity
             accentColor={accentColor}

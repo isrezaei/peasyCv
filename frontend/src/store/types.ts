@@ -1,14 +1,17 @@
 import type { StateCreator } from "zustand";
 import type {
+  AchievementItem,
   BackgroundPatternId,
   CalendarSystem,
   CertificationItem,
+  ColumnWidthId,
   Direction,
   EducationItem,
   ExperienceItem,
   FontFamilyId,
   ID,
   ImageMeta,
+  ImageSide,
   LanguageItem,
   LanguageLevel,
   LanguageMeterVariant,
@@ -20,6 +23,9 @@ import type {
   PhotoStyle,
   ProjectItem,
   ResumeData,
+  SkillDisplayMode,
+  SkillGroup,
+  SkillMeterVariant,
   TemplateId,
   ThemeId,
 } from "@/types";
@@ -32,6 +38,7 @@ export interface ResumeSlice {
   setProfileImage: (image: ImageMeta) => void;
   removeProfileImage: () => void;
   setPhotoStyle: (style: PhotoStyle) => void;
+  setImageSide: (side: ImageSide) => void;
   toggleField: (field: keyof PersonalInfoFieldVisibility) => void;
   setUppercaseName: (enabled: boolean) => void;
   addLink: () => void;
@@ -48,16 +55,24 @@ export interface ResumeSlice {
   removeExperience: (id: ID) => void;
   addResponsibility: (experienceId: ID) => void;
   /** Insert a new empty responsibility right after `afterId`; returns its id so
-   *  the caller (the list editor) can focus the new line. */
+   *  the caller (the list editor) can focus the new line. When the entry has
+   *  already filled to its page's bottom margin (per the active template's
+   *  pagination model), the line is created as the first bullet of a NEW sibling
+   *  entry right after it instead — the full entry stays put and the new entry
+   *  lands on the next page. */
   addResponsibilityAfter: (experienceId: ID, afterId: ID) => ID;
   updateResponsibility: (experienceId: ID, responsibilityId: ID, text: string) => void;
   removeResponsibility: (experienceId: ID, responsibilityId: ID) => void;
 
   addSkillGroup: () => void;
-  updateSkillGroup: (id: ID, name: string) => void;
+  updateSkillGroup: (id: ID, patch: Partial<Omit<SkillGroup, "id" | "skills">>) => void;
   removeSkillGroup: (id: ID) => void;
   addSkill: (groupId: ID) => void;
+  /** Insert a new empty skill right after `afterId`; returns its id so the list
+   *  editor can focus the new line (mirror of addResponsibilityAfter). */
+  addSkillAfter: (groupId: ID, afterId: ID) => ID;
   updateSkill: (groupId: ID, skillId: ID, name: string) => void;
+  setSkillLevel: (groupId: ID, skillId: ID, level: LanguageLevel) => void;
   removeSkill: (groupId: ID, skillId: ID) => void;
 
   addEducation: () => void;
@@ -76,6 +91,10 @@ export interface ResumeSlice {
   addCertification: () => void;
   updateCertification: (id: ID, patch: Partial<Omit<CertificationItem, "id">>) => void;
   removeCertification: (id: ID) => void;
+
+  addAchievement: () => void;
+  updateAchievement: (id: ID, patch: Partial<Omit<AchievementItem, "id">>) => void;
+  removeAchievement: (id: ID) => void;
 }
 
 export interface SectionsSlice {
@@ -83,8 +102,8 @@ export interface SectionsSlice {
   toggleSectionVisibility: (id: ID) => void;
   setSectionDirection: (id: ID, direction: Direction) => void;
   // The generic section-wide display-settings patch (implementation just spreads
-  // it onto the section row); carries the languages settings and the
-  // experience/education period-date settings.
+  // it onto the section row); carries the languages settings, the
+  // experience/education period-date settings and the achievements settings.
   setSectionLanguageSettings: (
     id: ID,
     patch: Partial<{
@@ -93,6 +112,11 @@ export interface SectionsSlice {
       languageShowLevelText: boolean;
       showMonth: boolean;
       monthFormat: MonthFormat;
+      achievementShowDescription: boolean;
+      achievementShowIcons: boolean;
+      skillDisplayMode: SkillDisplayMode;
+      skillShowLevel: boolean;
+      skillMeterVariant: SkillMeterVariant;
     }>,
   ) => void;
 }
@@ -109,6 +133,10 @@ export interface ThemeSlice {
   setPageMargin: (margin: number) => void;
   setSectionSpacing: (spacing: number) => void;
   setColumnIntensity: (intensity: number) => void;
+  setColumnWidth: (width: ColumnWidthId) => void;
+  setShowSectionIcons: (show: boolean) => void;
+  setShowSectionSeparators: (show: boolean) => void;
+  setAtsMode: (enabled: boolean) => void;
   setTemplate: (templateId: TemplateId) => void;
 }
 
@@ -122,10 +150,33 @@ export interface UiSlice {
   activePanel: ActivePanel;
   /** Whether the floating contextual sidebar is collapsed (slid closed). */
   sidebarCollapsed: boolean;
+  /**
+   * Download-time validation feedback. A download attempt with enabled-but-empty
+   * required fields flips this on: the editor's field primitives then paint a
+   * soft-red highlight over their (empty) placeholders (the blocked attempt also
+   * fires a bottom-left validation toast). This state is EDITOR chrome only — it
+   * is surfaced to fields through EmptyHighlightContext, which the /print and
+   * /share surfaces never provide, so it can never reach a PDF.
+   */
+  emptyHighlightActive: boolean;
+  /**
+   * Monotonic counter bumped once per blocked download attempt (every call to
+   * {@link UiSlice.activateEmptyHighlights}), including consecutive attempts that
+   * leave `emptyHighlightActive` already-true. Chrome that must re-fire on EACH
+   * attempt — the Download button's red-shake feedback — subscribes to this
+   * rather than the boolean, so a repeat click still triggers even when no other
+   * state changed. Fires in lockstep with the validation toast.
+   */
+  emptyHighlightNonce: number;
   setHydrated: (hydrated: boolean) => void;
   setSaveStatus: (status: SaveStatus) => void;
   setActivePanel: (panel: ActivePanel) => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
+  /** Turn on the empty-field highlights (a download attempt that was blocked by
+   *  empty required fields). */
+  activateEmptyHighlights: () => void;
+  /** Clear the highlights (a download that passed validation). */
+  clearEmptyHighlights: () => void;
 }
 
 export type RootStore = ResumeSlice & SectionsSlice & ThemeSlice & UiSlice;

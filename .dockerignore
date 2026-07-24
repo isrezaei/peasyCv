@@ -1,0 +1,35 @@
+# Keep the Docker build context small + reproducible. Anything the image needs is
+# installed/built INSIDE the image, so host artifacts never get copied in.
+
+# Dependencies (reinstalled with `npm ci` in the builder stage)
+**/node_modules
+
+# Build output (rebuilt in the image)
+**/dist
+**/.next
+**/.next-dev
+**/out
+*.tsbuildinfo
+next-env.d.ts
+
+# VCS / editor / OS cruft
+.git
+.gitignore
+**/.DS_Store
+.vscode
+.idea
+
+# Local secrets & runtime data — never bake these into an image
+**/.env
+**/.env.*
+!**/.env.example
+deploy/*.env
+!deploy/*.env.example
+backend/uploads
+coverage
+
+# Docker files themselves + docs
+Dockerfile
+**/Dockerfile
+.dockerignore
+docker-compose*.yml

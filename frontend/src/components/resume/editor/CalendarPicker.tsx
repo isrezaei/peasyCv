@@ -150,7 +150,7 @@ export function CalendarPicker({ value, system, onSelect }: CalendarPickerProps)
               fontSize="xs"
               fontWeight={isSelected ? "bold" : "normal"}
               bg={isSelected ? "accent.solid" : "transparent"}
-              color={isSelected ? "white" : isToday ? "accent.fg" : "fg.muted"}
+              color={isSelected ? "accent.contrast" : isToday ? "accent.fg" : "fg.muted"}
               borderWidth={isToday && !isSelected ? "1px" : "0"}
               borderColor="accent.emphasized"
               transition="background 0.1s"

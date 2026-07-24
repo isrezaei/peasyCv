@@ -7,7 +7,7 @@ import { chromium } from "playwright-core";
 //   3. No separate "add item" button remains; the list keeps a one-item minimum.
 
 const BASE_URL = process.env.SMOKE_URL ?? "http://localhost:3000";
-const NAME = "مثال: علی محمدی";
+const NAME = "علی محمدی";
 const RESP = "یک مسئولیت یا دستاورد را بنویسید...";
 const ADD_ENTRY = "افزودن مورد";
 const EXP_HEADING = "تجربه کاری";

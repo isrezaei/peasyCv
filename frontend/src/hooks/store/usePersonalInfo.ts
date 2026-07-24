@@ -9,6 +9,7 @@ export function usePersonalInfo() {
       setProfileImage: state.setProfileImage,
       removeProfileImage: state.removeProfileImage,
       setPhotoStyle: state.setPhotoStyle,
+      setImageSide: state.setImageSide,
       toggleField: state.toggleField,
       setUppercaseName: state.setUppercaseName,
       addLink: state.addLink,

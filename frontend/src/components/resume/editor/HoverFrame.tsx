@@ -43,6 +43,20 @@ export const itemRemoveButtonProps = {
 } as const;
 
 /**
+ * Variant of {@link itemRemoveButtonProps} for a control nested INSIDE a `.group`
+ * item (each skill tag/line inside a skills group): identical look, but revealed
+ * by the skill's own named `group/skill` wrapper — the enclosing unnamed `.group`
+ * would light every skill's control at once.
+ */
+export const nestedItemRemoveButtonProps = {
+  ...itemRemoveButtonProps,
+  _groupHover: {},
+  css: {
+    ".group\\/skill:hover &, .group\\/skill:focus-within &": { opacity: 1 },
+  },
+} as const;
+
+/**
  * Reveal contract for the section control (the dots HoverFrame). The control rests
  * at low opacity and lifts to full when its OWNING SECTION is hovered (or holds
  * focus). The reveal is driven from the section wrapper — so the entire section is

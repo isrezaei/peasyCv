@@ -10,7 +10,18 @@ import { useResumeDocument } from "@/hooks/store/useResumeDocument";
 import { type ColumnTemplateLayout, useColumnLayout } from "@/hooks/resume/useColumnLayout";
 import { getFontStack } from "@/lib/fonts/registry";
 import { PAGE_MARGIN_MM, SIDE_COLUMN_PAD_FACTOR } from "@/lib/pagination";
-import { mixWithWhite, resolveTheme, resumeTextVars, shadeColor } from "@/lib/themes";
+import {
+  contrastRatio,
+  darken,
+  ensureReadable,
+  ensureReadableOnDark,
+  isDarkSurface,
+  mixWithWhite,
+  ON_DARK_SURFACE_TEXT,
+  resolveTheme,
+  resumeTextVars,
+  shadeColor,
+} from "@/lib/themes";
 import type { RemovableSectionType, TemplateProps } from "@/types";
 import { PlainHeader } from "../_shared/PlainHeader";
 
@@ -21,14 +32,15 @@ const LAYOUT: ColumnTemplateLayout = {
   header: {
     kind: "split",
     main: { identity: true, contacts: true },
-    side: { photo: true, photoSizePx: 104, layout: "stack" },
+    side: { photo: true, photoSizePx: 124, layout: "stack" },
   },
 };
 
 export function AsideDarkTemplate({ resume, theme }: TemplateProps) {
   const personalInfo = useResumeDocument().personalInfo;
   const colors = resolveTheme(theme);
-  const mainBg = theme.pageBackground === "white" ? "#FFFFFF" : colors.soft;
+  // Page is ALWAYS white (pageBackground is a dead field — see ThemeSettings).
+  const mainBg = "#FFFFFF";
   const fontStack = getFontStack(theme.fontFamily);
   const gap = `${theme.sectionSpacing}mm`;
   // Fixed 16mm vertical margin (equal top/bottom); horizontal follows the slider,
@@ -39,13 +51,41 @@ export function AsideDarkTemplate({ resume, theme }: TemplateProps) {
   const pages = useColumnLayout(resume, LAYOUT);
 
   const asideBg = shadeColor(colors.accent, 0.5, theme.columnIntensity);
-  const asideHeading = "#FFFFFF";
-  const asideText = "rgba(255,255,255,0.80)";
-  const asideSubtitle = "rgba(255,255,255,0.88)";
-  const asideAccent = mixWithWhite(colors.accent, 0.55);
-  const asideChip = "rgba(255,255,255,0.12)";
+  // F: the aside is dark by design, but the shade tracks the column-intensity
+  // slider, and a light accent at low intensity can land the surface on the light
+  // side of the threshold — so the tiers go through the same isDarkSurface switch
+  // as the tinted columns: white family (one shared source, placeholder included)
+  // on a dark shade, accent family deepened to AA when the shade lands light.
+  const asideOnDark = isDarkSurface(asideBg);
+  // The softened white alphas only clear AA once the shade is deep enough (white
+  // itself ≥ 6:1); on the borderline band where white merely *wins* over black
+  // (a light accent at low intensity), the body/subtitle/placeholder tiers stay
+  // white but at higher strength so they keep AA on the mid-luminance shade.
+  const deepShade = contrastRatio("#FFFFFF", asideBg) >= 6;
+  const asideHeading = asideOnDark
+    ? ON_DARK_SURFACE_TEXT.heading
+    : ensureReadable(colors.accent, asideBg);
+  const asideText = asideOnDark
+    ? deepShade
+      ? ON_DARK_SURFACE_TEXT.body
+      : ON_DARK_SURFACE_TEXT.heading
+    : ensureReadable(darken(colors.accent, 0.3), asideBg);
+  const asideSubtitle = asideOnDark
+    ? deepShade
+      ? ON_DARK_SURFACE_TEXT.subtitle
+      : ON_DARK_SURFACE_TEXT.heading
+    : asideHeading;
+  const asideAccent = asideOnDark
+    ? ensureReadableOnDark(mixWithWhite(colors.accent, 0.55), asideBg)
+    : asideText;
+  const asideChip = asideOnDark ? ON_DARK_SURFACE_TEXT.chip : mixWithWhite(colors.accent, 0.84);
+  const asidePlaceholder = asideOnDark
+    ? deepShade
+      ? ON_DARK_SURFACE_TEXT.placeholder
+      : "rgba(255,255,255,0.78)"
+    : undefined;
 
-  const renderMain = ({ section, itemIds, showTitle }: ColumnSectionRun) => (
+  const renderMain = ({ section, itemIds, showTitle, itemSlices }: ColumnSectionRun) => (
     <TemplateSection
       section={section}
       resume={resume}
@@ -55,10 +95,11 @@ export function AsideDarkTemplate({ resume, theme }: TemplateProps) {
       markerColor={colors.marker}
       compact
       itemIds={itemIds}
+      itemSlices={itemSlices}
       showTitle={showTitle}
     />
   );
-  const renderSide = ({ section, itemIds, showTitle }: ColumnSectionRun) => (
+  const renderSide = ({ section, itemIds, showTitle, itemSlices }: ColumnSectionRun) => (
     <TemplateSection
       section={section}
       resume={resume}
@@ -66,10 +107,11 @@ export function AsideDarkTemplate({ resume, theme }: TemplateProps) {
       soft={asideChip}
       titleColor={asideHeading}
       variant="underline"
-      tone="onDark"
+      tone={asideOnDark ? "onDark" : "onLight"}
       markerColor={colors.marker}
       compact
       itemIds={itemIds}
+      itemSlices={itemSlices}
       showTitle={showTitle}
     />
   );
@@ -108,11 +150,11 @@ export function AsideDarkTemplate({ resume, theme }: TemplateProps) {
               paddingInline={sidePadX}
               gap="0"
               dir="rtl"
-              style={resumeTextVars(asideHeading, asideText, asideSubtitle)}
+              style={resumeTextVars(asideHeading, asideText, asideSubtitle, asidePlaceholder)}
             >
               {page === 0 && personalInfo.fieldVisibility.photo ? (
                 <Box alignSelf="center" mb={gap}>
-                  <ProfileImageEditor size="104px" />
+                  <ProfileImageEditor size="124px" />
                 </Box>
               ) : null}
               <ColumnBody blocks={pages.side[page] ?? []} sections={resume.sections} renderSection={renderSide} />

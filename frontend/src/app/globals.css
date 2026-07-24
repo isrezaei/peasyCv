@@ -25,8 +25,25 @@ body {
   box-sizing: border-box;
 }
 
+/* Dark color mode: next-themes puts `.dark` on <html> (editor app only — the
+   /print and /share routes never mount its provider, so they stay light). The
+   values mirror the `chrome.*` dark tokens in lib/chakra/system.ts. The A4 page
+   subtree opts back out via the Chakra `.light` scope on `.a4-page`. */
+:root.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  color: #ececef;
+  background: #060709;
+}
+
 ::selection {
   background: rgba(113, 113, 122, 0.22);
+}
+
+.dark ::selection {
+  background: rgba(154, 155, 163, 0.3);
 }
 
 a {
@@ -44,6 +61,13 @@ a {
     0 12px 32px rgba(0, 0, 0, 0.08);
 }
 
+/* Page edge on the dark workspace: a white-alpha hairline so the (still white)
+   page detaches from the #060709 chrome. Outside the page — never printed. */
+.dark .a4-page {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 1px 2px rgba(0, 0, 0, 0.5),
+    0 12px 32px rgba(0, 0, 0, 0.55);
+}
+
 /* Topbar dock saving spinner (matches the design's save state). */
 .dock-spin {
   transform-origin: center;
@@ -53,6 +77,39 @@ a {
 @keyframes dockspin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Blocked-download feedback: a short, subtle X-axis wobble on the Download
+   button (see DownloadButton). Pure CSS, no library. Fast and small — not
+   comical. Disabled for users who ask for reduced motion (the red button + the
+   red field highlights still convey the block without any movement). */
+@keyframes rz-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+.rz-shake {
+  animation: rz-shake 0.4s ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rz-shake {
+    animation: none;
   }
 }
 
@@ -79,6 +136,11 @@ a {
 
   html,
   body {
+    /* The UA's default 8px body margin pushes every page box down, so its tail
+       spills onto an extra blank PDF sheet — the sheet must start at the page
+       box's exact top-left. */
+    margin: 0 !important;
+    padding: 0 !important;
     background: #ffffff !important;
     overflow: visible !important;
   }
@@ -87,9 +149,26 @@ a {
     display: none !important;
   }
 
+  /* One painted page == one PDF sheet. The screen-only chrome between pages
+     (VStack gap) is removed, every page forces a break after itself EXCEPT the
+     last (a trailing forced break yields an extra blank PDF page), and the box
+     is kept 1px under the 297mm @page sheet: Chrome's mm→px page rounding makes
+     an exactly-297mm box spill a sub-pixel tail onto an extra sheet (a blank
+     page with a background sliver). Content never sits in the bottom 4mm safety
+     zone, so the 1px only trims the painted background, invisibly. */
+  .resume-pages {
+    gap: 0 !important;
+  }
+
   .a4-page {
     box-shadow: none !important;
     border-radius: 0 !important;
+    height: calc(297mm - 1px) !important;
+    min-height: 0 !important;
     break-after: page;
+  }
+
+  .a4-page:last-child {
+    break-after: auto;
   }
 }

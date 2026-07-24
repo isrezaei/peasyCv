@@ -1,5 +1,6 @@
 import { t } from "@/lib/i18n";
 import type {
+  AchievementItem,
   CertificationItem,
   EducationItem,
   ExperienceItem,
@@ -23,6 +24,7 @@ export interface SectionOptionActions {
     id: ID,
     patch: Partial<Omit<ExperienceItem, "id" | "responsibilities">>,
   ) => void;
+  updateSkillGroup: (id: ID, patch: Partial<Omit<SkillGroup, "id" | "skills">>) => void;
 }
 
 /**
@@ -38,6 +40,7 @@ export interface SectionItemMap {
   projects: ProjectItem;
   languages: LanguageItem;
   certifications: CertificationItem;
+  achievements: AchievementItem;
 }
 
 export interface SectionOption<Item> {
@@ -61,6 +64,15 @@ const showProjectLink: SectionOption<ProjectItem> = {
   write: (actions, item, checked) => actions.updateProject(item.id, { linkVisible: checked }),
 };
 
+// The per-group title toggle — same show/hide pattern as the link options, but
+// against the group's own `showTitle` flag (per group, not section-wide).
+const showSkillGroupTitle: SectionOption<SkillGroup> = {
+  id: "skills-show-group-title",
+  label: t.skills.showGroupTitle,
+  read: (item) => item.showTitle,
+  write: (actions, item, checked) => actions.updateSkillGroup(item.id, { showTitle: checked }),
+};
+
 // Faithful mirror of showProjectLink for the Experience entry's link pair.
 const showExperienceLink: SectionOption<ExperienceItem> = {
   id: "experience-show-link",
@@ -82,11 +94,16 @@ export const SECTION_OPTIONS: {
 } = {
   summary: [],
   experience: [showExperienceLink],
-  skills: [],
+  // The display mode / level settings are SECTION-WIDE and live in the section's
+  // main menu (SectionCompactMenu); only the per-group title toggle is per item.
+  skills: [showSkillGroupTitle],
   education: [],
   projects: [showProjectLink],
   // Languages display settings are SECTION-WIDE and live in the section's main
   // menu (SectionCompactMenu), not the per-item gear.
   languages: [],
   certifications: [],
+  // Achievements display settings (description / icons) are SECTION-WIDE and
+  // live in SectionCompactMenu like the languages settings.
+  achievements: [],
 };

@@ -1,4 +1,5 @@
 import type { ID, Timestamped } from "./common";
+import type { AchievementItem } from "./achievements";
 import type { CertificationItem } from "./certifications";
 import type { EducationItem } from "./education";
 import type { ExperienceItem } from "./experience";
@@ -16,6 +17,10 @@ export interface ResumeData extends Timestamped {
   title: string;
   locale: "fa" | "en";
   templateId: TemplateId;
+  /** Per-resume occupation-category id (lib/occupationCategories.ts); null =
+   *  not chosen. Optional so pre-existing persisted payloads stay assignable —
+   *  normalizeResume backfills it to null on hydration. */
+  occupationCategory?: string | null;
   theme: ThemeSettings;
   sections: SectionMeta[];
   personalInfo: PersonalInfo;
@@ -26,4 +31,5 @@ export interface ResumeData extends Timestamped {
   projects: ProjectItem[];
   languages: LanguageItem[];
   certifications: CertificationItem[];
+  achievements: AchievementItem[];
 }

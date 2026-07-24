@@ -14,6 +14,16 @@ interface SecondaryTitleFieldProps {
   markerColor?: string;
   fontSize?: string;
   fontWeight?: string;
+  /** Explicit tracking (never inherited into the field — see EditableText). */
+  letterSpacing?: string;
+  /** Opt the underlying field into download-time empty-field validation. */
+  validate?: boolean;
+  /**
+   * Print-surface behavior (default true — the classic one-line end-ellipsis).
+   * A narrow-column variant (the timeline panel) passes false so a long value
+   * WRAPS on print, while the editor input still end-ellipsizes.
+   */
+  truncateEnd?: boolean;
 }
 
 /**
@@ -33,6 +43,9 @@ export const SecondaryTitleField = memo(function SecondaryTitleField({
   markerColor,
   fontSize = "sm",
   fontWeight = "bold",
+  letterSpacing,
+  validate,
+  truncateEnd = true,
 }: SecondaryTitleFieldProps) {
   return (
     <EditableText
@@ -42,6 +55,16 @@ export const SecondaryTitleField = memo(function SecondaryTitleField({
       color={markerColor ?? `var(--rz-subtitle, ${accentColor})`}
       fontSize={fontSize}
       fontWeight={fontWeight}
+      letterSpacing={letterSpacing}
+      validate={validate}
+      // Base direction stays the SECTION's (inherited — Persian sections are
+      // RTL, so titles right-align). NEVER dir="auto" here: a Persian title
+      // that happens to start with a Latin word or digit would be misdetected
+      // as LTR and jump left. End-ellipsized so a long title trails off
+      // instead of hard-clipping at the header edge; the wrap-on-print variant
+      // keeps the ellipsis on the editor input alone.
+      truncateEnd={truncateEnd}
+      inputEllipsis={!truncateEnd}
     />
   );
 });

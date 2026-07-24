@@ -8,6 +8,7 @@ export * from "./education";
 export * from "./projects";
 export * from "./languages";
 export * from "./certifications";
+export * from "./achievements";
 export * from "./sections";
 export * from "./theme";
 export * from "./template";

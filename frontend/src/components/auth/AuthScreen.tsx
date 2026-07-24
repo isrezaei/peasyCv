@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { Box, Button, chakra, Heading, Input, Stack, Text } from "@chakra-ui/react";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { googleLoginUrl } from "@/lib/api/auth";
+import { OCCUPATIONS } from "@/lib/occupations";
 
 type Mode = "login" | "register";
 
@@ -22,10 +23,11 @@ const COPY = {
   },
 } as const;
 
-export function AuthScreen() {
+export function AuthScreen({ variant = "page" }: { variant?: "page" | "embedded" }) {
   const { login, register } = useAuth();
   const [mode, setMode] = useState<Mode>("login");
   const [name, setName] = useState("");
+  const [occupation, setOccupation] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +43,7 @@ export function AuthScreen() {
       if (mode === "login") {
         await login(email, password);
       } else {
-        await register(email, password, name.trim() || undefined);
+        await register(email, password, name.trim() || undefined, occupation || undefined);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "خطایی رخ داد. دوباره تلاش کنید.");
@@ -49,8 +51,15 @@ export function AuthScreen() {
     }
   };
 
+  // "page" fills the viewport (the real /login route); "embedded" renders just
+  // the card so the login modal (@auth intercepting route) can host it.
+  const wrapperProps =
+    variant === "page"
+      ? ({ minH: "100vh", display: "flex", alignItems: "center", justifyContent: "center", bg: "bg.muted", p: "4" } as const)
+      : ({ display: "flex", alignItems: "center", justifyContent: "center" } as const);
+
   return (
-    <Box minH="100vh" display="flex" alignItems="center" justifyContent="center" bg="bg.muted" p="4">
+    <Box {...wrapperProps}>
       <Box
         as="form"
         onSubmit={handleSubmit}
@@ -72,12 +81,36 @@ export function AuthScreen() {
 
         <Stack gap="3">
           {mode === "register" ? (
-            <Input
-              placeholder="نام و نام خانوادگی (اختیاری)"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              autoComplete="name"
-            />
+            <>
+              <Input
+                placeholder="نام و نام خانوادگی (اختیاری)"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoComplete="name"
+              />
+              {/* Optional at signup: keeps friction low and mirrors the Google
+                  path, which can't collect it. Native select for reliable RTL. */}
+              <chakra.select
+                value={occupation}
+                onChange={(e) => setOccupation(e.target.value)}
+                aria-label="حوزه شغلی"
+                height="10"
+                px="3"
+                borderWidth="1px"
+                borderColor="border"
+                borderRadius="md"
+                bg="bg"
+                color={occupation ? "fg" : "fg.muted"}
+                _focusVisible={{ outline: "none", borderColor: "accent.solid" }}
+              >
+                <option value="">حوزه شغلی (اختیاری)</option>
+                {OCCUPATIONS.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.label}
+                  </option>
+                ))}
+              </chakra.select>
+            </>
           ) : null}
           <Input
             type="email"

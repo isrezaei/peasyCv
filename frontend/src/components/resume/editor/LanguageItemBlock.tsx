@@ -22,6 +22,14 @@ interface LanguageItemBlockProps {
    *  the `--rz-secondary` var (today's classic source). Empty steps stay grey and
    *  the level→fill logic is untouched — only the fill colour source changes. */
   markerColor?: string;
+  /**
+   * Narrow-column layout (the timeline-panel design's panel): the cell stacks
+   * VERTICALLY — the name (with the level word) on top, the COMPACT meter on its
+   * own row aligned to the inline-end (visually left in RTL) — instead of the
+   * name and a full-size meter sharing one row, which crushes the name to a few
+   * characters in a ~38mm column. Unset keeps the shared beside-text cell.
+   */
+  stacked?: boolean;
 }
 
 /**
@@ -38,6 +46,7 @@ export const LanguageItemBlock = memo(function LanguageItemBlock({
   showMeter,
   showLevelText,
   markerColor,
+  stacked = false,
 }: LanguageItemBlockProps) {
   const { updateLanguage, setLanguageLevel, removeLanguage } = useLanguages();
 
@@ -46,9 +55,19 @@ export const LanguageItemBlock = memo(function LanguageItemBlock({
       value={item.name}
       onChange={(value) => updateLanguage(item.id, { name: value })}
       placeholder={t.languages.namePlaceholder}
+      // The block only renders for a visible Languages section, so the name is
+      // always an enabled field — flag it when empty on a blocked download. The
+      // 1–5 level meter always carries a value, so it needs no validation.
+      validate
       fontSize="sm"
       fontWeight="medium"
       color="var(--rz-subtitle)"
+      // ONE line that end-ellipsizes, like every other entry title. The editor's
+      // <input> can't wrap either, and `estimateLanguageRowHeight` prices the cell
+      // as a single non-wrapping line — without this the /print span wrapped
+      // (`break-word`, so mid-WORD) in a narrow column, painting the cell taller
+      // than both the editor and the reserve.
+      truncateEnd
     />
   );
   const levelWord = showLevelText ? (
@@ -63,10 +82,50 @@ export const LanguageItemBlock = memo(function LanguageItemBlock({
       level={item.level}
       accentColor={markerColor ?? "var(--rz-secondary)"}
       variant={meterVariant}
+      compact={stacked}
       editable
       onChange={(level) => setLanguageLevel(item.id, level)}
     />
   ) : null;
+
+  // Narrow-column composition: name (+ level word) on top, the compact meter on
+  // its own row pushed to the inline-end (left in RTL, `justify="flex-end"`), at
+  // a tighter cell padding than the full beside-text cell — so the name keeps
+  // the whole column width instead of sharing it with the meter.
+  if (stacked) {
+    return (
+      <Box
+        className="group"
+        position="relative"
+        dir={direction}
+        p="1.5"
+        borderRadius="md"
+        _hover={ITEM_HOVER_OUTLINE}
+      >
+        <HStack justify="space-between" gap="2" align="baseline">
+          <Box flex="1" minW="0" display="flex" flexDirection="column">
+            {nameField}
+          </Box>
+          {levelWord}
+        </HStack>
+        {meter ? (
+          <HStack justify="flex-end" mt="1">
+            {meter}
+          </HStack>
+        ) : null}
+
+        <Box className="no-print" display="flex" position="absolute" insetInlineEnd="0" top="0">
+          <IconButton
+            aria-label={t.languages.removeEntry}
+            {...itemRemoveButtonProps}
+            onClick={() => removeLanguage(item.id)}
+          >
+            <TrashIcon />
+          </IconButton>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -79,7 +138,7 @@ export const LanguageItemBlock = memo(function LanguageItemBlock({
       // is part of the cell's height and is priced by the row estimator
       // (estimateLanguageRowHeight's cell chrome term).
       p="3"
-      pe="6"
+      // pe="6"
       borderRadius="md"
       _hover={ITEM_HOVER_OUTLINE}
     >

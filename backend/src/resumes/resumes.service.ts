@@ -27,12 +27,20 @@ export class ResumesService {
     const rows = await this.prisma.resume.findMany({
       where: { userId },
       orderBy: { updatedAt: 'desc' },
-      select: { id: true, title: true, templateId: true, createdAt: true, updatedAt: true },
+      select: {
+        id: true,
+        title: true,
+        templateId: true,
+        occupationCategory: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
     return rows.map((r) => ({
       id: r.id,
       title: r.title,
       templateId: r.templateId as TemplateId,
+      occupationCategory: r.occupationCategory,
       createdAt: r.createdAt.toISOString(),
       updatedAt: r.updatedAt.toISOString(),
     }));
@@ -61,7 +69,17 @@ export class ResumesService {
   // --- Writes --------------------------------------------------------------
 
   async create(userId: string, dto: CreateResumeDto): Promise<ResumeData> {
-    const data = createDefaultResumeData(dto);
+    // New resumes inherit the owner's account-level category so existing
+    // behaviour is preserved (nothing renders empty); it is per-resume from
+    // then on and travels with the full ResumeData document.
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { occupationCategory: true },
+    });
+    const data = createDefaultResumeData({
+      ...dto,
+      occupationCategory: user?.occupationCategory ?? null,
+    });
     return this.persist(userId, data.id, data, 'create');
   }
 

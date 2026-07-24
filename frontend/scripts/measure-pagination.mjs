@@ -64,9 +64,31 @@ const id = (p) => `${p}-${Math.random().toString(36).slice(2, 9)}`;
 /**
  * Schema-valid worst case (all sections, many items). `modes` tunes the display
  * settings under test: `showMonth` / `monthFormat` land on the experience and
- * education section rows, `linkVisible` on every experience item.
+ * education section rows, `linkVisible` on every experience item, and the
+ * achievements options populate/tune the Key-Achievements section (absent from
+ * the baseline scenarios so their numbers stay comparable across changes —
+ * normalizeResume backfills it hidden). `templateId` lets the achievements
+ * scenarios run on a column template to prove the stacked (1-per-row) layout.
  */
-function buildWorstCase({ showMonth = true, monthFormat = "name", linkVisible = true } = {}) {
+function buildWorstCase({
+  showMonth = true,
+  monthFormat = "name",
+  linkVisible = true,
+  withAchievements = false,
+  achievementShowDescription = true,
+  achievementShowIcons = true,
+  sectionIcons = false,
+  sectionSeparators = false,
+  atsMode = false,
+  skillDisplayMode = "row",
+  skillShowLevel = false,
+  skillMeterVariant = "line",
+  templateId = "professional-single-column",
+  fontScale = 1,
+  // When set, the experience section is ONE item with this many responsibilities
+  // (the M1 long-list shape) instead of the 6×4 worst-case matrix.
+  responsibilityCount = null,
+} = {}) {
   const sectionTypes = [
     "summary",
     "experience",
@@ -75,6 +97,7 @@ function buildWorstCase({ showMonth = true, monthFormat = "name", linkVisible = 
     "projects",
     "languages",
     "certifications",
+    ...(withAchievements ? ["achievements"] : []),
   ];
   const sections = sectionTypes.map((type, index) => ({
     id: id("sec"),
@@ -88,9 +111,16 @@ function buildWorstCase({ showMonth = true, monthFormat = "name", linkVisible = 
     languageShowLevelText: true,
     showMonth,
     monthFormat,
+    achievementShowDescription,
+    achievementShowIcons,
+    skillDisplayMode,
+    skillShowLevel,
+    skillMeterVariant,
   }));
 
-  const experience = Array.from({ length: 6 }, (_, i) => ({
+  const experienceCount = responsibilityCount ? 1 : 6;
+  const responsibilitiesPerItem = responsibilityCount ?? 4;
+  const experience = Array.from({ length: experienceCount }, (_, i) => ({
     id: id("exp"),
     jobTitle: `مهندس نرم‌افزار ارشد ${i + 1}`,
     companyName: "شرکت فناوری نمونه با نام طولانی",
@@ -101,7 +131,7 @@ function buildWorstCase({ showMonth = true, monthFormat = "name", linkVisible = 
       "توضیح نسبتاً بلندی دربارهٔ نقش و دستاوردها که احتمالاً به دو خط کشیده می‌شود و فضای بیشتری می‌گیرد.",
     link: "https://github.com/example/project",
     linkVisible,
-    responsibilities: Array.from({ length: 4 }, () => ({
+    responsibilities: Array.from({ length: responsibilitiesPerItem }, () => ({
       id: id("resp"),
       text: "یک مسئولیت یا دستاورد کلیدی همراه با عدد و نتیجهٔ مشخص که ممکن است طولانی باشد.",
     })),
@@ -148,12 +178,29 @@ function buildWorstCase({ showMonth = true, monthFormat = "name", linkVisible = 
     date: "2022-05-01",
   }));
 
+  // Mixed lengths on purpose: long titles that wrap at half width, long
+  // descriptions beside short ones, so a row's max-of-members height and the
+  // title wrap estimate are both exercised.
+  const achievements = withAchievements
+    ? Array.from({ length: 6 }, (_, i) => ({
+        id: id("ach"),
+        title:
+          i % 2 === 0
+            ? `طراحی و توسعهٔ پایگاه‌دادهٔ مقیاس‌پذیر با اکوسیستم Node.js شماره ${i + 1}`
+            : `دستاورد کوتاه ${i + 1}`,
+        description:
+          i % 3 === 0
+            ? "طراحی و پیاده‌سازی پایگاه‌های دادهٔ بهینه و مقیاس‌پذیر با PostgreSQL و MongoDB در اپلیکیشن‌های مبتنی بر Node.js که به دو تا سه خط متن می‌رسد و ارتفاع واقعی سلول را می‌سنجد."
+            : "توضیح کوتاه‌تری دربارهٔ نتیجهٔ این دستاورد.",
+      }))
+    : [];
+
   const now = new Date().toISOString();
   return {
     id: id("resume"),
     title: "رزومه نمونه",
     locale: "fa",
-    templateId: "professional-single-column",
+    templateId,
     theme: {
       themeId: "sage",
       pageBackground: "theme",
@@ -161,11 +208,14 @@ function buildWorstCase({ showMonth = true, monthFormat = "name", linkVisible = 
       backgroundIntensity: 0.7,
       dateCalendar: "jalali",
       fontFamily: "vazirmatn",
-      fontScale: 1,
+      fontScale,
       lineHeight: 1.5,
       pageMargin: 16,
       sectionSpacing: 6,
       columnIntensity: 1,
+      showSectionIcons: sectionIcons,
+      showSectionSeparators: sectionSeparators,
+      atsMode,
     },
     sections,
     personalInfo: {
@@ -203,6 +253,7 @@ function buildWorstCase({ showMonth = true, monthFormat = "name", linkVisible = 
     projects,
     languages,
     certifications,
+    achievements,
     createdAt: now,
     updatedAt: now,
   };
@@ -226,6 +277,21 @@ async function measureOverflow(page, label) {
         if (br.bottom > maxBottom) {
           maxBottom = br.bottom;
           lastKind = b.getAttribute("data-block-kind");
+        }
+      }
+      // Column templates carry no [data-block-id] blocks; walk the painted
+      // content instead (verify-pagination-all's approach), skipping the
+      // on-screen editor chrome and the clipped decorative background.
+      if (blocks.length === 0) {
+        for (const el of pageEl.querySelectorAll("*")) {
+          if (el.closest(".no-print")) continue;
+          if (el.closest("[data-rz-decorations]")) continue;
+          const r = el.getBoundingClientRect();
+          if (r.width === 0 && r.height === 0) continue;
+          if (r.bottom > maxBottom) {
+            maxBottom = r.bottom;
+            lastKind = el.tagName.toLowerCase();
+          }
         }
       }
       return {
@@ -317,6 +383,153 @@ const scenarios = [
     label: "TYPICAL (seed-like item counts)",
     fixture: buildTypical(),
     shot: "measure-default.png",
+  },
+  // Key-Achievements matrix: the width-adaptive grid (2-up at full width,
+  // stacked in a column template's narrower main) and each section-wide
+  // display toggle, proven against the live Chrome render.
+  {
+    label: "ACHIEVEMENTS — 2-up grid (professional, full width)",
+    fixture: buildWorstCase({ withAchievements: true }),
+    shot: "measure-ach-2up.png",
+  },
+  {
+    label: "ACHIEVEMENTS — stacked (sidebar-column, narrow main)",
+    fixture: buildWorstCase({ withAchievements: true, templateId: "sidebar-column" }),
+    shot: "measure-ach-stacked.png",
+  },
+  {
+    label: "ACHIEVEMENTS — description HIDDEN",
+    fixture: buildWorstCase({ withAchievements: true, achievementShowDescription: false }),
+    shot: "measure-ach-no-desc.png",
+  },
+  {
+    label: "ACHIEVEMENTS — icons HIDDEN",
+    fixture: buildWorstCase({ withAchievements: true, achievementShowIcons: false }),
+    shot: "measure-ach-no-icons.png",
+  },
+  // Skills display-mode matrix: the LIST mode's per-line pricing (bars is the
+  // tallest beside-text meter) and the TAG row's level-widened slot (dots is
+  // the widest meter), both proven on the full width and on a narrow column.
+  {
+    label: "SKILLS — LIST mode + levels (bars, professional)",
+    fixture: buildWorstCase({ skillDisplayMode: "list", skillShowLevel: true, skillMeterVariant: "bars" }),
+    shot: "measure-skills-list-bars.png",
+  },
+  {
+    label: "SKILLS — LIST mode, no levels (sidebar-column, narrow)",
+    fixture: buildWorstCase({ skillDisplayMode: "list", templateId: "sidebar-column" }),
+    shot: "measure-skills-list-narrow.png",
+  },
+  {
+    label: "SKILLS — TAG row + levels (dots, professional)",
+    fixture: buildWorstCase({ skillShowLevel: true, skillMeterVariant: "dots" }),
+    shot: "measure-skills-row-dots.png",
+  },
+  {
+    label: "SKILLS — TAG row + levels (line, sidebar-column, narrow)",
+    fixture: buildWorstCase({ skillShowLevel: true, templateId: "sidebar-column" }),
+    shot: "measure-skills-row-line-narrow.png",
+  },
+  // Section-title icons ON: the icon chip (1.6em) is taller than the heading's
+  // text line-box, so this proves the heading block's over-reserve still
+  // absorbs the icon-governed row on every page.
+  {
+    label: "SECTION ICONS ON (worst case, full width)",
+    fixture: buildWorstCase({ withAchievements: true, sectionIcons: true }),
+    shot: "measure-section-icons.png",
+  },
+  // Section separators ON: the in-flow hairline adds LINE+GAP (3px) of real
+  // height under every title, which estimateSectionTitleHeight reserves under
+  // the same flag — proven at full width and in the narrow column flow.
+  {
+    label: "SECTION SEPARATORS ON (worst case, full width)",
+    fixture: buildWorstCase({ withAchievements: true, sectionSeparators: true }),
+    shot: "measure-section-separators.png",
+  },
+  {
+    label: "SECTION SEPARATORS ON (sidebar-column, narrow)",
+    fixture: buildWorstCase({ withAchievements: true, sectionSeparators: true, templateId: "sidebar-column" }),
+    shot: "measure-section-separators-sidebar.png",
+  },
+  // Double-column WITHOUT the inter-column separator (removed): the two columns now
+  // share the single gap the flex width model assumes, so the estimate can only
+  // over-reserve — this proves it still never overflows.
+  {
+    label: "DOUBLE COLUMN — no inter-column separator",
+    fixture: buildWorstCase({ withAchievements: true, templateId: "double-column" }),
+    shot: "measure-double-column.png",
+  },
+  // ATS Friendly mode forces the single-column, decoration-free layout regardless
+  // of the saved templateId, so a column template's résumé re-flows into one
+  // column. It reuses the professional single-column estimator, and every stripped
+  // graphic (meter, icons, rails, chips, photo) only REMOVES height — so the
+  // estimate can never under-reserve. Proven on a column template + full width.
+  {
+    label: "ATS MODE ON (was sidebar-column → single column)",
+    fixture: buildWorstCase({ withAchievements: true, templateId: "sidebar-column", atsMode: true }),
+    shot: "measure-ats-sidebar.png",
+  },
+  {
+    label: "ATS MODE ON (professional, full width)",
+    fixture: buildWorstCase({ withAchievements: true, atsMode: true }),
+    shot: "measure-ats-professional.png",
+  },
+  // M1 — long responsibility lists in the NARROW main column: the wrap capacity
+  // must be priced at the entry's real column width (68.97mm of bullet text in
+  // the 114mm sidebar main, not the flow-proportional assumption), and a single
+  // entry taller than a whole page must BREAK between bullets instead of
+  // painting past the frame. 20 bullets ≈ one full page; 30 can never fit one
+  // page, so it proves the packer split. The professional runs prove the same
+  // content still paginates correctly at full width.
+  {
+    label: "M1 — 20 responsibilities, one entry (sidebar-column)",
+    fixture: buildWorstCase({ templateId: "sidebar-column", responsibilityCount: 20 }),
+    shot: "measure-m1-20-sidebar.png",
+  },
+  {
+    label: "M1 — 30 responsibilities, one entry (sidebar-column, must split)",
+    fixture: buildWorstCase({ templateId: "sidebar-column", responsibilityCount: 30 }),
+    shot: "measure-m1-30-sidebar.png",
+  },
+  {
+    label: "M1 — 30 responsibilities, one entry (professional, must split)",
+    fixture: buildWorstCase({ responsibilityCount: 30 }),
+    shot: "measure-m1-30-professional.png",
+  },
+  // M2 — the estimator matrix across the FONT-SCALE slider range (0.85–1.3),
+  // with section icons + separators on: every height term (line heights, wrap
+  // capacities, the icon-governed title row) must track the active scale, on
+  // the narrow column and at full width alike.
+  {
+    label: "M2 — fontScale 0.85 + icons + separators (sidebar-column)",
+    fixture: buildWorstCase({
+      templateId: "sidebar-column", fontScale: 0.85,
+      withAchievements: true, sectionIcons: true, sectionSeparators: true,
+    }),
+    shot: "measure-m2-085-sidebar.png",
+  },
+  {
+    label: "M2 — fontScale 1.15 + icons + separators (sidebar-column)",
+    fixture: buildWorstCase({
+      templateId: "sidebar-column", fontScale: 1.15,
+      withAchievements: true, sectionIcons: true, sectionSeparators: true,
+    }),
+    shot: "measure-m2-115-sidebar.png",
+  },
+  {
+    label: "M2 — fontScale 1.3 + icons + separators (sidebar-column)",
+    fixture: buildWorstCase({
+      templateId: "sidebar-column", fontScale: 1.3,
+      withAchievements: true, sectionIcons: true, sectionSeparators: true,
+    }),
+    shot: "measure-m2-130-sidebar.png",
+  },
+  {
+    label: "M2 — fontScale 1.3 + icons + separators (professional)",
+    fixture: buildWorstCase({
+      fontScale: 1.3, withAchievements: true, sectionIcons: true, sectionSeparators: true,
+    }),
+    shot: "measure-m2-130-professional.png",
   },
 ];
 

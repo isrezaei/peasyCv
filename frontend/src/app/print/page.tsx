@@ -2,16 +2,19 @@
 
 import { Box } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
+import { PrintTextContext } from "@/components/resume/editor/PrintTextContext";
+import { ProfessionalTemplate } from "@/components/resume/templates/professional/ProfessionalTemplate";
 import { getTemplate } from "@/components/resume/templates/registry";
 import { useResumeDocument } from "@/hooks/store/useResumeDocument";
 import { normalizeResume } from "@/lib/resume/normalizeResume";
+import { prunePrintResume } from "@/lib/resume/printPrune";
 import { useResumeStore } from "@/store/useResumeStore";
 
 /**
  * Headless print surface for the Puppeteer PDF pipeline. It reads the resume
  * payload injected on `window.__RESUME_DATA__`, hydrates the store, and renders
  * the selected template through the *same* rendering layer as the live editor —
- * so the PDF matches the preview exactly. No editor chrome, ads, RightRail or
+ * so the PDF matches the preview exactly. No editor chrome, ads, top bar or
  * scroll container are rendered here; the remaining in-template affordances are
  * hidden by the `.no-print` rules under print media. `data-pdf-ready` signals
  * the route handler once content + fonts are settled.
@@ -23,8 +26,10 @@ export default function PrintPage() {
   useEffect(() => {
     const data = window.__RESUME_DATA__;
     if (data) {
-      // Update the external store directly from the injected payload.
-      useResumeStore.getState().setResume(normalizeResume(data));
+      // Update the external store directly from the injected payload. The print
+      // prune drops everything empty (blank seeded items, empty sections, blank
+      // contact fields) so the PDF only ever carries real content.
+      useResumeStore.getState().setResume(prunePrintResume(normalizeResume(data)));
       useResumeStore.getState().setHydrated(true);
     }
 
@@ -53,11 +58,19 @@ export default function PrintPage() {
 
 function PrintDocument({ ready }: { ready: boolean }) {
   const resume = useResumeDocument();
-  const Template = getTemplate(resume.templateId).component;
+  // ATS Friendly résumés always render through the single-column, decoration-free
+  // template regardless of the saved templateId — ATS is a LAYOUT switch only.
+  const ats = resume.theme.atsMode;
+  const Template = ats ? ProfessionalTemplate : getTemplate(resume.templateId).component;
 
   return (
     <Box data-pdf-ready={ready ? "true" : "false"} width="210mm" mx="auto" bg="white">
-      <Template resume={resume} theme={resume.theme} />
+      {/* Every print render — ATS or not — emits fields as real text nodes, never
+          <input>s, so placeholders can't leak into the PDF and empty fields print
+          nothing. */}
+      <PrintTextContext.Provider value={true}>
+        <Template resume={resume} theme={resume.theme} />
+      </PrintTextContext.Provider>
     </Box>
   );
 }

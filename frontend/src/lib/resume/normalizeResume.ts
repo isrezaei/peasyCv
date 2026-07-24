@@ -1,15 +1,20 @@
 import type {
   BackgroundPatternId,
+  ColumnWidthId,
   PersonalInfo,
   RemovableSectionType,
   ResumeData,
   SectionMeta,
   TemplateId,
+  ThemeId,
   ThemeSettings,
 } from "@/types";
+import { isThemeId } from "@/lib/themes";
+import { isOccupationCategoryId } from "@/lib/occupationCategories";
 import { t } from "@/lib/i18n";
 import { LANGUAGE_METER_VARIANTS } from "@/types/languages";
 import { MONTH_FORMATS } from "@/types/sections";
+import { SKILL_DISPLAY_MODES, SKILL_METER_VARIANTS } from "@/types/skills";
 import { createId } from "@/lib/utils/id";
 import { sanitizeProjectUrl } from "./sanitizeUrl";
 import {
@@ -39,6 +44,7 @@ const sectionTitles: Record<RemovableSectionType, string> = {
   projects: t.sections.projects,
   languages: t.sections.languages,
   certifications: t.sections.certifications,
+  achievements: t.sections.achievements,
 };
 
 // Section titles that previous app versions persisted and that have since been
@@ -64,7 +70,10 @@ const ALL_SECTION_TYPES: RemovableSectionType[] = [
   "projects",
   "languages",
   "certifications",
+  "achievements",
 ];
+
+const VALID_COLUMN_WIDTHS: ColumnWidthId[] = ["small", "medium", "large", "xlarge"];
 
 const VALID_BACKGROUND_PATTERNS: BackgroundPatternId[] = [
   "none",
@@ -120,17 +129,34 @@ function normalizeBackgroundIntensity(value: number | undefined, fallback: numbe
 // Coloured-column intensity multiplier. Kept inside the slider's range so a legacy
 // or out-of-bounds value can never render the column unreadably faint or harsh.
 const COLUMN_INTENSITY_MIN = 0.5;
-const COLUMN_INTENSITY_MAX = 1.5;
+const COLUMN_INTENSITY_MAX = 2;
 function normalizeColumnIntensity(value: number | undefined, fallback: number): number {
   if (typeof value !== "number" || Number.isNaN(value)) return fallback;
   return Math.min(COLUMN_INTENSITY_MAX, Math.max(COLUMN_INTENSITY_MIN, value));
+}
+
+// Theme ids retired by a rename, mapped to their surviving successor — same
+// contract as RENAMED_BACKGROUND_PATTERNS above, so a saved resume keeps its
+// chosen palette across a rename instead of snapping back to the default.
+// Currently empty: git history shows every ThemeId was only ever added; the map
+// exists so the next rename has a place to land.
+const RENAMED_THEMES: Record<string, ThemeId> = {};
+
+function resolveThemeId(value: string | undefined, fallback: ThemeId): ThemeId {
+  if (!value) return fallback;
+  if (isThemeId(value)) return value;
+  return RENAMED_THEMES[value] ?? fallback;
 }
 
 function normalizeTheme(theme: Partial<ThemeSettings> | undefined): ThemeSettings {
   const defaults = createDefaultTheme();
   if (!theme) return defaults;
   return {
-    themeId: theme.themeId ?? defaults.themeId,
+    // Allowlisted like templateId/backgroundPattern: an unknown (retired or
+    // corrupted) id would make getThemePreset return undefined and hard-crash
+    // resolveTheme on `.accentDark` — white screen in the editor, an endless
+    // hang on /print.
+    themeId: resolveThemeId(theme.themeId, defaults.themeId),
     pageBackground: theme.pageBackground ?? defaults.pageBackground,
     backgroundPattern: resolveBackgroundPattern(theme.backgroundPattern, defaults.backgroundPattern),
     backgroundIntensity: normalizeBackgroundIntensity(
@@ -144,6 +170,30 @@ function normalizeTheme(theme: Partial<ThemeSettings> | undefined): ThemeSetting
     pageMargin: theme.pageMargin ?? defaults.pageMargin,
     sectionSpacing: theme.sectionSpacing ?? defaults.sectionSpacing,
     columnIntensity: normalizeColumnIntensity(theme.columnIntensity, defaults.columnIntensity),
+    // The column-width preset arrived after resumes were first persisted —
+    // backfill it (default "medium", today's original widths) so an old payload
+    // hydrates complete, looks identical, and the strict DTO can't 400.
+    columnWidth: VALID_COLUMN_WIDTHS.includes(theme.columnWidth as ColumnWidthId)
+      ? (theme.columnWidth as ColumnWidthId)
+      : defaults.columnWidth,
+    // The resume-wide section-icon toggle arrived after resumes were first
+    // persisted — backfill it (default OFF) so an old payload hydrates complete
+    // and the strict ThemeSettingsDto can't 400 on the next save.
+    showSectionIcons:
+      typeof theme.showSectionIcons === "boolean"
+        ? theme.showSectionIcons
+        : defaults.showSectionIcons,
+    // The section-separator toggle arrived after resumes were first persisted —
+    // backfill it (default OFF) so an old payload hydrates complete and the
+    // strict ThemeSettingsDto can't 400 on the next save.
+    showSectionSeparators:
+      typeof theme.showSectionSeparators === "boolean"
+        ? theme.showSectionSeparators
+        : defaults.showSectionSeparators,
+    // ATS Friendly mode arrived after resumes were first persisted — backfill it
+    // (default false) so an old payload hydrates complete, looks identical, and
+    // the strict DTO can't 400.
+    atsMode: typeof theme.atsMode === "boolean" ? theme.atsMode : defaults.atsMode,
   };
 }
 
@@ -158,10 +208,15 @@ function normalizePersonalInfo(info: Partial<PersonalInfo> | undefined): Persona
     email: info.email ?? "",
     dateOfBirth: info.dateOfBirth ?? "",
     nationality: info.nationality ?? "",
+    militaryService: info.militaryService ?? "",
     links: info.links ?? [],
     profileImage: info.profileImage ?? null,
     uppercaseName: info.uppercaseName ?? false,
     photoStyle: info.photoStyle ?? "round",
+    // The photo left/right option arrived after resumes were first persisted —
+    // backfill it (default "left") so an old payload stays valid and the strict
+    // PersonalInfoDto can't 400 on the next save.
+    imageSide: info.imageSide === "right" ? "right" : "left",
     fieldVisibility: { ...defaults.fieldVisibility, ...(info.fieldVisibility ?? {}) },
   };
 }
@@ -177,7 +232,13 @@ function normalizeSections(sections: SectionMeta[] | undefined): SectionMeta[] {
         id: createId(),
         type,
         title: sectionTitles[type],
-        visible: type === "projects" || type === "languages" || type === "certifications" ? false : true,
+        visible:
+          type === "projects" ||
+          type === "languages" ||
+          type === "certifications" ||
+          type === "achievements"
+            ? false
+            : true,
         direction: "rtl",
         order: existing.length,
         languageMeterVariant: "bars",
@@ -185,6 +246,11 @@ function normalizeSections(sections: SectionMeta[] | undefined): SectionMeta[] {
         languageShowLevelText: true,
         showMonth: true,
         monthFormat: "name",
+        achievementShowDescription: true,
+        achievementShowIcons: true,
+        skillDisplayMode: "row",
+        skillShowLevel: false,
+        skillMeterVariant: "line",
       });
     }
   });
@@ -208,6 +274,23 @@ function normalizeSections(sections: SectionMeta[] | undefined): SectionMeta[] {
       // backfill so the strict SectionMetaDto can't 400 an old payload.
       showMonth: typeof section.showMonth === "boolean" ? section.showMonth : true,
       monthFormat: MONTH_FORMATS.includes(section.monthFormat) ? section.monthFormat : "name",
+      // Achievements display settings arrived after the period-date ones — same
+      // backfill (both default ON) so the strict SectionMetaDto can't 400.
+      achievementShowDescription:
+        typeof section.achievementShowDescription === "boolean"
+          ? section.achievementShowDescription
+          : true,
+      achievementShowIcons:
+        typeof section.achievementShowIcons === "boolean" ? section.achievementShowIcons : true,
+      // Skills display settings arrived after the achievements ones — same
+      // backfill (tag row, no level meter) so the strict SectionMetaDto can't 400.
+      skillDisplayMode: SKILL_DISPLAY_MODES.includes(section.skillDisplayMode)
+        ? section.skillDisplayMode
+        : "row",
+      skillShowLevel: typeof section.skillShowLevel === "boolean" ? section.skillShowLevel : false,
+      skillMeterVariant: SKILL_METER_VARIANTS.includes(section.skillMeterVariant)
+        ? section.skillMeterVariant
+        : "line",
     }))
     .sort((a, b) => a.order - b.order)
     .map((section, index) => ({ ...section, order: index }));
@@ -232,6 +315,12 @@ export function normalizeResume(raw: Partial<ResumeData> | null | undefined): Re
     title: raw.title ?? defaults.title,
     locale: raw.locale ?? "fa",
     templateId,
+    // The per-resume occupation category arrived after resumes were first
+    // persisted — backfill unknown/missing values to null (renders the «آزاد»
+    // fallback) so old payloads hydrate valid and the strict @IsIn can't 400.
+    occupationCategory: isOccupationCategoryId(raw.occupationCategory)
+      ? raw.occupationCategory
+      : null,
     theme: normalizeTheme(raw.theme),
     sections: normalizeSections(raw.sections),
     personalInfo: normalizePersonalInfo(raw.personalInfo),
@@ -245,7 +334,17 @@ export function normalizeResume(raw: Partial<ResumeData> | null | undefined): Re
       link: typeof exp.link === "string" ? sanitizeProjectUrl(exp.link) : "",
       linkVisible: typeof exp.linkVisible === "boolean" ? exp.linkVisible : true,
     })),
-    skills: raw.skills ?? [],
+    // Same boundary for the skills display fields (payloads persisted before the
+    // fields existed lack them; group titles were always shown and no level was
+    // stored) so the strict DTO cannot 400 an old resume on save.
+    skills: (raw.skills ?? []).map((group) => ({
+      ...group,
+      showTitle: typeof group.showTitle === "boolean" ? group.showTitle : true,
+      skills: (group.skills ?? []).map((skill) => ({
+        ...skill,
+        level: typeof skill.level === "number" ? skill.level : 3,
+      })),
+    })),
     education: raw.education ?? [],
     // The single boundary enforcing ProjectItemDto's contract on hydrated data,
     // for BOTH strictly-validated project fields: `linkVisible` must be a real
@@ -269,6 +368,10 @@ export function normalizeResume(raw: Partial<ResumeData> | null | undefined): Re
       showLevelText: typeof language.showLevelText === "boolean" ? language.showLevelText : true,
     })),
     certifications: raw.certifications ?? [],
+    // Payloads persisted before the Key-Achievements section existed lack the
+    // collection entirely — backfill it empty so hydration stays valid and the
+    // next save can't 400 on a missing array.
+    achievements: raw.achievements ?? [],
     createdAt: raw.createdAt ?? defaults.createdAt,
     updatedAt: raw.updatedAt ?? defaults.updatedAt,
   };

@@ -22,6 +22,11 @@ export function useSectionEmptyState(type: RemovableSectionType) {
             isEmpty: state.resume.certifications.length === 0,
             addEntry: state.addCertification,
           };
+        case "achievements":
+          return {
+            isEmpty: state.resume.achievements.length === 0,
+            addEntry: state.addAchievement,
+          };
         case "summary":
           return {
             isEmpty: richTextToPlainText(state.resume.summary.html).length === 0,

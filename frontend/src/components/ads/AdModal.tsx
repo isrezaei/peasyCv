@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Dialog, IconButton } from "@chakra-ui/react";
-import AdvertisingUi from "@/components/ads/advertising.ui";
+import AdvertisingUi, { AD_BLOCKS_ENABLED } from "@/components/ads/advertising.ui";
 import { CloseIcon } from "@/components/ui/icons";
 import { t } from "@/lib/i18n";
 
@@ -21,6 +21,11 @@ interface AdModalProps {
  * appear in the exported PDF.
  */
 export function AdModal({ open, onClose, adId }: AdModalProps) {
+  // Promotional blocks are disabled app-wide (see AdvertisingUi's kill switch):
+  // the ad modal never pops, whatever its callers request. The trigger code in
+  // TopBar / ExpandableActionToolbar / TemplateSwitchAd is intentionally left intact.
+  if (!AD_BLOCKS_ENABLED) return null;
+
   return (
     <Dialog.Root
       open={open}

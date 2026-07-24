@@ -98,7 +98,7 @@ describe('Resume API (e2e)', () => {
 
     // Reorder languages and edit a skill to prove deep persistence + order.
     resume.languages.reverse();
-    resume.skills[0].skills.push({ id: 'skill-new', name: 'GraphQL' });
+    resume.skills[0].skills.push({ id: 'skill-new', name: 'GraphQL', level: 4 });
     resume.personalInfo.fullName = 'ویرایش‌شده';
 
     await request(app.getHttpServer()).put(`/resumes/${resume.id}`).set(auth).send(resume).expect(200);
@@ -108,6 +108,9 @@ describe('Resume API (e2e)', () => {
       resume.languages.map((l) => l.name),
     );
     expect(get.body.skills[0].skills.at(-1).name).toBe('GraphQL');
+    // The new skills display fields round-trip through the same write/read path.
+    expect(get.body.skills[0].skills.at(-1).level).toBe(4);
+    expect(get.body.skills[0].showTitle).toBe(true);
     expect(get.body.personalInfo.fullName).toBe('ویرایش‌شده');
   });
 

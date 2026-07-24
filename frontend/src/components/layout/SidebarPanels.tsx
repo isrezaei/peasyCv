@@ -17,7 +17,7 @@ export function SidebarPanels() {
   const { activePanel } = useActivePanel();
 
   return (
-    <Box style={{ padding: "22px 22px 28px" }}>
+    <Box data-testid="sidebar-panels" style={{ padding: "22px 22px 28px" }}>
       {activePanel === "design" ? <DesignPanel /> : null}
       {activePanel === "templates" ? <TemplatesPanel /> : null}
       {activePanel === "rearrange" ? <RearrangePanel /> : null}

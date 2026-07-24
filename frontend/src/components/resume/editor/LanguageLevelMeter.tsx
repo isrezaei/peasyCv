@@ -2,8 +2,10 @@
 
 import { Box, chakra, HStack } from "@chakra-ui/react";
 import {
+  LANGUAGE_BAR_HEIGHT_COMPACT_PX,
   LANGUAGE_BAR_HEIGHT_PX,
   LANGUAGE_LINE_TRACK_PX,
+  LANGUAGE_METER_BOX_COMPACT_PX,
   LANGUAGE_METER_BOX_PX,
 } from "@/lib/pagination";
 import type { LanguageLevel, LanguageMeterVariant } from "@/types";
@@ -14,6 +16,14 @@ interface LanguageLevelMeterProps {
   variant: LanguageMeterVariant;
   editable?: boolean;
   onChange?: (level: LanguageLevel) => void;
+  /**
+   * COMPACT sizing for a narrow column (the timeline-panel design's panel): the
+   * dot/pill box and the bar height drop to their compact constants so the meter
+   * fits its own row without crowding the language name. The "line" variant is
+   * already a full-width track, so it ignores this. The level→fill logic and the
+   * paint↔reserve constants are otherwise unchanged.
+   */
+  compact?: boolean;
 }
 
 /**
@@ -24,8 +34,10 @@ interface LanguageLevelMeterProps {
 const STEPS: LanguageLevel[] = [1, 2, 3, 4, 5];
 const fillFraction = (level: LanguageLevel) => level / STEPS.length;
 
-/** Beside-text track width, derived from the shared compact meter box. */
-const PILL_TRACK_PX = STEPS.length * LANGUAGE_METER_BOX_PX;
+/** Beside-text track width, derived from the shared compact meter box. Exported
+ *  so a list owner can pin the full-width "line" variant to the same compact
+ *  track length when the meter sits beside text instead of stacked below it. */
+export const PILL_TRACK_PX = STEPS.length * LANGUAGE_METER_BOX_PX;
 
 /**
  * The Languages level meter. Vertical geometry comes from the SAME pagination
@@ -40,14 +52,19 @@ export function LanguageLevelMeter({
   variant,
   editable = false,
   onChange,
+  compact = false,
 }: LanguageLevelMeterProps) {
+  // The compact column meter shrinks the discrete box and the bar height to
+  // their compact constants; the "line" track is full-width and stays put.
+  const boxPx = compact ? LANGUAGE_METER_BOX_COMPACT_PX : LANGUAGE_METER_BOX_PX;
+  const barPx = compact ? LANGUAGE_BAR_HEIGHT_COMPACT_PX : LANGUAGE_BAR_HEIGHT_PX;
   if (variant === "pill" || variant === "line") {
     const isLine = variant === "line";
     return (
       <Box
         position="relative"
-        width={isLine ? "100%" : `${PILL_TRACK_PX}px`}
-        height={isLine ? `${LANGUAGE_LINE_TRACK_PX}px` : `${LANGUAGE_METER_BOX_PX}px`}
+        width={isLine ? "100%" : `${STEPS.length * boxPx}px`}
+        height={isLine ? `${LANGUAGE_LINE_TRACK_PX}px` : `${boxPx}px`}
         borderRadius="full"
         bg="gray.200"
         overflow="hidden"
@@ -91,14 +108,14 @@ export function LanguageLevelMeter({
         const stepStyle =
           variant === "dots"
             ? {
-                width: `${LANGUAGE_METER_BOX_PX}px`,
-                height: `${LANGUAGE_METER_BOX_PX}px`,
+                width: `${boxPx}px`,
+                height: `${boxPx}px`,
                 borderRadius: "full",
                 bg: filled ? accentColor : "gray.200",
               }
             : {
-                width: "3px",
-                height: `${LANGUAGE_BAR_HEIGHT_PX}px`,
+                width: compact ? "2.5px" : "3px",
+                height: `${barPx}px`,
                 borderRadius: "full",
                 bg: filled ? accentColor : "gray.200",
               };
